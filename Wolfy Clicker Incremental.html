@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <script src="game.js" defer></script>
+</head>
+<body>
+
+  <h1 id="contador">0</h1>
+  <img src="imagenes-wolfy/coin.png" width="300" onclick="clic();">
+  <br><br>
+
+  <!-- 1. MEJORAS DE CLIC -->
+  <div>
+    <h3>Mejoras de Clic</h3>
+    <button id="btn-0" onclick="comprar(0);">Heavy Click</button>
+    <button id="btn-1" onclick="comprar(1);">Stronger Click</button>
+    <button id="btn-2" onclick="comprar(2);">Super Click</button>
+  </div>
+  <br>
+
+  <!-- 2. CLICKER WOLFIES Y SUS MEJORAS -->
+  <div>
+    <h3>Jauría Clickeadora</h3>
+    <button onclick="comprar(3);">Clicker Wolfy</button>
+    <button id="btn-4" onclick="comprar(4);">Precise Hits</button>
+    <button id="btn-5" onclick="comprar(5);">Sharp Paws</button>
+  </div>
+  <br>
+
+  <!-- 3. FARMER WOLFIES Y SUS MEJORAS -->
+  <div>
+    <h3>Granja</h3>
+    <button onclick="comprar(6);">Farmer Wolfy</button>
+    <button id="btn-7" onclick="comprar(7);">Mejor Calidad de Hoz</button>
+  </div>
+  <br>
+
+  <!-- 4. MINER WOLFIES Y SUS MEJORAS -->
+  <div>
+    <h3>Mina</h3>
+    <button onclick="comprar(8);">Miner Wolfy</button>
+    <button id="btn-9" onclick="comprar(9);">Picos Reforzados</button>
+  </div>
+  <br>
+
+  <!-- 5. MEJORAS MIXTAS Y DÚO -->
+  <div>
+    <h3>Sinergias</h3>
+    <button id="btn-10" onclick="comprar(10);">Cooperación Pata-mano</button>
+    <button id="btn-11" onclick="comprar(11);">Picos y Palas [Dúo]</button>
+  </div>
+
+
+  <!-- 6. BAKER WOLFY Y SUS MEJORAS -->
+<div>
+  <h3>Panadería</h3>
+  <button onclick="comprar(12);">Baker Wolfy</button>
+  <button id="btn-13" onclick="comprar(13);">Patas Rápidas</button>
+  <button id="btn-14" onclick="comprar(14);">Galletas A Remate</button>
+  <button id="btn-15" onclick="comprar(15);">Mineral Comestible</button>
+</div>
+
+  <br><br>
+  <div id="inventario"></div>
+  <br><br>
+  <div id="contenedor-badges"></div>
+
+  <img id="hueso-oro" src="imagenes-wolfy/hueso_oro.png" onclick="clickHuesoOro();" style="display:none; position:absolute; cursor:pointer; width:50px;">
+
+</body>
+</html>
