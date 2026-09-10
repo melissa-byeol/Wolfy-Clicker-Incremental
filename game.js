@@ -309,31 +309,28 @@ var gameFPS = 60;
 setInterval(function(){ producir(); }, 1000/produceFPS);
 setInterval(function(){ render(); }, 1000/gameFPS);
 
-// --- EASTER EGG DE CONSOLA ---
+// --- EASTER EGGS DE CONSOLA ---
 var helloworldUsado = false;
 var thekitchenisopenUsado = false;
 var funnyfurrainUsado = false;
 var intothemoonUsado = false;
 var archivesrevealedUsado = false;
 
+// 1. HELLOWORLD
 Object.defineProperty(window, 'helloworld', {
   get: function() {
     if (helloworldUsado) {
       return "⚠️ Este código ya fue reclamado. ¡Reinicia tu partida desde cero para usarlo de nuevo!";
     }
-    
     helloworldUsado = true;
     wolfichas += 100;
-    
-    // Guardamos las 100 WC recibidas y actualizamos la pantalla
     guardarJuego();
     render();
-    
     return "🚀 ¡Boom! Código 'helloworld' activado: +100 Wolfichas de inicio rápido. 🐺✨";
   }
 });
 
-// --- COMANDO DE CONSOLA: GOLDENSURPRISE ---
+// 2. GOLDENSURPRISE
 Object.defineProperty(window, 'goldensurprise', {
   get: function() {
     aparecerHuesoOro(false);
@@ -341,84 +338,60 @@ Object.defineProperty(window, 'goldensurprise', {
   }
 });
 
-// Variable para uso único por partida (se reinicia al hacer Reset)
-var funnyfurrainUsado = false;
-
-// --- COMANDO DE CONSOLA: FUNNYFURRAIN ---
+// 3. FUNNYFURRAIN
 Object.defineProperty(window, 'funnyfurrain', {
   get: function() {
     if (funnyfurrainUsado) {
-      return "⚠️ ¡La lluvia de pelaje ya ocurrió en esta partida! Reinicia para volver a invocarla.";
+      return "⚠️ ¡La lluvia de pelaje ya ocurrió en esta partida!";
     }
-
     funnyfurrainUsado = true;
-    
-    // 1. Añadimos 10 Clicker Wolfies al inventario (Índice 3)
     inventario[3] = (inventario[3] || 0) + 10;
-    
-    // 2. Escalamos el precio base como si los hubieses comprado todos
     precioProducto[3] = precioBase[3] * (1 + 0.15 * inventario[3]);
-
-    // 3. Guardamos los cambios y actualizamos la interfaz
     guardarJuego();
     render();
-
-    return "🐾 ¡Lluvia Peluda! +10 Clicker Wolfies añadidos a la jauría. El precio del siguiente ha aumentado en consecuencia. 🐺✨";
+    return "🐾 ¡Lluvia Peluda! +10 Clicker Wolfies añadidos. 🐺✨";
   }
 });
 
+// 4. THEKITCHENISOPEN
 Object.defineProperty(window, 'thekitchenisopen', {
   get: function() {
     if (thekitchenisopenUsado) {
-      return "⚠️ Este código ya fue reclamado. ¡Reinicia tu partida desde cero para usarlo de nuevo!";
+      return "⚠️ Este código ya fue reclamado.";
     }
-    
     thekitchenisopenUsado = true;
     wolfichas += 2000;
-    
-    // Guardamos las 2000 WC recibidas y actualizamos la pantalla
     guardarJuego();
     render();
-    
     return "🚀 ¡Boom! Código 'thekitchenisopen' activado: +2000 Wolfichas. 🐺✨";
   }
 });
 
+// 5. ARCHIVESREVEALED
 Object.defineProperty(window, 'archivesrevealed', {
   get: function() {
     if (archivesrevealedUsado) {
-      return "⚠️ Este código ya fue reclamado. ¡Reinicia tu partida desde cero para usarlo de nuevo!";
+      return "⚠️ Este código ya fue reclamado.";
     }
-    
     archivesrevealedUsado = true;
     wolfichas += 30000;
-    
-    // Guardamos las 30000 WC recibidas y actualizamos la pantalla
     guardarJuego();
     render();
-    
     return "🚀 ¡Boom! Código 'archivesrevealed' activado: +30000 Wolfichas. 🐺✨";
   }
 });
 
+// 6. INTOTHEMOON
 Object.defineProperty(window, 'intothemoon', {
   get: function() {
     if (intothemoonUsado) {
-      return "⚠️ ¡La torre de lobitos ya llegó a la luna en esta partida! Reinicia para volver a invocarla.";
+      return "⚠️ ¡La torre de lobitos ya llegó a la luna!";
     }
-
     intothemoonUsado = true;
-    
-    // 1. Añadimos 10 Clicker Wolfies al inventario (Índice 3)
     inventario[3] = (inventario[3] || 0) + 1000;
-    
-    // 2. Escalamos el precio base como si los hubieses comprado todos
     precioProducto[3] = precioBase[3] * (1 + 0.15 * inventario[3]);
-
-    // 3. Guardamos los cambios y actualizamos la interfaz
     guardarJuego();
     render();
-
-    return "🐾 ¡Hora de respirar aire lunar! +1000 Clicker Wolfies añadidos a la jauría. El precio del siguiente ha aumentado en consecuencia. 🐺✨";
+    return "🐾 ¡Hora de respirar aire lunar! +1000 Clicker Wolfies añadidos. 🐺✨";
   }
 });
