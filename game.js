@@ -383,11 +383,11 @@ Object.defineProperty(window, 'thekitchenisopen', {
 
 Object.defineProperty(window, 'archivesrevealed', {
   get: function() {
-    if (thekitchenisopenUsado) {
+    if (archiverevealedUsado) {
       return "⚠️ Este código ya fue reclamado. ¡Reinicia tu partida desde cero para usarlo de nuevo!";
     }
     
-    thekitchenisopenUsado = true;
+    archivesrevealedUsado = true;
     wolfichas += 30000;
     
     // Guardamos las 30000 WC recibidas y actualizamos la pantalla
@@ -395,5 +395,27 @@ Object.defineProperty(window, 'archivesrevealed', {
     render();
     
     return "🚀 ¡Boom! Código 'archivesrevealed' activado: +30000 Wolfichas. 🐺✨";
+  }
+});
+
+Object.defineProperty(window, 'intothemoon', {
+  get: function() {
+    if (intothemoonUsado) {
+      return "⚠️ ¡La torre de lobitos ya llegó a la luna en esta partida! Reinicia para volver a invocarla.";
+    }
+
+    intothemoonUsado = true;
+    
+    // 1. Añadimos 10 Clicker Wolfies al inventario (Índice 3)
+    inventario[3] = (inventario[3] || 0) + 1000;
+    
+    // 2. Escalamos el precio base como si los hubieses comprado todos
+    precioProducto[3] = precioBase[3] * (1 + 0.15 * inventario[3]);
+
+    // 3. Guardamos los cambios y actualizamos la interfaz
+    guardarJuego();
+    render();
+
+    return "🐾 ¡Hora de respirar aire lunar! +1000 Clicker Wolfies añadidos a la jauría. El precio del siguiente ha aumentado en consecuencia. 🐺✨";
   }
 });
