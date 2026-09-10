@@ -176,7 +176,7 @@ function render() {
 
   document.getElementById("contador").innerHTML = `${wolfichasMostrar} Wolfichas <br><small>(${wolfichasPorSegundo.toFixed(1)} WC/s)</small>`;
   document.getElementById("inventario").innerHTML = 
-    `Clickers: ${inventario[3]} | Farmers: ${inventario[6]} | Mineros: ${inventario[8]} | Bakers: ${inventario[12]}`;
+    `Clickers: ${inventario[3]} | Farmers: ${inventario[6]} | Mineros: ${inventario[8]} | Bakers: ${inventario[12]} | Workers: ${inventario[16]}`;
 
   for (let i = 0; i < esMejoraUnica.length; i++) {
     if (esMejoraUnica[i] && inventario[i] > 0) {
