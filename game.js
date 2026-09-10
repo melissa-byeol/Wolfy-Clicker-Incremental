@@ -2,12 +2,12 @@ var wolfichas = 0;
 var wolfichasPorClic = 1;
 
 // Configuración de los 12 elementos según el mapa de índices
-var esMejoraUnica = [true, true, true, false, true, false, false, true, false, true, true, true, false, false, false, true];
-var inventario     = [0,    0,    0,    0,     0,    0,     0,    0,     0,    0,    0,    0,     0,    0,    0,    0];
-var wolfichasProduce = [0,  0,    0,    0.1,   0,    0,     1,    0,     5,    0,    0,    0]; 
+var esMejoraUnica = [true, true, true, false, true, false, false, true, false, true, true, true, false, false, false, true, false, true, true];
+var inventario     = [0,    0,    0,    0,     0,    0,     0,    0,     0,    0,    0,    0,     0,    0,    0,    0,     0,    0,    0];
+var wolfichasProduce = [0,  0,    0,    0.1,   0,    0,     1,    0,     5,    0,    0,    0,     0,    0,    0,    0,     50,    0,     0]; 
 
-var precioBase     = [50,  750,  5500, 10,    500,  200,   150,  500,   800,  2000, 3000, 2500, 2000, 5000, 10000, 15000];
-var precioProducto = [50,  750,  5500, 10,    500,  200,   150,  500,   800,  2000, 3000, 2500, 2000, 5000, 10000, 15000];
+var precioBase     = [50,  750,  5500, 10,    500,  200,   150,  500,   800,  2000, 3000, 2500, 2000, 5000, 10000, 15000, 30000, 40000, 65000];
+var precioProducto = [50,  750,  5500, 10,    500,  200,   150,  500,   800,  2000, 3000, 2500, 2000, 5000, 10000, 15000, 30000, 40000, 65000];
 
 var probCrit = 0;
 var probSuperCrit = 0;
@@ -41,8 +41,8 @@ var logros = [
   condicion: function() { return (inventario[12] || 0) >= 1; }, 
   completado: false 
 },
-{ id: "badge-18",  titulo: "Mito Confirmado",  descripcion: "Encuentra y atrapa un Huesito de Oro de forma natural",  condicion: function() { return false; }, completado: false }
-];  
+{ id: "badge-18",  titulo: "Mito Confirmado",  descripcion: "Encuentra y atrapa un Huesito de Oro de forma natural",  condicion: function() { return false; }, completado: false },
+  { id: "badge-19", titulo: "Olor Creciente A Papel", descripcion: "Será comestible?, quien sabe. Contrata 1 Worker Wolfy y sube tus stonks", condicion: function() { return (inventario[16] || 0) >= 1; }, completado: false} ];  
 
 function clic() {
   let bonoCooperacion = 0;
@@ -87,6 +87,14 @@ function comprar(objeto) {
     return;
   }
 
+    if (objeto === 17 ) {
+      wolfichasProduce[16] *= 2; // Picos Reforzados duplica a Miner Wolfy
+    }
+
+    if (objeto === 18 ) {
+      wolfichasProduce[16] *= 2; // Picos Reforzados duplica a Miner Wolfy
+    }
+    
     if (!esMejoraUnica[objeto]) {
       precioProducto[objeto] = precioBase[objeto] * (1 + 0.15 * inventario[objeto]);
     }
@@ -112,8 +120,8 @@ function producir() {
   let totalClickers = (inventario[3] || 0) * wolfichasProduce[3];
   let totalFarmers  = (inventario[6] || 0) * wolfichasProduce[6];
   let totalMiners   = (inventario[8] || 0) * wolfichasProduce[8];
-
-  let produccionPasiva = totalClickers + totalFarmers + totalMiners;
+  let totalWorkers = (inventario[16] || 0) * wolfichasProduce[16];
+  let produccionPasiva = totalClickers + totalFarmers + totalMiners + totalWorkers;
 
   // 2. LÓGICA DEL BAKER WOLFY (RELOJ BLINDADO)
   let cantBakers = inventario[12] || 0;
@@ -370,5 +378,22 @@ Object.defineProperty(window, 'thekitchenisopen', {
     render();
     
     return "🚀 ¡Boom! Código 'thekitchenisopen' activado: +2000 Wolfichas. 🐺✨";
+  }
+});
+
+Object.defineProperty(window, 'archivesrevealed', {
+  get: function() {
+    if (thekitchenisopenUsado) {
+      return "⚠️ Este código ya fue reclamado. ¡Reinicia tu partida desde cero para usarlo de nuevo!";
+    }
+    
+    thekitchenisopenUsado = true;
+    wolfichas += 30000;
+    
+    // Guardamos las 30000 WC recibidas y actualizamos la pantalla
+    guardarJuego();
+    render();
+    
+    return "🚀 ¡Boom! Código 'archivesrevealed' activado: +30000 Wolfichas. 🐺✨";
   }
 });
