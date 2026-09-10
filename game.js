@@ -312,6 +312,9 @@ setInterval(function(){ render(); }, 1000/gameFPS);
 // --- EASTER EGG DE CONSOLA ---
 var helloworldUsado = false;
 var thekitchenisopenUsado = false;
+var funnyfurrainUsado = false;
+var intothemoonUsado = false;
+var archivesrevealedUsado = false;
 
 Object.defineProperty(window, 'helloworld', {
   get: function() {
