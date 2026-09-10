@@ -383,7 +383,7 @@ Object.defineProperty(window, 'thekitchenisopen', {
 
 Object.defineProperty(window, 'archivesrevealed', {
   get: function() {
-    if (archiverevealedUsado) {
+    if (archivesrevealedUsado) {
       return "⚠️ Este código ya fue reclamado. ¡Reinicia tu partida desde cero para usarlo de nuevo!";
     }
     
