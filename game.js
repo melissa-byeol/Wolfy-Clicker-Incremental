@@ -15,7 +15,7 @@ var probSuperCrit = 0;
 var tiempoHorno = 10; // Tiempo restante del ciclo actual (en segundos)
 var gananciaUltimaHorneada = 0; // Para mostrar en la interfaz si deseas
 let galletaActiva = false
-let mejoraGalleta = false
+let mejoraGalleta = { comprado: false };
 var logros = [
   { id: "badge-1", titulo: "Primer Ahorro", descripcion: "Ten 100 Wolfichas Ahorradas", condicion: function() { return wolfichas >= 100; }, completado: false },
   { id: "badge-2", titulo: "Alcancía Llena", descripcion: "Ten 500 Wolfichas Ahorradas", condicion: function() { return wolfichas >= 500; }, completado: false },
@@ -42,7 +42,7 @@ var logros = [
   condicion: function() { return (inventario[12] || 0) >= 1; }, 
   completado: false 
 },
-{ id: "badge-18",  titulo: "Mito Confirmado",  descripcion: "Encuentra y atrapa un Huesito de Oro de forma natural",  condicion: function() { return false; }, completado: false },
+{ id: "badge-18",  titulo: "Mito Confirmado",  descripcion: "Encuentra y atrapa un Huesito de Oro de forma natural",  condicion: function() { return true; }, completado: false },
   { id: "badge-19", titulo: "Olor Creciente A Papel", descripcion: "Será comestible?, quien sabe. Contrata 1 Worker Wolfy y sube tus stonks", condicion: function() { return (inventario[16] || 0) >= 1; }, completado: false} ];  
 
 function clic() {
@@ -97,7 +97,7 @@ function comprar(objeto) {
     }
 
     if (objeto === 19 ) {
-      mejoraGalleta = true
+      mejoraGalleta.comprado = true
       iniciarLoopGalletas();
     }
     
@@ -123,9 +123,9 @@ var tiempoHorno = 10;
 
 // Bucle para spawnear la galleta solo si está comprada
 function iniciarLoopGalletas() {
-  setInterval(() => {
+  setInterval(function() {
     // Ejemplo: 20% de probabilidad cada 30 segundos si la mejora fue comprada
-    if (mejoraGalleta = true && !galletaActiva && Math.random() < 0.20) {
+    if (mejoraGalleta.comprado = true && !galletaActiva && Math.random() < 0.20) {
       aparecerGalletitaCrocante();
     }
   }, 30000);
