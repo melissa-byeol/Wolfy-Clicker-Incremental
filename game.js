@@ -97,6 +97,7 @@ function comprar(objeto) {
     }
 
     if (objeto === 19 ) {
+      mejoraGalleta = true
       iniciarLoopGalletas();
     }
     
@@ -124,7 +125,7 @@ var tiempoHorno = 10;
 function iniciarLoopGalletas() {
   setInterval(() => {
     // Ejemplo: 20% de probabilidad cada 30 segundos si la mejora fue comprada
-    if (mejoraGalleta.comprado && !galletaActiva && Math.random() < 0.20) {
+    if (mejoraGalleta = true && !galletaActiva && Math.random() < 0.20) {
       aparecerGalletitaCrocante();
     }
   }, 30000);
