@@ -14,7 +14,8 @@ var probSuperCrit = 0;
 
 var tiempoHorno = 10; // Tiempo restante del ciclo actual (en segundos)
 var gananciaUltimaHorneada = 0; // Para mostrar en la interfaz si deseas
-
+let galletaActiva = false
+let mejoraGalleta = false
 var logros = [
   { id: "badge-1", titulo: "Primer Ahorro", descripcion: "Ten 100 Wolfichas Ahorradas", condicion: function() { return wolfichas >= 100; }, completado: false },
   { id: "badge-2", titulo: "Alcancía Llena", descripcion: "Ten 500 Wolfichas Ahorradas", condicion: function() { return wolfichas >= 500; }, completado: false },
