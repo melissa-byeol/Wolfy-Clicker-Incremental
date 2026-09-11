@@ -2,12 +2,12 @@ var wolfichas = 0;
 var wolfichasPorClic = 1;
 
 // Configuración de los 12 elementos según el mapa de índices
-var esMejoraUnica = [true, true, true, false, true, false, false, true, false, true, true, true, false, false, false, true, false, true, true];
-var inventario     = [0,    0,    0,    0,     0,    0,     0,    0,     0,    0,    0,    0,     0,    0,    0,    0,     0,    0,    0];
-var wolfichasProduce = [0,  0,    0,    0.1,   0,    0,     1,    0,     5,    0,    0,    0,     0,    0,    0,    0,     50,    0,     0]; 
+var esMejoraUnica = [true, true, true, false, true, false, false, true, false, true, true, true, false, false, false, true, false, true, true, true];
+var inventario     = [0,    0,    0,    0,     0,    0,     0,    0,     0,    0,    0,    0,     0,    0,    0,    0,     0,    0,    0,    0];
+var wolfichasProduce = [0,  0,    0,    0.1,   0,    0,     1,    0,     5,    0,    0,    0,     0,    0,    0,    0,     50,    0,     0,    0]; 
 
-var precioBase     = [50,  750,  5500, 10,    500,  200,   150,  500,   800,  2000, 3000, 2500, 2000, 5000, 10000, 15000, 30000, 40000, 65000];
-var precioProducto = [50,  750,  5500, 10,    500,  200,   150,  500,   800,  2000, 3000, 2500, 2000, 5000, 10000, 15000, 30000, 40000, 65000];
+var precioBase     = [50,  750,  5500, 10,    500,  200,   150,  500,   800,  2000, 3000, 2500, 2000, 5000, 10000, 15000, 30000, 40000, 65000, 9999];
+var precioProducto = [50,  750,  5500, 10,    500,  200,   150,  500,   800,  2000, 3000, 2500, 2000, 5000, 10000, 15000, 30000, 40000, 65000, 9999];
 
 var probCrit = 0;
 var probSuperCrit = 0;
@@ -94,6 +94,10 @@ function comprar(objeto) {
     if (objeto === 18 ) {
       wolfichasProduce[16] *= 2; // Picos Reforzados duplica a Miner Wolfy
     }
+
+    if (objeto === 19 ) {
+      iniciarLoopGalletas();
+    }
     
     if (!esMejoraUnica[objeto]) {
       precioProducto[objeto] = precioBase[objeto] * (1 + 0.15 * inventario[objeto]);
@@ -114,6 +118,51 @@ var wolfichasPorSegundo = 0;
 
 // Asegúrate de que esta variable esté declarada AFUERA de las funciones
 var tiempoHorno = 10; 
+
+// Bucle para spawnear la galleta solo si está comprada
+function iniciarLoopGalletas() {
+  setInterval(() => {
+    // Ejemplo: 20% de probabilidad cada 30 segundos si la mejora fue comprada
+    if (mejoraGalleta.comprado && !galletaActiva && Math.random() < 0.20) {
+      aparecerGalletitaCrocante();
+    }
+  }, 30000);
+}
+
+function aparecerGalletitaCrocante() {
+  galletaActiva = true;
+  clicksActuales = 0;
+  clicksRequeridos = Math.floor(Math.random() * (7 - 3 + 1)) + 3;
+  tiempoLimiteQTE = Math.floor(Math.random() * (15 - 7 + 1)) + 7;
+
+  // Insertar o mostrar el elemento en el DOM usando la imagen
+  let cookieElement = document.getElementById("galleta-qte");
+  if (!cookieElement) {
+    cookieElement = document.createElement("img");
+    cookieElement.id = "galleta-crocante";
+    cookieElement.src = "plain_cookie.png";
+    cookieElement.alt = "Galletita Crocante";
+    cookieElement.style.position = "absolute";
+    cookieElement.style.cursor = "pointer";
+    cookieElement.onclick = clickGalletita;
+    document.body.appendChild(cookieElement);
+  }
+
+  // Posicionamiento aleatorio en pantalla
+  cookieElement.style.top = Math.floor(Math.random() * 70 + 15) + "%";
+  cookieElement.style.left = Math.floor(Math.random() * 70 + 15) + "%";
+  cookieElement.style.display = "block";
+
+  // Temporizador QTE
+  timerQTE = setInterval(() => {
+    tiempoLimiteQTE -= 0.1;
+    if (tiempoLimiteQTE <= 0) {
+      clearInterval(timerQTE);
+      galletaActiva = false;
+      cookieElement.style.display = "none";
+    }
+  }, 100);
+}
 
 function producir() {
   // 1. Producción continua pasiva
