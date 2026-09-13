@@ -1,5 +1,7 @@
 var wolfichas = 0;
 var wolfichasPorClic = 1;
+var multiplicadorGalleta = 1;
+var duracionBuffGalleta = 0;
 
 // Configuración de los 12 elementos según el mapa de índices
 var esMejoraUnica = [true, true, true, false, true, false, false, true, false, true, true, true, false, false, false, true, false, true, true, true];
@@ -16,8 +18,7 @@ var tiempoHorno = 10; // Tiempo restante del ciclo actual (en segundos)
 var gananciaUltimaHorneada = 0; // Para mostrar en la interfaz si deseas
 let galletaActiva = false
 let mejoraGalleta = { comprado: false };
-var multiplicadorGalleta = 1;
-var duracionBuffGalleta = 0;
+
 var logros = [
   { id: "badge-1", titulo: "Primer Ahorro", descripcion: "Ten 100 Wolfichas Ahorradas", condicion: function() { return wolfichas >= 100; }, completado: false },
   { id: "badge-2", titulo: "Alcancía Llena", descripcion: "Ten 500 Wolfichas Ahorradas", condicion: function() { return wolfichas >= 500; }, completado: false },
