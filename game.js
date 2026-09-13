@@ -3,10 +3,16 @@ var wolfichasPorClic = 1;
 var multiplicadorGalleta = 1;
 var duracionBuffGalleta = 0;
 
+// Variables globales del QTE de la galleta (Fix para evitar ReferenceError)
+var clicksActuales = 0;
+var clicksRequeridos = 0;
+var tiempoLimiteQTE = 0;
+var timerQTE = null;
+
 // Configuración de los 12 elementos según el mapa de índices
 var esMejoraUnica = [true, true, true, false, true, false, false, true, false, true, true, true, false, false, false, true, false, true, true, true];
-var inventario     = [0,    0,    0,    0,     0,    0,     0,    0,     0,    0,    0,    0,     0,    0,    0,    0,     0,    0,    0,    0];
-var wolfichasProduce = [0,  0,    0,    0.1,   0,    0,     1,    0,     5,    0,    0,    0,     0,    0,    0,    0,     50,    0,     0,    0]; 
+var inventario     = [0,   0,   0,   0,     0,   0,     0,   0,     0,   0,   0,   0,     0,   0,   0,   0,     0,   0,   0,   0];
+var wolfichasProduce = [0,  0,   0,   0.1,   0,   0,     1,   0,     5,   0,   0,   0,     0,   0,   0,   0,     50,  0,   0,   0]; 
 
 var precioBase     = [50,  750,  5500, 10,    500,  200,   150,  500,   800,  2000, 3000, 2500, 2000, 5000, 10000, 15000, 30000, 40000, 65000, 9999];
 var precioProducto = [50,  750,  5500, 10,    500,  200,   150,  500,   800,  2000, 3000, 2500, 2000, 5000, 10000, 15000, 30000, 40000, 65000, 9999];
@@ -14,9 +20,9 @@ var precioProducto = [50,  750,  5500, 10,    500,  200,   150,  500,   800,  20
 var probCrit = 0;
 var probSuperCrit = 0;
 
-var tiempoHorno = 10; // Tiempo restante del ciclo actual (en segundos)
-var gananciaUltimaHorneada = 0; // Para mostrar en la interfaz si deseas
-let galletaActiva = false
+var tiempoHorno = 10; 
+var gananciaUltimaHorneada = 0; 
+let galletaActiva = false;
 let mejoraGalleta = { comprado: false };
 
 var logros = [
@@ -30,27 +36,19 @@ var logros = [
   { id: "badge-8", titulo: "Organización Creciente", descripcion: "Alcanza una producción de 10 WC/s", condicion: function() { return wolfichasPorSegundo >= 10; }, completado: false },
   { id: "badge-9", titulo: "Fuerza Lupina", descripcion: "Alcanza una producción de 100 WC/s", condicion: function() { return wolfichasPorSegundo >= 100; }, completado: false },
   { id: "badge-10", titulo: "¿Empresario o Domador? ¿Qué Tal Ambos?", descripcion: "¡Alcanza la colosal cifra de 1,000 WC/s!", condicion: function() { return wolfichasPorSegundo >= 1000; }, completado: false },
-{ id: "badge-11", titulo: "Recolector Casual", descripcion: "Contrata 1 Farmer Wolfy", condicion: function() { return (inventario[6] || 0) >= 1; }, completado: false },
+  { id: "badge-11", titulo: "Recolector Casual", descripcion: "Contrata 1 Farmer Wolfy", condicion: function() { return (inventario[6] || 0) >= 1; }, completado: false },
   { id: "badge-12", titulo: "Hacer Crecer un Jardín", descripcion: "Contrata 10 Farmer Wolfies", condicion: function() { return (inventario[6] || 0) >= 10; }, completado: false },
   { id: "badge-13", titulo: "Farmeando Wolfichas... Literalmente", descripcion: "Contrata 100 Farmer Wolfies", condicion: function() { return (inventario[6] || 0) >= 100; }, completado: false },
-
-  // --- FAMILIA MINER WOLFY ---
   { id: "badge-14", titulo: "Trabajo Duro", descripcion: "Contrata 1 Miner Wolfy", condicion: function() { return (inventario[8] || 0) >= 1; }, completado: false },
   { id: "badge-15", titulo: "Mine Pero Sin Craft", descripcion: "Contrata 5 Miner Wolfies", condicion: function() { return (inventario[8] || 0) >= 5; }, completado: false },
   { id: "badge-16", titulo: "¡¿Y los Diamantes?!", descripcion: "Contrata 25 Miner Wolfies", condicion: function() { return (inventario[8] || 0) >= 25; }, completado: false },
-{ 
-  id: "badge-17", 
-  titulo: "Pastelería Lupina", 
-  descripcion: "Pastelería a lo lupino, todo amasado a patita... ejem, disculpa. Contrata 1 Baker Wolfy.", 
-  condicion: function() { return (inventario[12] || 0) >= 1; }, 
-  completado: false 
-},
-{ id: "badge-18",  titulo: "Mito Confirmado",  descripcion: "Encuentra y atrapa un Huesito de Oro de forma natural",  condicion: function() { return true; }, completado: false },
-  { id: "badge-19", titulo: "Olor Creciente A Papel", descripcion: "Será comestible?, quien sabe. Contrata 1 Worker Wolfy y sube tus stonks", condicion: function() { return (inventario[16] || 0) >= 1; }, completado: false} ];  
+  { id: "badge-17", titulo: "Pastelería Lupina", descripcion: "Pastelería a lo lupino, todo amasado a patita... ejem, disculpa. Contrata 1 Baker Wolfy.", condicion: function() { return (inventario[12] || 0) >= 1; }, completado: false },
+  { id: "badge-18", titulo: "Mito Confirmado", descripcion: "Encuentra y atrapa un Huesito de Oro de forma natural", condicion: function() { return true; }, completado: false },
+  { id: "badge-19", titulo: "Olor Creciente A Papel", descripcion: "Será comestible?, quien sabe. Contrata 1 Worker Wolfy y sube tus stonks", condicion: function() { return (inventario[16] || 0) >= 1; }, completado: false }
+];  
 
 function clic() {
   let bonoCooperacion = 0;
-  // Índice 10: Cooperación Pata-mano
   if (inventario[10] > 0) {
     bonoCooperacion = inventario[3] * 0.1;
   }
@@ -64,46 +62,26 @@ function comprar(objeto) {
   if (wolfichas >= precioProducto[objeto]) {
     inventario[objeto]++;
     wolfichas -= precioProducto[objeto];
- 
-    if (objeto <= 2) {
-      wolfichasPorClic *= 2;
-    }
 
-    if (objeto === 4) {
-      probCrit = 15;
-    }
-
-    if (objeto === 5) {
-      wolfichasProduce[3] += 0.1;
-    }
-
-    if (objeto === 7) {
-      wolfichasProduce[6] *= 2; // Mejor Calidad de Hoz duplica a Farmer Wolfy
-    }
-
-    if (objeto === 9) {
-      wolfichasProduce[8] *= 2; // Picos Reforzados duplica a Miner Wolfy
-    }
-
+    if (objeto <= 2) wolfichasPorClic *= 2;
+    if (objeto === 4) probCrit = 15;
+    if (objeto === 5) wolfichasProduce[3] += 0.1;
+    if (objeto === 7) wolfichasProduce[6] *= 2;
+    if (objeto === 9) wolfichasProduce[8] *= 2;
 
     if (objeto === 13 && (inventario[13] || 0) >= 16) {
-    alert("¡Tus patitas ya no pueden amasar más rápido! (Mínimo de 2s alcanzado)");
-    return;
-  }
-
-    if (objeto === 17 ) {
-      wolfichasProduce[16] *= 2; // Picos Reforzados duplica a Miner Wolfy
+      alert("¡Tus patitas ya no pueden amasar más rápido! (Mínimo de 2s alcanzado)");
+      return;
     }
 
-    if (objeto === 18 ) {
-      wolfichasProduce[16] *= 2; // Picos Reforzados duplica a Miner Wolfy
-    }
+    if (objeto === 17) wolfichasProduce[16] *= 2;
+    if (objeto === 18) wolfichasProduce[16] *= 2;
 
-    if (objeto === 19 ) {
-      mejoraGalleta.comprado = true
+    if (objeto === 19) {
+      mejoraGalleta.comprado = true;
       iniciarLoopGalletas();
     }
-    
+
     if (!esMejoraUnica[objeto]) {
       precioProducto[objeto] = precioBase[objeto] * (1 + 0.15 * inventario[objeto]);
     }
@@ -121,13 +99,8 @@ function girarRuleta() {
 
 var wolfichasPorSegundo = 0;
 
-// Asegúrate de que esta variable esté declarada AFUERA de las funciones
-var tiempoHorno = 10; 
-
-// Bucle para spawnear la galleta solo si está comprada
 function iniciarLoopGalletas() {
   setInterval(function() {
-    // Ejemplo: 20% de probabilidad cada 30 segundos si la mejora fue comprada
     if (mejoraGalleta.comprado && !galletaActiva && Math.random() < 0.20) {
       aparecerGalletitaCrocante();
     }
@@ -140,8 +113,7 @@ function aparecerGalletitaCrocante() {
   clicksRequeridos = Math.floor(Math.random() * (7 - 3 + 1)) + 3;
   tiempoLimiteQTE = Math.floor(Math.random() * (15 - 7 + 1)) + 7;
 
-  // Insertar o mostrar el elemento en el DOM usando la imagen
-  let cookieElement = document.getElementById("galleta-qte");
+  let cookieElement = document.getElementById("galleta-crocante");
   if (!cookieElement) {
     cookieElement = document.createElement("img");
     cookieElement.id = "galleta-crocante";
@@ -153,12 +125,10 @@ function aparecerGalletitaCrocante() {
     document.body.appendChild(cookieElement);
   }
 
-  // Posicionamiento aleatorio en pantalla
   cookieElement.style.top = Math.floor(Math.random() * 70 + 15) + "%";
   cookieElement.style.left = Math.floor(Math.random() * 70 + 15) + "%";
   cookieElement.style.display = "block";
 
-  // Temporizador QTE
   timerQTE = setInterval(() => {
     tiempoLimiteQTE -= 0.1;
     if (tiempoLimiteQTE <= 0) {
@@ -172,10 +142,8 @@ function aparecerGalletitaCrocante() {
 function clickGalletita() {
   if (!galletaActiva) return;
 
-  // Suma un clic por cada toque/press
   clicksActuales++;
 
-  // Si el jugador alcanza los clics requeridos antes de que acabe el tiempo
   if (clicksActuales >= clicksRequeridos) {
     clearInterval(timerQTE);
     galletaActiva = false;
@@ -183,14 +151,9 @@ function clickGalletita() {
     let cookieElement = document.getElementById("galleta-crocante");
     if (cookieElement) cookieElement.style.display = "none";
 
-    // CALCULO VARIABLE DEL BUFF:
-    // A más rápido lo resuelvas (más tiempo sobre), mayor será la duración del buff
     duracionBuffGalleta = 10 + Math.floor(tiempoLimiteQTE); 
-    
-    // Multiplicador temporal de producción x1.5
     multiplicadorGalleta = 1.5; 
 
-    // Temporizador para revertir el buff cuando termine el tiempo ganado
     let timerBuff = setInterval(() => {
       duracionBuffGalleta--;
       if (duracionBuffGalleta <= 0) {
@@ -202,15 +165,15 @@ function clickGalletita() {
     alert(`¡Desafío completado! 🍪 Multiplicador x1.5 activo durante ${10 + Math.floor(tiempoLimiteQTE)} segundos.`);
   }
 }
+
 function producir() {
-  // 1. Producción continua pasiva
   let totalClickers = (inventario[3] || 0) * wolfichasProduce[3];
   let totalFarmers  = (inventario[6] || 0) * wolfichasProduce[6];
   let totalMiners   = (inventario[8] || 0) * wolfichasProduce[8];
-  let totalWorkers = (inventario[16] || 0) * wolfichasProduce[16];
- // En producir():
-let produccionPasiva = (totalClickers + totalFarmers + totalMiners + totalWorkers) * multiplicadorGalleta;
-  // 2. LÓGICA DEL BAKER WOLFY (RELOJ BLINDADO)
+  let totalWorkers  = (inventario[16] || 0) * wolfichasProduce[16];
+
+  let produccionPasiva = (totalClickers + totalFarmers + totalMiners + totalWorkers) * multiplicadorGalleta;
+
   let cantBakers = inventario[12] || 0;
   let gananciaHornoTotal = 0;
 
@@ -218,10 +181,8 @@ let produccionPasiva = (totalClickers + totalFarmers + totalMiners + totalWorker
     let comprasPatas = inventario[13] || 0;
     let tiempoCicloMax = Math.max(2, 10 - (comprasPatas * 0.5));
 
-    // Descuenta exactamente 1 segundo en cada tick
     tiempoHorno--;
 
-    // Solo hornea cuando el reloj llega a 0 o menos
     if (tiempoHorno <= 0) {
       let galletasPorCiclo = 5 + (inventario[14] || 0);
       let cantMineros = inventario[8] || 0;
@@ -229,25 +190,20 @@ let produccionPasiva = (totalClickers + totalFarmers + totalMiners + totalWorker
       let valorGalleta = 10 * bonoMineros;
 
       gananciaHornoTotal = cantBakers * (galletasPorCiclo * valorGalleta);
-
-      // ¡AQUÍ ESTÁ EL TRUCO! Reiniciamos al ciclo máximo real, NUNCA a 1 o 0
       tiempoHorno = tiempoCicloMax; 
     }
   } else {
-    tiempoHorno = 10; // Si no hay panaderos, el reloj se queda esperando en 10
+    tiempoHorno = 10;
   }
 
-  // 3. Manejo del Buff del Huesito de Oro (Sin tocar el tiempo del horno)
   let multiplicador = 1;
   if (tiempoBuffHueso > 0) {
     multiplicador = 7;
-    tiempoBuffHueso--; // Descuenta el tiempo del buff limpiamente
+    tiempoBuffHueso--;
   }
 
-  // 4. Inyección de dinero (El x7 multiplica tanto la pasiva como la horneada si coincidieron)
   wolfichas += (produccionPasiva + gananciaHornoTotal) * multiplicador;
 
-  // Promedio visual para la pantalla (evita brincos raros en el contador de WC/s)
   let comprasPatas = inventario[13] || 0;
   let tiempoCicloMax = Math.max(2, 10 - (comprasPatas * 0.5));
   let promedioBaker = (cantBakers > 0) ? ((5 + (inventario[14] || 0)) * 10 * cantBakers) / tiempoCicloMax : 0;
@@ -328,11 +284,12 @@ function cargarJuego() {
     }
   } catch (e) {
     console.error("Error al cargar la partida guardada", e);
-  }// Al final de cargarJuego():
-if (inventario[19] > 0) {
-  mejoraGalleta.comprado = true;
-  iniciarLoopGalletas();
-}
+  }
+
+  if (inventario[19] > 0) {
+    mejoraGalleta.comprado = true;
+    iniciarLoopGalletas();
+  }
 }
 
 cargarJuego();
@@ -340,14 +297,13 @@ setInterval(guardarJuego, 5000);
 
 var multiplicadorHueso = 1;
 var tiempoBuffHueso = 0;
-
 var esHuesoNatural = false;
 
 function aparecerHuesoOro(esNatural = false) {
   let hueso = document.getElementById("hueso-oro");
   if (!hueso) return;
 
-  esHuesoNatural = esNatural; // Guardamos si vino del evento aleatorio
+  esHuesoNatural = esNatural;
 
   let top = Math.floor(Math.random() * (window.innerHeight - 100));
   let left = Math.floor(Math.random() * (window.innerWidth - 100));
@@ -361,8 +317,7 @@ function aparecerHuesoOro(esNatural = false) {
 
 function clickHuesoOro() {
   document.getElementById("hueso-oro").style.display = "none";
-  
-  // --- VERIFICACIÓN DEL LOGRO "MITO CONFIRMADO" ---
+
   if (esHuesoNatural) {
     let logroMito = logros.find(l => l.id === "badge-18");
     if (logroMito && !logroMito.completado) {
@@ -371,7 +326,6 @@ function clickHuesoOro() {
     }
   }
 
-  // --- LÓGICA DE RECOMPENSAS (RECOMPENSA O FRENESÍ) ---
   let tipoBono = Math.random() < 0.5;
 
   if (tipoBono) {
@@ -407,12 +361,9 @@ var funnyfurrainUsado = false;
 var intothemoonUsado = false;
 var archivesrevealedUsado = false;
 
-// 1. HELLOWORLD
 Object.defineProperty(window, 'helloworld', {
   get: function() {
-    if (helloworldUsado) {
-      return "⚠️ Este código ya fue reclamado. ¡Reinicia tu partida desde cero para usarlo de nuevo!";
-    }
+    if (helloworldUsado) return "⚠️ Este código ya fue reclamado. ¡Reinicia tu partida desde cero para usarlo de nuevo!";
     helloworldUsado = true;
     wolfichas += 100;
     guardarJuego();
@@ -421,7 +372,6 @@ Object.defineProperty(window, 'helloworld', {
   }
 });
 
-// 2. GOLDENSURPRISE
 Object.defineProperty(window, 'goldensurprise', {
   get: function() {
     aparecerHuesoOro(false);
@@ -429,12 +379,9 @@ Object.defineProperty(window, 'goldensurprise', {
   }
 });
 
-// 3. FUNNYFURRAIN
 Object.defineProperty(window, 'funnyfurrain', {
   get: function() {
-    if (funnyfurrainUsado) {
-      return "⚠️ ¡La lluvia de pelaje ya ocurrió en esta partida!";
-    }
+    if (funnyfurrainUsado) return "⚠️ ¡La lluvia de pelaje ya ocurrió en esta partida!";
     funnyfurrainUsado = true;
     inventario[3] = (inventario[3] || 0) + 10;
     precioProducto[3] = precioBase[3] * (1 + 0.15 * inventario[3]);
@@ -444,12 +391,9 @@ Object.defineProperty(window, 'funnyfurrain', {
   }
 });
 
-// 4. THEKITCHENISOPEN
 Object.defineProperty(window, 'thekitchenisopen', {
   get: function() {
-    if (thekitchenisopenUsado) {
-      return "⚠️ Este código ya fue reclamado.";
-    }
+    if (thekitchenisopenUsado) return "⚠️ Este código ya fue reclamado.";
     thekitchenisopenUsado = true;
     wolfichas += 2000;
     guardarJuego();
@@ -458,12 +402,9 @@ Object.defineProperty(window, 'thekitchenisopen', {
   }
 });
 
-// 5. ARCHIVESREVEALED
 Object.defineProperty(window, 'archivesrevealed', {
   get: function() {
-    if (archivesrevealedUsado) {
-      return "⚠️ Este código ya fue reclamado.";
-    }
+    if (archivesrevealedUsado) return "⚠️ Este código ya fue reclamado.";
     archivesrevealedUsado = true;
     wolfichas += 30000;
     guardarJuego();
@@ -472,12 +413,9 @@ Object.defineProperty(window, 'archivesrevealed', {
   }
 });
 
-// 6. INTOTHEMOON
 Object.defineProperty(window, 'intothemoon', {
   get: function() {
-    if (intothemoonUsado) {
-      return "⚠️ ¡La torre de lobitos ya llegó a la luna!";
-    }
+    if (intothemoonUsado) return "⚠️ ¡La torre de lobitos ya llegó a la luna!";
     intothemoonUsado = true;
     inventario[3] = (inventario[3] || 0) + 1000;
     precioProducto[3] = precioBase[3] * (1 + 0.15 * inventario[3]);
