@@ -1,13 +1,14 @@
 <!DOCTYPE html>
-<html>
+<html lang="es">
 <head>
   <meta charset="UTF-8">
+  <title>Wolfy Clicker</title>
   <script src="game.js" defer></script>
 </head>
 <body>
 
-  <h1 id="contador">0</h1>
-  <img src="imagenes-wolfy/coin.png" width="300" onclick="clic();">
+  <h1 id="contador">0 Wolfichas</h1>
+  <img src="imagenes-wolfy/coin.png" width="300" onclick="clic();" style="cursor:pointer;" alt="Wolficha">
   <br><br>
 
   <!-- 1. MEJORAS DE CLIC -->
@@ -53,32 +54,37 @@
   <br>
 
   <!-- 6. BAKER WOLFY Y SUS MEJORAS -->
-<div>
-  <h3>Panadería</h3>
-  <button onclick="comprar(12);">Baker Wolfy</button>
-  <button id="btn-13" onclick="comprar(13);">Patas Rápidas</button>
-  <button id="btn-14" onclick="comprar(14);">Galletas A Remate</button>
-  <button id="btn-15" onclick="comprar(15);">Mineral Comestible</button>
-</div>
+  <div>
+    <h3>Panadería</h3>
+    <button onclick="comprar(12);">Baker Wolfy</button>
+    <button id="btn-13" onclick="comprar(13);">Patas Rápidas</button>
+    <button id="btn-14" onclick="comprar(14);">Galletas A Remate</button>
+    <button id="btn-15" onclick="comprar(15);">Mineral Comestible</button>
+  </div>
   <br>
   
-<!-- 6. BAKER WOLFY Y SUS MEJORAS -->
-<div>
-  <h3>Oficina Empresarial</h3>
-  <button id="btn-16" onclick="comprar(16);">Worker Wolfy</button>
-  <button id="btn-17" onclick="comprar(17);">Furpuccino Express</button>
-  <button id="btn-18" onclick="comprar(18);">Asiento Cómodo</button>
-</div>
+  <!-- 7. WORKER WOLFY Y SUS MEJORAS -->
   <div>
-  <h3>Galletas Desafío</h3>
-  <button id="btn-19" onclick="comprar(19);">Galletitas Crocantes</button>
-</div>
+    <h3>Oficina Empresarial</h3>
+    <button id="btn-16" onclick="comprar(16);">Worker Wolfy</button>
+    <button id="btn-17" onclick="comprar(17);">Furpuccino Express</button>
+    <button id="btn-18" onclick="comprar(18);">Asiento Cómodo</button>
+  </div>
+  <br>
+
+  <!-- 8. GALLETA DESAFÍO (ÍNDICE 19) -->
+  <div>
+    <h3>Galletas Desafío</h3>
+    <button id="btn-19" onclick="comprar(19);">Galletitas Crocantes</button>
+  </div>
   <br><br>
+
   <div id="inventario"></div>
   <br><br>
   <div id="contenedor-badges"></div>
 
-  <img id="hueso-oro" src="imagenes-wolfy/hueso_oro.png" onclick="clickHuesoOro();" style="display:none; position:absolute; cursor:pointer; width:50px;">
-  <img id="galleta-crocante" src="imagenes-wolfy/plain_cookie.png" onclick="clickGalletita();" style="display:none; position:absolute; cursor:pointer; width:75px;">
+  <img id="hueso-oro" src="imagenes-wolfy/hueso_oro.png" onclick="clickHuesoOro();" style="display:none; position:absolute; cursor:pointer; width:50px; z-index: 9999;" alt="Hueso de Oro">
+  <img id="galleta-crocante" src="imagenes-wolfy/plain_cookie.png" onclick="clickGalletita();" style="display:none; position:absolute; cursor:pointer; width:75px; z-index: 9999;" alt="Galleta Crocante">
+
 </body>
 </html>
