@@ -59,12 +59,15 @@ function clic() {
 }
 
 function comprar(objeto) {
+  // 1. Si es única y ya se tiene en inventario, no hacer nada
   if (esMejoraUnica[objeto] && inventario[objeto] > 0) return;
 
+  // 2. Verificar si alcanza el dinero
   if (wolfichas >= precioProducto[objeto]) {
-    inventario[objeto]++;
     wolfichas -= precioProducto[objeto];
+    inventario[objeto]++;
 
+    // Aplicar efectos según el objeto
     if (objeto <= 2) wolfichasPorClic *= 2;
     if (objeto === 4) probCrit = 15;
     if (objeto === 5) wolfichasProduce[3] += 0.1;
@@ -79,12 +82,18 @@ function comprar(objeto) {
     if (objeto === 17) wolfichasProduce[16] *= 2;
     if (objeto === 18) wolfichasProduce[16] *= 2;
 
+    // Efecto de la Galleta (Objeto 19)
     if (objeto === 19) {
       mejoraGalleta.comprado = true;
-      iniciarLoopGalletas();
-      aparecerGalletitaCrocante(); 
+      if (typeof iniciarLoopGalletas === "function") {
+        iniciarLoopGalletas();
+      }
+      if (typeof aparecerGalletitaCrocante === "function") {
+        aparecerGalletitaCrocante();
+      }
     }
 
+    // Actualizar precio si no es única
     if (!esMejoraUnica[objeto]) {
       precioProducto[objeto] = precioBase[objeto] * (1 + 0.15 * inventario[objeto]);
     }
@@ -132,8 +141,7 @@ function aparecerGalletitaCrocante() {
     cookieElement = document.createElement("img");
     cookieElement.id = "galleta-crocante";
     cookieElement.src = "imagenes-wolfy/plain_cookie.png";
-    cookieElement.alt = "Galletita Crocante";
-    cookieElement.style.position = "absolute";
+    cookieElement.alt = "Galletita Crocante";    cookieElement.style.position = "absolute";
     cookieElement.style.cursor = "pointer";
     cookieElement.style.zIndex = "9999";
     cookieElement.onclick = clickGalletita;
