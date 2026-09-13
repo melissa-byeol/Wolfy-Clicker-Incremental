@@ -125,7 +125,7 @@ var tiempoHorno = 10;
 function iniciarLoopGalletas() {
   setInterval(function() {
     // Ejemplo: 20% de probabilidad cada 30 segundos si la mejora fue comprada
-    if (mejoraGalleta.comprado = true && !galletaActiva && Math.random() < 0.20) {
+    if (mejoraGalleta.comprado && !galletaActiva && Math.random() < 0.20) {
       aparecerGalletitaCrocante();
     }
   }, 30000);
@@ -172,8 +172,8 @@ function producir() {
   let totalFarmers  = (inventario[6] || 0) * wolfichasProduce[6];
   let totalMiners   = (inventario[8] || 0) * wolfichasProduce[8];
   let totalWorkers = (inventario[16] || 0) * wolfichasProduce[16];
-  let produccionPasiva = totalClickers + totalFarmers + totalMiners + totalWorkers;
-
+ // En producir():
+let produccionPasiva = (totalClickers + totalFarmers + totalMiners + totalWorkers) * multiplicadorGalleta;
   // 2. LÓGICA DEL BAKER WOLFY (RELOJ BLINDADO)
   let cantBakers = inventario[12] || 0;
   let gananciaHornoTotal = 0;
@@ -292,7 +292,11 @@ function cargarJuego() {
     }
   } catch (e) {
     console.error("Error al cargar la partida guardada", e);
-  }
+  }// Al final de cargarJuego():
+if (inventario[19] > 0) {
+  mejoraGalleta.comprado = true;
+  iniciarLoopGalletas();
+}
 }
 
 cargarJuego();
