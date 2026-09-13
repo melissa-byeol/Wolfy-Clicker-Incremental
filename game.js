@@ -124,38 +124,60 @@ function aparecerGalletitaCrocante() {
 
   galletaActiva = true;
   clicksActuales = 0;
-  clicksRequeridos = Math.floor(Math.random() * 5) + 3; // De 3 a 7 clics
-  tiempoLimiteQTE = Math.floor(Math.random() * 9) + 7;   // De 7 a 15 segundos
+  clicksRequeridos = Math.floor(Math.random() * 5) + 3; // 3 a 7 clics
+  tiempoLimiteQTE = Math.floor(Math.random() * 9) + 7;   // 7 a 15 segundos
 
   let cookieElement = document.getElementById("galleta-crocante");
-  let qteInfo = document.getElementById("qte-info");
-
-  if (cookieElement) {
-    // Generar posición aleatoria
-    let topPos = Math.floor(Math.random() * 60 + 15);
-    let leftPos = Math.floor(Math.random() * 60 + 15);
-
-    cookieElement.style.top = topPos + "%";
-    cookieElement.style.left = leftPos + "%";
-    cookieElement.style.display = "block";
-
-    // Posicionar el indicador de texto sobre la galleta
-    if (qteInfo) {
-      qteInfo.style.top = (topPos - 6) + "%";
-      qteInfo.style.left = (leftPos - 2) + "%";
-      qteInfo.style.display = "block";
-      qteInfo.innerHTML = `🍪 Clics: ${clicksRequeridos - clicksActuales}<br>⏱️ ${tiempoLimiteQTE.toFixed(1)}s`;
-    }
+  if (!cookieElement) {
+    cookieElement = document.createElement("img");
+    cookieElement.id = "galleta-crocante";
+    cookieElement.src = "imagenes-wolfy/plain_cookie.png";
+    cookieElement.alt = "Galletita Crocante";
+    cookieElement.style.position = "absolute";
+    cookieElement.style.cursor = "pointer";
+    cookieElement.style.zIndex = "9999";
+    cookieElement.style.width = "75px";
+    cookieElement.onclick = clickGalletita;
+    document.body.appendChild(cookieElement);
   }
 
-  // Bucle de cuenta regresiva a 100ms
+  // 🍪 CREAR O REUTILIZAR EL ELEMENTO DE TEXTO DEL QTE
+  let qteInfo = document.getElementById("qte-info");
+  if (!qteInfo) {
+    qteInfo = document.createElement("div");
+    qteInfo.id = "qte-info";
+    qteInfo.style.position = "absolute";
+    qteInfo.style.zIndex = "10000";
+    qteInfo.style.fontWeight = "bold";
+    qteInfo.style.color = "#ffffff";
+    qteInfo.style.fontSize = "16px";
+    qteInfo.style.textShadow = "2px 2px 4px #000000, -1px -1px 0 #000";
+    qteInfo.style.pointerEvents = "none"; // Evita interferir con los clics
+    qteInfo.style.textAlign = "center";
+    document.body.appendChild(qteInfo);
+  }
+
+  // Posicionar galleta y texto aleatoriamente
+  let topPos = Math.floor(Math.random() * 60 + 15);
+  let leftPos = Math.floor(Math.random() * 60 + 15);
+
+  cookieElement.style.top = topPos + "%";
+  cookieElement.style.left = leftPos + "%";
+  cookieElement.style.display = "block";
+
+  qteInfo.style.top = (topPos - 5) + "%";
+  qteInfo.style.left = leftPos + "%";
+  qteInfo.style.display = "block";
+  qteInfo.innerHTML = `🍪 Faltan: ${clicksRequeridos - clicksActuales}<br>⏱️ ${tiempoLimiteQTE.toFixed(1)}s`;
+
+  // Temporizador de actualización rápida
   timerQTE = setInterval(() => {
     tiempoLimiteQTE -= 0.1;
 
     if (qteInfo) {
       let faltantes = clicksRequeridos - clicksActuales;
       let tiempoMostrar = Math.max(0, tiempoLimiteQTE).toFixed(1);
-      qteInfo.innerHTML = `🍪 Clics: ${faltantes}<br>⏱️ ${tiempoMostrar}s`;
+      qteInfo.innerHTML = `🍪 Faltan: ${faltantes}<br>⏱️ ${tiempoMostrar}s`;
     }
 
     if (tiempoLimiteQTE <= 0) {
