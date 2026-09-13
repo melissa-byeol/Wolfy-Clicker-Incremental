@@ -16,6 +16,8 @@ var tiempoHorno = 10; // Tiempo restante del ciclo actual (en segundos)
 var gananciaUltimaHorneada = 0; // Para mostrar en la interfaz si deseas
 let galletaActiva = false
 let mejoraGalleta = { comprado: false };
+var multiplicadorGalleta = 1;
+var duracionBuffGalleta = 0;
 var logros = [
   { id: "badge-1", titulo: "Primer Ahorro", descripcion: "Ten 100 Wolfichas Ahorradas", condicion: function() { return wolfichas >= 100; }, completado: false },
   { id: "badge-2", titulo: "Alcancía Llena", descripcion: "Ten 500 Wolfichas Ahorradas", condicion: function() { return wolfichas >= 500; }, completado: false },
@@ -166,6 +168,39 @@ function aparecerGalletitaCrocante() {
   }, 100);
 }
 
+function clickGalletita() {
+  if (!galletaActiva) return;
+
+  // Suma un clic por cada toque/press
+  clicksActuales++;
+
+  // Si el jugador alcanza los clics requeridos antes de que acabe el tiempo
+  if (clicksActuales >= clicksRequeridos) {
+    clearInterval(timerQTE);
+    galletaActiva = false;
+
+    let cookieElement = document.getElementById("galleta-crocante");
+    if (cookieElement) cookieElement.style.display = "none";
+
+    // CALCULO VARIABLE DEL BUFF:
+    // A más rápido lo resuelvas (más tiempo sobre), mayor será la duración del buff
+    duracionBuffGalleta = 10 + Math.floor(tiempoLimiteQTE); 
+    
+    // Multiplicador temporal de producción x1.5
+    multiplicadorGalleta = 1.5; 
+
+    // Temporizador para revertir el buff cuando termine el tiempo ganado
+    let timerBuff = setInterval(() => {
+      duracionBuffGalleta--;
+      if (duracionBuffGalleta <= 0) {
+        multiplicadorGalleta = 1;
+        clearInterval(timerBuff);
+      }
+    }, 1000);
+
+    alert(`¡Desafío completado! 🍪 Multiplicador x1.5 activo durante ${10 + Math.floor(tiempoLimiteQTE)} segundos.`);
+  }
+}
 function producir() {
   // 1. Producción continua pasiva
   let totalClickers = (inventario[3] || 0) * wolfichasProduce[3];
