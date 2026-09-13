@@ -80,6 +80,7 @@ function comprar(objeto) {
     if (objeto === 19) {
       mejoraGalleta.comprado = true;
       iniciarLoopGalletas();
+      aparecerGalletitaCrocante(); // Invocación inmediata para probarla al comprar
     }
 
     if (!esMejoraUnica[objeto]) {
