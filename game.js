@@ -262,11 +262,11 @@ function clickGalletita() {
       }
     }
  // 💬 MENSAJE PERSONALIZADO SEGÚN EL TIEMPO RESTANTE
-    if (tiempoRestanteExacto < 3.0) {
-      alert(`¡Esa galleta casi se nos arranca! 🍪💥 Pero lo logramos. ¡Multiplicador x1.5 activo por ${10 + tiempoGanado}s!`);
-    } else {
-      alert(`¡Nuestros lobitos se comieron la galleta a tiempo! 🍪 Multiplicador x1.5 activo por ${10 + tiempoGanado}s.`);
-    }
+    if (tiempoRestanteExacto <= 3.0) {
+  alert(`¡Esa galleta casi se nos arranca! 🍪💥 Pero lo logramos. ¡Multiplicador x1.5 activo por ${10 + tiempoGanado}s!`);
+} else {
+  alert(`¡Nuestros lobitos se comieron la galleta a tiempo! 🍪 Multiplicador x1.5 activo por ${10 + tiempoGanado}s.`);
+}
     guardarJuego();
     render();
 
