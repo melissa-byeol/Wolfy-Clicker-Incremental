@@ -23,7 +23,7 @@ var probSuperCrit = 0;
 var tiempoHorno = 10; 
 var gananciaUltimaHorneada = 0; 
 let galletaActiva = false;
-let mejoraGalleta = { comprado: false };
+let mejoraGalleta.comprado = false;
 
 var logros = [
   { id: "badge-1", titulo: "Primer Ahorro", descripcion: "Ten 100 Wolfichas Ahorradas", condicion: function() { return wolfichas >= 100; }, completado: false },
