@@ -119,41 +119,45 @@ function iniciarLoopGalletas() {
   }, 30000);
 }
 
-function ocultarGalleta() {
-  if (timerQTE) clearInterval(timerQTE);
-  galletaActiva = false;
-  let cookieElement = document.getElementById("galleta-crocante");
-  if (cookieElement) {
-    cookieElement.style.display = "none";
-  }
-}
-
 function aparecerGalletitaCrocante() {
   if (timerQTE) clearInterval(timerQTE);
 
   galletaActiva = true;
   clicksActuales = 0;
-  clicksRequeridos = Math.floor(Math.random() * 5) + 3;
-  tiempoLimiteQTE = Math.floor(Math.random() * 9) + 7;
+  clicksRequeridos = Math.floor(Math.random() * 5) + 3; // De 3 a 7 clics
+  tiempoLimiteQTE = Math.floor(Math.random() * 9) + 7;   // De 7 a 15 segundos
 
   let cookieElement = document.getElementById("galleta-crocante");
-  if (!cookieElement) {
-    cookieElement = document.createElement("img");
-    cookieElement.id = "galleta-crocante";
-    cookieElement.src = "imagenes-wolfy/plain_cookie.png";
-    cookieElement.alt = "Galletita Crocante";    cookieElement.style.position = "absolute";
-    cookieElement.style.cursor = "pointer";
-    cookieElement.style.zIndex = "9999";
-    cookieElement.onclick = clickGalletita;
-    document.body.appendChild(cookieElement);
+  let qteInfo = document.getElementById("qte-info");
+
+  if (cookieElement) {
+    // Generar posición aleatoria
+    let topPos = Math.floor(Math.random() * 60 + 15);
+    let leftPos = Math.floor(Math.random() * 60 + 15);
+
+    cookieElement.style.top = topPos + "%";
+    cookieElement.style.left = leftPos + "%";
+    cookieElement.style.display = "block";
+
+    // Posicionar el indicador de texto sobre la galleta
+    if (qteInfo) {
+      qteInfo.style.top = (topPos - 6) + "%";
+      qteInfo.style.left = (leftPos - 2) + "%";
+      qteInfo.style.display = "block";
+      qteInfo.innerHTML = `🍪 Clics: ${clicksRequeridos - clicksActuales}<br>⏱️ ${tiempoLimiteQTE.toFixed(1)}s`;
+    }
   }
 
-  cookieElement.style.top = Math.floor(Math.random() * 60 + 15) + "%";
-  cookieElement.style.left = Math.floor(Math.random() * 60 + 15) + "%";
-  cookieElement.style.display = "block";
-
+  // Bucle de cuenta regresiva a 100ms
   timerQTE = setInterval(() => {
     tiempoLimiteQTE -= 0.1;
+
+    if (qteInfo) {
+      let faltantes = clicksRequeridos - clicksActuales;
+      let tiempoMostrar = Math.max(0, tiempoLimiteQTE).toFixed(1);
+      qteInfo.innerHTML = `🍪 Clics: ${faltantes}<br>⏱️ ${tiempoMostrar}s`;
+    }
+
     if (tiempoLimiteQTE <= 0) {
       ocultarGalleta();
     }
@@ -164,7 +168,16 @@ function clickGalletita() {
   if (!galletaActiva) return;
 
   clicksActuales++;
+  let qteInfo = document.getElementById("qte-info");
 
+  // Actualización inmediata al hacer clic
+  if (qteInfo) {
+    let faltantes = clicksRequeridos - clicksActuales;
+    let tiempoMostrar = Math.max(0, tiempoLimiteQTE).toFixed(1);
+    qteInfo.innerHTML = `🍪 Clics: ${faltantes}<br>⏱️ ${tiempoMostrar}s`;
+  }
+
+  // Verificar si se completó el desafío
   if (clicksActuales >= clicksRequeridos) {
     let tiempoGanado = Math.floor(tiempoLimiteQTE);
     ocultarGalleta();
@@ -180,8 +193,19 @@ function clickGalletita() {
       }
     }, 1000);
 
-    alert(`¡Desafío completado! 🍪 Multiplicador x1.5 activo durante ${10 + tiempoGanado} segundos.`);
+    alert(`¡Nuestros lobitos se comieron la galleta a tiempo! 🍪 Multiplicador x1.5 activo por ${10 + tiempoGanado}s.`);
   }
+}
+
+function ocultarGalleta() {
+  if (timerQTE) clearInterval(timerQTE);
+  galletaActiva = false;
+  
+  let cookieElement = document.getElementById("galleta-crocante");
+  let qteInfo = document.getElementById("qte-info");
+
+  if (cookieElement) cookieElement.style.display = "none";
+  if (qteInfo) qteInfo.style.display = "none";
 }
 
 function producir() {
