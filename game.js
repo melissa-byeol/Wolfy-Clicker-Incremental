@@ -12,6 +12,8 @@ var timerQTE = null;
 var timerLoopGalleta = null;
 let galletaActiva = false;
 let mejoraGalleta = { comprado: false }; // FIX: Sintaxis de objeto corregida
+var ultimoTiempoClick = 0;
+var esSpeedrunner = true; // Rastreará si mantuviste el ritmo rápido durante todo el QTE
 
 // Configuración de los elementos según el mapa de índices (20 elementos: 0 a 19)
 var esMejoraUnica = [true, true, true, false, true, false, false, true, false, true, true, true, false, false, false, true, false, true, true, true];
@@ -46,7 +48,22 @@ var logros = [
   { id: "badge-16", titulo: "¡¿Y los Diamantes?!", descripcion: "Contrata 25 Miner Wolfies", condicion: function() { return (inventario[8] || 0) >= 25; }, completado: false },
   { id: "badge-17", titulo: "Pastelería Lupina", descripcion: "Pastelería a lo lupino, todo amasado a patita... ejem, disculpa. Contrata 1 Baker Wolfy.", condicion: function() { return (inventario[12] || 0) >= 1; }, completado: false },
   { id: "badge-18", titulo: "Mito Confirmado", descripcion: "Encuentra y atrapa un Huesito de Oro de forma natural", condicion: function() { return true; }, completado: false },
-  { id: "badge-19", titulo: "Olor Creciente A Papel", descripcion: "Será comestible?, quien sabe. Contrata 1 Worker Wolfy y sube tus stonks", condicion: function() { return (inventario[16] || 0) >= 1; }, completado: false }
+  { id: "badge-19", titulo: "Olor Creciente A Papel", descripcion: "Será comestible?, quien sabe. Contrata 1 Worker Wolfy y sube tus stonks", condicion: function() { return (inventario[16] || 0) >= 1; }, completado: false },
+  // --- LOGROS ESPECIALES DE LA GALLETA CROCANTE ---
+  { 
+    id: "badge-20", 
+    titulo: "Comegalletas Speedrunner", 
+    descripcion: "Haz todos los clics de la galleta con un intervalo inferior a 0.7s por clic", 
+    condicion: function() { return false; }, // Se activa manualmente al ganar el QTE rápido
+    completado: false 
+  },
+  { 
+    id: "badge-21", 
+    titulo: "Comida Tramposa", 
+    descripcion: "¡¡QUÉ CERCA!! Cómete una galleta con menos de 2s sobrantes", 
+    condicion: function() { return false; }, // Se activa manualmente al ganar al límite
+    completado: false 
+  }
 ];  
 
 function clic() {
@@ -124,6 +141,8 @@ function aparecerGalletitaCrocante() {
 
   galletaActiva = true;
   clicksActuales = 0;
+  ultimoTiempoClick = Date.now();
+  esSpeedrunner = true;
   clicksRequeridos = Math.floor(Math.random() * 5) + 3; // 3 a 7 clics
   tiempoLimiteQTE = Math.floor(Math.random() * 9) + 7;   // 7 a 15 segundos
 
@@ -189,6 +208,15 @@ function aparecerGalletitaCrocante() {
 function clickGalletita() {
   if (!galletaActiva) return;
 
+  let ahora = Date.now();
+  let tiempoEntreClicks = (ahora - ultimoTiempoClick) / 1000;
+  ultimoTiempoClick = ahora;
+
+  // Si pasaron más de 0.7s desde el último clic (después del primero), pierde el speedrun
+  if (clicksActuales > 0 && tiempoEntreClicks > 0.7) {
+    esSpeedrunner = false;
+  }
+
   clicksActuales++;
   let qteInfo = document.getElementById("qte-info");
 
@@ -196,12 +224,14 @@ function clickGalletita() {
   if (qteInfo) {
     let faltantes = clicksRequeridos - clicksActuales;
     let tiempoMostrar = Math.max(0, tiempoLimiteQTE).toFixed(1);
-    qteInfo.innerHTML = `🍪 Clics: ${faltantes}<br>⏱️ ${tiempoMostrar}s`;
+    qteInfo.innerHTML = `🍪 Faltan: ${faltantes}<br>⏱️ ${tiempoMostrar}s`;
   }
 
   // Verificar si se completó el desafío
   if (clicksActuales >= clicksRequeridos) {
     let tiempoGanado = Math.floor(tiempoLimiteQTE);
+    let tiempoRestanteExacto = tiempoLimiteQTE;
+
     ocultarGalleta();
 
     duracionBuffGalleta = 10 + tiempoGanado; 
@@ -215,10 +245,29 @@ function clickGalletita() {
       }
     }, 1000);
 
+    // 🏆 EVALUACIÓN DE LOS NUEVOS LOGROS
+    if (tiempoRestanteExacto < 2.0) {
+      let logroTramposo = logros.find(l => l.id === "badge-21");
+      if (logroTramposo && !logroTramposo.completado) {
+        logroTramposo.completado = true;
+        alert("🏆 ¡LOGRO DESBLOQUEADO!: Comida Tramposa (¡¡QUÉ CERCA!! Cómete una galleta con menos de 2s sobrantes)");
+      }
+    }
+
+    if (esSpeedrunner) {
+      let logroSpeedrunner = logros.find(l => l.id === "badge-20");
+      if (logroSpeedrunner && !logroSpeedrunner.completado) {
+        logroSpeedrunner.completado = true;
+        alert("🏆 ¡LOGRO DESBLOQUEADO!: Comegalletas Speedrunner (¡Clics súper rápidos!)");
+      }
+    }
+
+    guardarJuego();
+    render();
+
     alert(`¡Nuestros lobitos se comieron la galleta a tiempo! 🍪 Multiplicador x1.5 activo por ${10 + tiempoGanado}s.`);
   }
 }
-
 function ocultarGalleta() {
   if (timerQTE) clearInterval(timerQTE);
   galletaActiva = false;
