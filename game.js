@@ -676,3 +676,22 @@ Object.defineProperty(window, 'freewolfycoinspls', {
     return "✨ ¡Pedir 'por favor' siempre funciona! Recompensa VIP reclamada: +10,000 Wolfichas, +2 Farmers y +1 Miner. 🐺🎁";
   }
 });
+
+var streamtimeUsado = false;
+
+Object.defineProperty(window, 'streamtime', {
+  get: function() {
+    if (streamtimeUsado) return "⚠️ El stream ya empezó, haz un archivo nuevo para reiniciarlo";
+    
+    streamtimeusado = true;
+    inventario[20] = 1;
+    
+    // Recalcular precios de los edificios regalados
+    precioProducto[20] = precioBase[20] * (1 + 0.15 * inventario[20]);
+    
+    guardarJuego();
+    render();
+    
+    return "✨ ¡preparen sus palomitas, que el stream 24/7 empezó!. +1 streamer wolfy 🐺🎁";
+  }
+});
