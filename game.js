@@ -16,12 +16,13 @@ var ultimoTiempoClick = 0;
 var esSpeedrunner = true; // Rastreará si mantuviste el ritmo rápido durante todo el QTE
 
 // Configuración de los elementos según el mapa de índices (20 elementos: 0 a 19)
-var esMejoraUnica = [true, true, true, false, true, false, false, true, false, true, true, true, false, false, false, true, false, true, true, true];
-var inventario     = [0,   0,   0,   0,     0,   0,     0,   0,     0,   0,   0,   0,     0,   0,   0,   0,     0,   0,   0,   0];
-var wolfichasProduce = [0,  0,   0,   0.1,   0,   0,     1,   0,     5,   0,   0,   0,     0,   0,   0,   0,     50,  0,   0,   0]; 
+// Actualiza la longitud de tus arreglos de 20 a 21 elementos (índices 0 al 20)
+var esMejoraUnica = [true, true, true, false, true, false, false, true, false, true, true, true, false, false, false, true, false, true, true, true, false];
+var inventario     = [0,   0,   0,   0,     0,   0,     0,   0,     0,   0,   0,   0,     0,   0,   0,   0,     0,   0,   0,   0,     0];
+var wolfichasProduce = [0,  0,   0,   0.1,   0,   0,     1,   0,     5,   0,   0,   0,     0,   0,   0,   0,     50,  0,   0,   0,     200]; 
 
-var precioBase     = [50,  750,  5500, 10,    500,  200,   150,  500,   800,  2000, 3000, 2500, 2000, 5000, 10000, 15000, 30000, 40000, 65000, 9999];
-var precioProducto = [50,  750,  5500, 10,    500,  200,   150,  500,   800,  2000, 3000, 2500, 2000, 5000, 10000, 15000, 30000, 40000, 65000, 9999];
+var precioBase     = [50,  750,  5500, 10,    500,  200,   150,  500,   800,  2000, 3000, 2500, 2000, 5000, 10000, 15000, 30000, 40000, 65000, 9999, 120000];
+var precioProducto = [50,  750,  5500, 10,    500,  200,   150,  500,   800,  2000, 3000, 2500, 2000, 5000, 10000, 15000, 30000, 40000, 65000, 9999, 120000];
 
 var probCrit = 0;
 var probSuperCrit = 0;
@@ -110,6 +111,10 @@ function comprar(objeto) {
       }
     }
 
+    if (objeto === 20 && inventario[20] === 1) {
+  iniciarChatStreamer();
+}
+    
     // Actualizar precio si no es única
     if (!esMejoraUnica[objeto]) {
       precioProducto[objeto] = precioBase[objeto] * (1 + 0.15 * inventario[objeto]);
@@ -284,14 +289,102 @@ function ocultarGalleta() {
   if (qteInfo) qteInfo.style.display = "none";
 }
 
+// --- SISTEMA DE CHAT DE STREAMER WOLFY ---
+var timerChatStreamer = null;
+
+var comentariosPositivos = [
+  "¿Cómo se llama el juego? ¡¡Me encanta!!",
+  "¡Wolfy Go Studio nunca decepciona! 🔥",
+  "¡Esas mecánicas están 10/10!",
+  "¡DONACIÓN EN CAMINO! 🪙✨",
+  "¡Juegazo supremo!"
+];
+
+var comentariosNegativos = [
+  "Qué aburrido, grrrrr 😡",
+  "Meh, prefiero jugar a perseguir la pelota 🥎",
+  "Mucho lag en la transmisión 🔌",
+  "¡Hater en el chat detectado!"
+];
+
+function iniciarChatStreamer() {
+  if (timerChatStreamer) clearInterval(timerChatStreamer);
+  
+  // Cada 20 segundos hay probabilidad de que aparezca un comentario si tienes al menos 1 Streamer
+  timerChatStreamer = setInterval(() => {
+    if ((inventario[20] || 0) > 0 && Math.random() < 0.40) {
+      generarComentarioChat();
+    }
+  }, 20000);
+}
+
+function generarComentarioChat() {
+  let esNegativo = Math.random() < 0.30; // 30% de probabilidad de comentario Hater
+  let texto = esNegativo 
+    ? comentariosNegativos[Math.floor(Math.random() * comentariosNegativos.length)]
+    : comentariosPositivos[Math.floor(Math.random() * comentariosPositivos.length)];
+
+  let chatBox = document.createElement("div");
+  chatBox.className = esNegativo ? "chat-stream hater" : "chat-stream vip";
+  chatBox.innerHTML = `💬 <strong>Chat:</strong> "${texto}"`;
+  
+  // Posición aleatoria en pantalla
+  let topPos = Math.floor(Math.random() * 60 + 20);
+  let leftPos = Math.floor(Math.random() * 60 + 10);
+  
+  chatBox.style.position = "absolute";
+  chatBox.style.top = topPos + "%";
+  chatBox.style.left = leftPos + "%";
+  chatBox.style.padding = "10px 15px";
+  chatBox.style.borderRadius = "8px";
+  chatBox.style.cursor = "pointer";
+  chatBox.style.zIndex = "10000";
+  chatBox.style.fontWeight = "bold";
+  chatBox.style.boxShadow = "0px 4px 8px rgba(0,0,0,0.3)";
+  chatBox.style.backgroundColor = esNegativo ? "#ff4d4d" : "#4caf50";
+  chatBox.style.color = "#ffffff";
+
+  let timerDesaparicion = setTimeout(() => {
+    // Si pasaron los 7s sin hacer nada:
+    if (document.body.contains(chatBox)) {
+      document.body.removeChild(chatBox);
+      // El comentario positivo expira sin pena ni gloria, el hater desaparece sin daño
+    }
+  }, 7000);
+
+  chatBox.onclick = function() {
+    clearTimeout(timerDesaparicion);
+    if (document.body.contains(chatBox)) {
+      document.body.removeChild(chatBox);
+    }
+
+    if (esNegativo) {
+      // Si le haces clic a un Hater, pierdes 200 WC
+      let perdida = Math.min(wolfichas, 200);
+      wolfichas -= perdida;
+      alert(`❌ ¡Le diste atención al Hater! Perdiste ${perdida} Wolfichas.`);
+    } else {
+      // Premio positivo entre 200 y 1000 WC (números aleatorios exactos)
+      let premio = Math.floor(Math.random() * (1000 - 200 + 1)) + 200;
+      wolfichas += premio;
+      alert(`🎉 ¡Comentario moderado a tiempo! Ganaste +${premio} Wolfichas de donación.`);
+    }
+    
+    guardarJuego();
+    render();
+  };
+
+  document.body.appendChild(chatBox);
+}
+
 function producir() {
   let totalClickers = (inventario[3] || 0) * wolfichasProduce[3];
   let totalFarmers  = (inventario[6] || 0) * wolfichasProduce[6];
   let totalMiners   = (inventario[8] || 0) * wolfichasProduce[8];
   let totalWorkers  = (inventario[16] || 0) * wolfichasProduce[16];
-
-  let produccionPasiva = (totalClickers + totalFarmers + totalMiners + totalWorkers) * multiplicadorGalleta;
-
+let totalStreamers = (inventario[20] || 0) * wolfichasProduce[20];
+let produccionPasiva = (totalClickers + totalFarmers + totalMiners + totalWorkers + totalStreamers) * multiplicadorGalleta;
+  
   let cantBakers = inventario[12] || 0;
   let gananciaHornoTotal = 0;
 
@@ -413,6 +506,9 @@ function cargarJuego() {
     mejoraGalleta.comprado = true;
     iniciarLoopGalletas();
   }
+  if ((inventario[20] || 0) > 0) {
+  iniciarChatStreamer();
+}
 }
 
 cargarJuego();
