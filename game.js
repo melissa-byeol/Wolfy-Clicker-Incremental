@@ -367,7 +367,7 @@ function generarComentarioChat() {
       // Premio positivo entre 200 y 1000 WC (números aleatorios exactos)
       let premio = Math.floor(Math.random() * (1000 - 200 + 1)) + 200;
       wolfichas += premio;
-      alert(`🎉 ¡Comentario moderado a tiempo! Ganaste +${premio} Wolfichas de donación.`);
+      alert(`🎉 ¡Comentario destacado a tiempo! Ganaste +${premio} Wolfichas de donación.`);
     }
     
     guardarJuego();
