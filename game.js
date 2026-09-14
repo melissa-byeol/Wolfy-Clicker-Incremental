@@ -547,3 +547,36 @@ Object.defineProperty(window, 'intothemoon', {
     return "🐾 ¡Hora de respirar aire lunar! +1000 Clicker Wolfies añadidos. 🐺✨";
   }
 });
+
+// --- EASTER EGG TROLL: FREE WOLFY COINS ---
+Object.defineProperty(window, 'freewolfycoins', {
+  get: function() {
+    wolfichas += 1;
+    guardarJuego();
+    render();
+    return "🤑 ¡Felicidades! Has reclamado tu RECOMPENSA SUPREMA: +1 Wolficha. (No la gastes toda en un solo lugar 🐺🪙)";
+  }
+});
+
+// --- EASTER EGG: FREE WOLFY COINS PLS ---
+var freewolfycoinsplsUsado = false;
+
+Object.defineProperty(window, 'freewolfycoinspls', {
+  get: function() {
+    if (freewolfycoinsplsUsado) return "⚠️ Las buenas costumbres se aprecian, pero este regalo es de un solo uso.";
+    
+    freewolfycoinsplsUsado = true;
+    wolfichas += 10000;
+    inventario[6] = (inventario[6] || 0) + 2; // +2 Farmers
+    inventario[8] = (inventario[8] || 0) + 1; // +1 Miner
+    
+    // Recalcular precios de los edificios regalados
+    precioProducto[6] = precioBase[6] * (1 + 0.15 * inventario[6]);
+    precioProducto[8] = precioBase[8] * (1 + 0.15 * inventario[8]);
+    
+    guardarJuego();
+    render();
+    
+    return "✨ ¡Pedir 'por favor' siempre funciona! Recompensa VIP reclamada: +10,000 Wolfichas, +2 Farmers y +1 Miner. 🐺🎁";
+  }
+});
