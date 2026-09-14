@@ -3,6 +3,12 @@ var wolfichas = 0;
 var wolfichasPorClic = 1;
 var multiplicadorGalleta = 1;
 var duracionBuffGalleta = 0;
+var wolfilletes = 0;
+
+// Buffs de Hueso
+var multiplicadorHueso = 1;
+var tiempoBuffHueso = 0;
+var esHuesoNatural = false;
 
 // Variables globales del QTE de la galleta
 var clicksActuales = 0;
@@ -11,18 +17,17 @@ var tiempoLimiteQTE = 0;
 var timerQTE = null;
 var timerLoopGalleta = null;
 let galletaActiva = false;
-let mejoraGalleta = { comprado: false }; // FIX: Sintaxis de objeto corregida
+let mejoraGalleta = { comprado: false };
 var ultimoTiempoClick = 0;
-var esSpeedrunner = true; // Rastreará si mantuviste el ritmo rápido durante todo el QTE
+var esSpeedrunner = true;
 
-// Configuración de los elementos según el mapa de índices (20 elementos: 0 a 19)
-// Actualiza la longitud de tus arreglos de 20 a 21 elementos (índices 0 al 20)
+// Configuración de los elementos (21 elementos: índices 0 al 20)
 var esMejoraUnica = [true, true, true, false, true, false, false, true, false, true, true, true, false, false, false, true, false, true, true, true, false];
-var inventario     = [0,   0,   0,   0,     0,   0,     0,   0,     0,   0,   0,   0,     0,   0,   0,   0,     0,   0,   0,   0,     0];
-var wolfichasProduce = [0,  0,   0,   0.1,   0,   0,     1,   0,     5,   0,   0,   0,     0,   0,   0,   0,     50,  0,   0,   0,     200]; 
+var inventario      = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+var wolfichasProduce = [0, 0, 0, 0.1, 0, 0, 1, 0, 5, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 200]; 
 
-var precioBase     = [50,  750,  5500, 10,    500,  200,   150,  500,   800,  2000, 3000, 2500, 2000, 5000, 10000, 15000, 30000, 40000, 65000, 9999, 120000];
-var precioProducto = [50,  750,  5500, 10,    500,  200,   150,  500,   800,  2000, 3000, 2500, 2000, 5000, 10000, 15000, 30000, 40000, 65000, 9999, 120000];
+var precioBase      = [50, 750, 5500, 10, 500, 200, 150, 500, 800, 2000, 3000, 2500, 2000, 5000, 10000, 15000, 30000, 40000, 65000, 9999, 120000];
+var precioProducto  = [50, 750, 5500, 10, 500, 200, 150, 500, 800, 2000, 3000, 2500, 2000, 5000, 10000, 15000, 30000, 40000, 65000, 9999, 120000];
 
 var probCrit = 0;
 var probSuperCrit = 0;
@@ -48,23 +53,10 @@ var logros = [
   { id: "badge-15", titulo: "Mine Pero Sin Craft", descripcion: "Contrata 5 Miner Wolfies", condicion: function() { return (inventario[8] || 0) >= 5; }, completado: false },
   { id: "badge-16", titulo: "¡¿Y los Diamantes?!", descripcion: "Contrata 25 Miner Wolfies", condicion: function() { return (inventario[8] || 0) >= 25; }, completado: false },
   { id: "badge-17", titulo: "Pastelería Lupina", descripcion: "Pastelería a lo lupino, todo amasado a patita... ejem, disculpa. Contrata 1 Baker Wolfy.", condicion: function() { return (inventario[12] || 0) >= 1; }, completado: false },
-  { id: "badge-18", titulo: "Mito Confirmado", descripcion: "Encuentra y atrapa un Huesito de Oro de forma natural", condicion: function() { return true; }, completado: false },
+  { id: "badge-18", titulo: "Mito Confirmado", descripcion: "Encuentra y atrapa un Huesito de Oro de forma natural", condicion: function() { return false; }, completado: false },
   { id: "badge-19", titulo: "Olor Creciente A Papel", descripcion: "Será comestible?, quien sabe. Contrata 1 Worker Wolfy y sube tus stonks", condicion: function() { return (inventario[16] || 0) >= 1; }, completado: false },
-  // --- LOGROS ESPECIALES DE LA GALLETA CROCANTE ---
-  { 
-    id: "badge-20", 
-    titulo: "Comegalletas Speedrunner", 
-    descripcion: "Haz todos los clics de la galleta con un intervalo inferior a 0.7s por clic", 
-    condicion: function() { return false; }, // Se activa manualmente al ganar el QTE rápido
-    completado: false 
-  },
-  { 
-    id: "badge-21", 
-    titulo: "Comida Tramposa", 
-    descripcion: "¡¡QUÉ CERCA!! Cómete una galleta con menos de 2s sobrantes", 
-    condicion: function() { return false; }, // Se activa manualmente al ganar al límite
-    completado: false 
-  }
+  { id: "badge-20", titulo: "Comegalletas Speedrunner", descripcion: "Haz todos los clics de la galleta con un intervalo inferior a 0.7s por clic", condicion: function() { return false; }, completado: false },
+  { id: "badge-21", titulo: "Comida Tramposa", descripcion: "¡¡QUÉ CERCA!! Cómete una galleta con menos de 2s sobrantes", condicion: function() { return false; }, completado: false }
 ];  
 
 function clic() {
@@ -77,15 +69,12 @@ function clic() {
 }
 
 function comprar(objeto) {
-  // 1. Si es única y ya se tiene en inventario, no hacer nada
   if (esMejoraUnica[objeto] && inventario[objeto] > 0) return;
 
-  // 2. Verificar si alcanza el dinero
   if (wolfichas >= precioProducto[objeto]) {
     wolfichas -= precioProducto[objeto];
     inventario[objeto]++;
 
-    // Aplicar efectos según el objeto
     if (objeto <= 2) wolfichasPorClic *= 2;
     if (objeto === 4) probCrit = 15;
     if (objeto === 5) wolfichasProduce[3] += 0.1;
@@ -100,22 +89,16 @@ function comprar(objeto) {
     if (objeto === 17) wolfichasProduce[16] *= 2;
     if (objeto === 18) wolfichasProduce[16] *= 2;
 
-    // Efecto de la Galleta (Objeto 19)
     if (objeto === 19) {
       mejoraGalleta.comprado = true;
-      if (typeof iniciarLoopGalletas === "function") {
-        iniciarLoopGalletas();
-      }
-      if (typeof aparecerGalletitaCrocante === "function") {
-        aparecerGalletitaCrocante();
-      }
+      if (typeof iniciarLoopGalletas === "function") iniciarLoopGalletas();
+      if (typeof aparecerGalletitaCrocante === "function") aparecerGalletitaCrocante();
     }
 
     if (objeto === 20 && inventario[20] === 1) {
-  iniciarChatStreamer();
-}
+      iniciarChatStreamer();
+    }
     
-    // Actualizar precio si no es única
     if (!esMejoraUnica[objeto]) {
       precioProducto[objeto] = precioBase[objeto] * (1 + 0.15 * inventario[objeto]);
     }
@@ -148,8 +131,8 @@ function aparecerGalletitaCrocante() {
   clicksActuales = 0;
   ultimoTiempoClick = Date.now();
   esSpeedrunner = true;
-  clicksRequeridos = Math.floor(Math.random() * 5) + 3; // 3 a 7 clics
-  tiempoLimiteQTE = Math.floor(Math.random() * 9) + 7;   // 7 a 15 segundos
+  clicksRequeridos = Math.floor(Math.random() * 5) + 3;
+  tiempoLimiteQTE = Math.floor(Math.random() * 9) + 7;
 
   let cookieElement = document.getElementById("galleta-crocante");
   if (!cookieElement) {
@@ -165,7 +148,6 @@ function aparecerGalletitaCrocante() {
     document.body.appendChild(cookieElement);
   }
 
-  // 🍪 CREAR O REUTILIZAR EL ELEMENTO DE TEXTO DEL QTE
   let qteInfo = document.getElementById("qte-info");
   if (!qteInfo) {
     qteInfo = document.createElement("div");
@@ -176,12 +158,11 @@ function aparecerGalletitaCrocante() {
     qteInfo.style.color = "#ffffff";
     qteInfo.style.fontSize = "16px";
     qteInfo.style.textShadow = "2px 2px 4px #000000, -1px -1px 0 #000";
-    qteInfo.style.pointerEvents = "none"; // Evita interferir con los clics
+    qteInfo.style.pointerEvents = "none";
     qteInfo.style.textAlign = "center";
     document.body.appendChild(qteInfo);
   }
 
-  // Posicionar galleta y texto aleatoriamente
   let topPos = Math.floor(Math.random() * 60 + 15);
   let leftPos = Math.floor(Math.random() * 60 + 15);
 
@@ -194,7 +175,6 @@ function aparecerGalletitaCrocante() {
   qteInfo.style.display = "block";
   qteInfo.innerHTML = `🍪 Faltan: ${clicksRequeridos - clicksActuales}<br>⏱️ ${tiempoLimiteQTE.toFixed(1)}s`;
 
-  // Temporizador de actualización rápida
   timerQTE = setInterval(() => {
     tiempoLimiteQTE -= 0.1;
 
@@ -217,7 +197,6 @@ function clickGalletita() {
   let tiempoEntreClicks = (ahora - ultimoTiempoClick) / 1000;
   ultimoTiempoClick = ahora;
 
-  // Si pasaron más de 0.7s desde el último clic (después del primero), pierde el speedrun
   if (clicksActuales > 0 && tiempoEntreClicks > 0.7) {
     esSpeedrunner = false;
   }
@@ -225,14 +204,12 @@ function clickGalletita() {
   clicksActuales++;
   let qteInfo = document.getElementById("qte-info");
 
-  // Actualización inmediata al hacer clic
   if (qteInfo) {
     let faltantes = clicksRequeridos - clicksActuales;
     let tiempoMostrar = Math.max(0, tiempoLimiteQTE).toFixed(1);
     qteInfo.innerHTML = `🍪 Faltan: ${faltantes}<br>⏱️ ${tiempoMostrar}s`;
   }
 
-  // Verificar si se completó el desafío
   if (clicksActuales >= clicksRequeridos) {
     let tiempoGanado = Math.floor(tiempoLimiteQTE);
     let tiempoRestanteExacto = tiempoLimiteQTE;
@@ -250,7 +227,6 @@ function clickGalletita() {
       }
     }, 1000);
 
-    // 🏆 EVALUACIÓN DE LOS NUEVOS LOGROS
     if (tiempoRestanteExacto < 2.0) {
       let logroTramposo = logros.find(l => l.id === "badge-21");
       if (logroTramposo && !logroTramposo.completado) {
@@ -266,18 +242,18 @@ function clickGalletita() {
         alert("🏆 ¡LOGRO DESBLOQUEADO!: Comegalletas Speedrunner (¡Clics súper rápidos!)");
       }
     }
- // 💬 MENSAJE PERSONALIZADO SEGÚN EL TIEMPO RESTANTE
+
     if (tiempoRestanteExacto <= 3.0) {
-  alert(`¡Esa galleta casi se nos arranca! 🍪💥 Pero lo logramos. ¡Multiplicador x1.5 activo por ${10 + tiempoGanado}s!`);
-} else {
-  alert(`¡Nuestros lobitos se comieron la galleta a tiempo! 🍪 Multiplicador x1.5 activo por ${10 + tiempoGanado}s.`);
-}
+      alert(`¡Esa galleta casi se nos arranca! 🍪💥 Pero lo logramos. ¡Multiplicador x1.5 activo por ${10 + tiempoGanado}s!`);
+    } else {
+      alert(`¡Nuestros lobitos se comieron la galleta a tiempo! 🍪 Multiplicador x1.5 activo por ${10 + tiempoGanado}s.`);
+    }
+
     guardarJuego();
     render();
-
   }
 }
-   
+    
 function ocultarGalleta() {
   if (timerQTE) clearInterval(timerQTE);
   galletaActiva = false;
@@ -294,12 +270,12 @@ var timerChatStreamer = null;
 
 var comentariosPositivos = [
   "¿Cómo se llama el juego? ¡¡Me encanta!!",
-  "¡Wolfy Go Studio nunca decepciona! 🔥",
+  "¡Wolfy Go Studio nunca dececciona! 🔥",
   "¡Esas mecánicas están 10/10!",
   "¡DONACIÓN EN CAMINO! 🪙✨",
-  "¡Juegazo supremo!"
-  "Digno de un Oscar"
-  "Mis ahorros quizas ayuden"
+  "¡Juegazo supremo!",
+  "Digno de un Oscar",
+  "Mis ahorros quizás ayuden",
   "Cookie clicker? Mejor Wolfy Clicker Incremental"
 ];
 
@@ -307,13 +283,13 @@ var comentariosNegativos = [
   "Qué aburrido, grrrrr 😡",
   "Meh, prefiero jugar a perseguir la pelota 🥎",
   "Mucho lag en la transmisión 🔌",
-  "¡Hater en el chat detectado!"
-  "Porqué tanto hype?"
-  "Muy básico"
-  "Faltan mas cosas, bruh"
-  "Donan a alguien que no conocen... que poco instinto"
+  "¡Hater en el chat detectado!",
+  "Porqué tanto hype?",
+  "Muy básico",
+  "Faltan más cosas, bruh",
+  "Donan a alguien que no conocen... qué poco instinto"
 ];
-// --- COMENTARIOS ESPECIALES (ARCOÍRIS) ---
+
 function obtenerComentarioEspecial() {
   let anioRandom = Math.floor(Math.random() * (2023 - 2006 + 1)) + 2006;
   let anioActual = new Date().getFullYear();
@@ -330,19 +306,24 @@ function obtenerComentarioEspecial() {
 
   return comentariosEspeciales[Math.floor(Math.random() * comentariosEspeciales.length)];
 }
+
 function iniciarChatStreamer() {
   if (timerChatStreamer) clearInterval(timerChatStreamer);
   
-  // Cada 20 segundos hay probabilidad de que aparezca un comentario si tienes al menos 1 Streamer
   timerChatStreamer = setInterval(() => {
-    if ((inventario[20] || 0) > 0 && Math.random() < 0.40) {
-      generarComentarioChat();
+    if ((inventario[20] || 0) > 0) {
+      let dado = Math.random();
+      if (dado < 0.05) {
+        generarComentarioEspecial();
+      } else if (dado < 0.40) {
+        generarComentarioChat();
+      }
     }
   }, 20000);
 }
 
 function generarComentarioChat() {
-  let esNegativo = Math.random() < 0.30; // 30% de probabilidad de comentario Hater
+  let esNegativo = Math.random() < 0.30;
   let texto = esNegativo 
     ? comentariosNegativos[Math.floor(Math.random() * comentariosNegativos.length)]
     : comentariosPositivos[Math.floor(Math.random() * comentariosPositivos.length)];
@@ -351,7 +332,6 @@ function generarComentarioChat() {
   chatBox.className = esNegativo ? "chat-stream hater" : "chat-stream vip";
   chatBox.innerHTML = `💬 <strong>Chat:</strong> "${texto}"`;
   
-  // Posición aleatoria en pantalla
   let topPos = Math.floor(Math.random() * 60 + 20);
   let leftPos = Math.floor(Math.random() * 60 + 10);
   
@@ -368,10 +348,8 @@ function generarComentarioChat() {
   chatBox.style.color = "#ffffff";
 
   let timerDesaparicion = setTimeout(() => {
-    // Si pasaron los 7s sin hacer nada:
     if (document.body.contains(chatBox)) {
       document.body.removeChild(chatBox);
-      // El comentario positivo expira sin pena ni gloria, el hater desaparece sin daño
     }
   }, 7000);
 
@@ -382,12 +360,10 @@ function generarComentarioChat() {
     }
 
     if (esNegativo) {
-      // Si le haces clic a un Hater, pierdes 200 WC
       let perdida = Math.min(wolfichas, 200);
       wolfichas -= perdida;
       alert(`❌ ¡Le diste atención al Hater! Perdiste ${perdida} Wolfichas.`);
     } else {
-      // Premio positivo entre 200 y 1000 WC (números aleatorios exactos)
       let premio = Math.floor(Math.random() * (1000 - 200 + 1)) + 200;
       wolfichas += premio;
       alert(`🎉 ¡Comentario destacado a tiempo! Ganaste +${premio} Wolfichas de donación.`);
@@ -398,7 +374,9 @@ function generarComentarioChat() {
   };
 
   document.body.appendChild(chatBox);
-  function generarComentarioEspecial() {
+}
+
+function generarComentarioEspecial() {
   let texto = obtenerComentarioEspecial();
 
   let chatBox = document.createElement("div");
@@ -419,7 +397,6 @@ function generarComentarioChat() {
   chatBox.style.color = "#ffffff";
   chatBox.style.textShadow = "1px 1px 3px #000";
   
-  // Estilo Arcoíris Neón
   chatBox.style.background = "linear-gradient(45deg, #ff0000, #ff7300, #fffb00, #48ff00, #00ffd5, #002bfd, #7a00ff, #ff00c8)";
   chatBox.style.backgroundSize = "400% 400%";
   chatBox.style.boxShadow = "0px 0px 15px rgba(255, 255, 255, 0.8)";
@@ -436,22 +413,18 @@ function generarComentarioChat() {
       document.body.removeChild(chatBox);
     }
 
-    // RECOMPENSAS ESPECIALES (Mucha plata, Multiplicador o Wolfilletes)
     let dado = Math.random();
 
     if (dado < 0.45) {
-      // 45% Probabilidad: Lluvia masiva de Wolfichas (5,000 - 15,000 WC)
       let premio = Math.floor(Math.random() * (15000 - 5000 + 1)) + 5000;
       wolfichas += premio;
       alert(`🌈 ¡DONACIÓN VIP! Un super fan te ha enviado +${premio.toLocaleString()} Wolfichas.`);
     } else if (dado < 0.85) {
-      // 40% Probabilidad: Multiplicador x2 por 20 segundos
       duracionBuffGalleta = 20;
       multiplicadorGalleta = 2.0;
       alert("🚀 ¡HYPE MASIVO EN EL CHAT! Multiplicador x2.0 activo por 20 segundos.");
     } else {
-      // 15% Probabilidad: Nueva Moneda (Wolfilletes)
-      var wolfilletes = (typeof wolfilletes !== 'undefined') ? wolfilletes + 1 : 1;
+      wolfilletes += 1;
       alert("💵 ¡RECOMPENSA MÍSTICA! Has recibido 1 Wolfillete.");
     }
     
@@ -461,15 +434,14 @@ function generarComentarioChat() {
 
   document.body.appendChild(chatBox);
 }
-}
 
 function producir() {
   let totalClickers = (inventario[3] || 0) * wolfichasProduce[3];
   let totalFarmers  = (inventario[6] || 0) * wolfichasProduce[6];
   let totalMiners   = (inventario[8] || 0) * wolfichasProduce[8];
   let totalWorkers  = (inventario[16] || 0) * wolfichasProduce[16];
-let totalStreamers = (inventario[20] || 0) * wolfichasProduce[20];
-let produccionPasiva = (totalClickers + totalFarmers + totalMiners + totalWorkers + totalStreamers) * multiplicadorGalleta;
+  let totalStreamers = (inventario[20] || 0) * wolfichasProduce[20];
+  let produccionPasiva = (totalClickers + totalFarmers + totalMiners + totalWorkers + totalStreamers) * multiplicadorGalleta;
   
   let cantBakers = inventario[12] || 0;
   let gananciaHornoTotal = 0;
@@ -520,7 +492,7 @@ function render() {
   let inventarioEl = document.getElementById("inventario");
   if (inventarioEl) {
     inventarioEl.innerHTML = 
-      `Clickers: ${inventario[3]} | Farmers: ${inventario[6]} | Mineros: ${inventario[8]} | Bakers: ${inventario[12]} | Workers: ${inventario[16]}`;
+      `Clickers: ${inventario[3]} | Farmers: ${inventario[6]} | Mineros: ${inventario[8]} | Bakers: ${inventario[12]} | Workers: ${inventario[16]} | Streamers: ${inventario[20]}`;
   }
 
   for (let i = 0; i < esMejoraUnica.length; i++) {
@@ -560,6 +532,16 @@ function guardarJuego() {
     probCrit: probCrit,
     probSuperCrit: probSuperCrit,
     wolfichasProduce: wolfichasProduce,
+    wolfilletes: wolfilletes,
+    codes: {
+      helloworld: helloworldUsado,
+      thekitchenisopen: thekitchenisopenUsado,
+      funnyfurrain: funnyfurrainUsado,
+      intothemoon: intothemoonUsado,
+      archivesrevealed: archivesrevealedUsado,
+      freewolfycoinspls: freewolfycoinsplsUsado,
+      streamtime: streamtimeUsado
+    },
     logrosCompletados: logros.map(l => l.completado)
   };
   localStorage.setItem("wolfyClickerSave", JSON.stringify(datos));
@@ -578,6 +560,17 @@ function cargarJuego() {
     probCrit = datos.probCrit ?? probCrit;
     probSuperCrit = datos.probSuperCrit ?? probSuperCrit;
     wolfichasProduce = datos.wolfichasProduce ?? wolfichasProduce;
+    wolfilletes = datos.wolfilletes ?? wolfilletes;
+
+    if (datos.codes) {
+      helloworldUsado = datos.codes.helloworld ?? false;
+      thekitchenisopenUsado = datos.codes.thekitchenisopen ?? false;
+      funnyfurrainUsado = datos.codes.funnyfurrain ?? false;
+      intothemoonUsado = datos.codes.intothemoon ?? false;
+      archivesrevealedUsado = datos.codes.archivesrevealed ?? false;
+      freewolfycoinsplsUsado = datos.codes.freewolfycoinspls ?? false;
+      streamtimeUsado = datos.codes.streamtime ?? false;
+    }
 
     if (datos.logrosCompletados) {
       for (let i = 0; i < logros.length; i++) {
@@ -593,16 +586,9 @@ function cargarJuego() {
     iniciarLoopGalletas();
   }
   if ((inventario[20] || 0) > 0) {
-  iniciarChatStreamer();
+    iniciarChatStreamer();
+  }
 }
-}
-
-cargarJuego();
-setInterval(guardarJuego, 5000);
-
-var multiplicadorHueso = 1;
-var tiempoBuffHueso = 0;
-var esHuesoNatural = false;
 
 function aparecerHuesoOro(esNatural = false) {
   let hueso = document.getElementById("hueso-oro");
@@ -649,6 +635,7 @@ function clickHuesoOro() {
   render();
 }
 
+// Intervenciones e intervalos de ejecución
 setInterval(() => {
   if (Math.random() < 0.01) aparecerHuesoOro(true);
 }, 1000);
@@ -665,6 +652,8 @@ var thekitchenisopenUsado = false;
 var funnyfurrainUsado = false;
 var intothemoonUsado = false;
 var archivesrevealedUsado = false;
+var freewolfycoinsplsUsado = false;
+var streamtimeUsado = false;
 
 Object.defineProperty(window, 'helloworld', {
   get: function() {
@@ -730,7 +719,6 @@ Object.defineProperty(window, 'intothemoon', {
   }
 });
 
-// --- EASTER EGG TROLL: FREE WOLFY COINS ---
 Object.defineProperty(window, 'freewolfycoins', {
   get: function() {
     wolfichas += 1;
@@ -740,19 +728,15 @@ Object.defineProperty(window, 'freewolfycoins', {
   }
 });
 
-// --- EASTER EGG: FREE WOLFY COINS PLS ---
-var freewolfycoinsplsUsado = false;
-
 Object.defineProperty(window, 'freewolfycoinspls', {
   get: function() {
     if (freewolfycoinsplsUsado) return "⚠️ Las buenas costumbres se aprecian, pero este regalo es de un solo uso.";
     
     freewolfycoinsplsUsado = true;
     wolfichas += 10000;
-    inventario[6] = (inventario[6] || 0) + 2; // +2 Farmers
-    inventario[8] = (inventario[8] || 0) + 1; // +1 Miner
+    inventario[6] = (inventario[6] || 0) + 2;
+    inventario[8] = (inventario[8] || 0) + 1;
     
-    // Recalcular precios de los edificios regalados
     precioProducto[6] = precioBase[6] * (1 + 0.15 * inventario[6]);
     precioProducto[8] = precioBase[8] * (1 + 0.15 * inventario[8]);
     
@@ -763,21 +747,25 @@ Object.defineProperty(window, 'freewolfycoinspls', {
   }
 });
 
-var streamtimeUsado = false;
-
 Object.defineProperty(window, 'streamtime', {
   get: function() {
     if (streamtimeUsado) return "⚠️ El stream ya empezó, haz un archivo nuevo para reiniciarlo";
     
-    streamtimeusado = true;
-    inventario[20] = 1;
-    
-    // Recalcular precios de los edificios regalados
+    streamtimeUsado = true;
+    inventario[20] = (inventario[20] || 0) + 1;
     precioProducto[20] = precioBase[20] * (1 + 0.15 * inventario[20]);
+    
+    if (typeof iniciarChatStreamer === "function") {
+      iniciarChatStreamer();
+    }
     
     guardarJuego();
     render();
     
-    return "✨ ¡preparen sus palomitas, que el stream 24/7 empezó!. +1 streamer wolfy 🐺🎁";
+    return "✨ ¡Preparen sus palomitas, que el stream 24/7 empezó! +1 Streamer Wolfy. 🐺🎁";
   }
 });
+
+// Inicialización del juego al cargar el script
+cargarJuego();
+setInterval(guardarJuego, 5000);
