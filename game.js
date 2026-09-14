@@ -298,6 +298,9 @@ var comentariosPositivos = [
   "¡Esas mecánicas están 10/10!",
   "¡DONACIÓN EN CAMINO! 🪙✨",
   "¡Juegazo supremo!"
+  "Digno de un Oscar"
+  "Mis ahorros quizas ayuden"
+  "Cookie clicker? Mejor Wolfy Clicker Incremental"
 ];
 
 var comentariosNegativos = [
@@ -305,8 +308,28 @@ var comentariosNegativos = [
   "Meh, prefiero jugar a perseguir la pelota 🥎",
   "Mucho lag en la transmisión 🔌",
   "¡Hater en el chat detectado!"
+  "Porqué tanto hype?"
+  "Muy básico"
+  "Faltan mas cosas, bruh"
+  "Donan a alguien que no conocen... que poco instinto"
 ];
+// --- COMENTARIOS ESPECIALES (ARCOÍRIS) ---
+function obtenerComentarioEspecial() {
+  let anioRandom = Math.floor(Math.random() * (2023 - 2006 + 1)) + 2006;
+  let anioActual = new Date().getFullYear();
+  let wolfichasTexto = Math.floor(wolfichas).toLocaleString();
 
+  let comentariosEspeciales = [
+    `¡No he visto algo tan bueno desde ${anioRandom}!`,
+    `#ElMejorJuegoDe${anioActual}`,
+    "¿Alguien lo conoce? Porque amo sus accesorios y el orden de todo ✨",
+    `¡Cuántas Wolfichas! Ojalá tuviera esas ${wolfichasTexto} Wolfichas 🪙`,
+    "🎵 ¡Quién lo diría... que se podía hacer juegos así con mucha armonía~ 🎵",
+    "L0L, 3RES EL M3J0R DE ESTA G3N, BR0 🔥"
+  ];
+
+  return comentariosEspeciales[Math.floor(Math.random() * comentariosEspeciales.length)];
+}
 function iniciarChatStreamer() {
   if (timerChatStreamer) clearInterval(timerChatStreamer);
   
@@ -375,6 +398,69 @@ function generarComentarioChat() {
   };
 
   document.body.appendChild(chatBox);
+  function generarComentarioEspecial() {
+  let texto = obtenerComentarioEspecial();
+
+  let chatBox = document.createElement("div");
+  chatBox.className = "chat-stream arcoiris";
+  chatBox.innerHTML = `🌟 <strong>SUPER DONACIÓN:</strong> "${texto}"`;
+  
+  let topPos = Math.floor(Math.random() * 60 + 20);
+  let leftPos = Math.floor(Math.random() * 60 + 10);
+  
+  chatBox.style.position = "absolute";
+  chatBox.style.top = topPos + "%";
+  chatBox.style.left = leftPos + "%";
+  chatBox.style.padding = "12px 18px";
+  chatBox.style.borderRadius = "10px";
+  chatBox.style.cursor = "pointer";
+  chatBox.style.zIndex = "10001";
+  chatBox.style.fontWeight = "bold";
+  chatBox.style.color = "#ffffff";
+  chatBox.style.textShadow = "1px 1px 3px #000";
+  
+  // Estilo Arcoíris Neón
+  chatBox.style.background = "linear-gradient(45deg, #ff0000, #ff7300, #fffb00, #48ff00, #00ffd5, #002bfd, #7a00ff, #ff00c8)";
+  chatBox.style.backgroundSize = "400% 400%";
+  chatBox.style.boxShadow = "0px 0px 15px rgba(255, 255, 255, 0.8)";
+
+  let timerDesaparicion = setTimeout(() => {
+    if (document.body.contains(chatBox)) {
+      document.body.removeChild(chatBox);
+    }
+  }, 7000);
+
+  chatBox.onclick = function() {
+    clearTimeout(timerDesaparicion);
+    if (document.body.contains(chatBox)) {
+      document.body.removeChild(chatBox);
+    }
+
+    // RECOMPENSAS ESPECIALES (Mucha plata, Multiplicador o Wolfilletes)
+    let dado = Math.random();
+
+    if (dado < 0.45) {
+      // 45% Probabilidad: Lluvia masiva de Wolfichas (5,000 - 15,000 WC)
+      let premio = Math.floor(Math.random() * (15000 - 5000 + 1)) + 5000;
+      wolfichas += premio;
+      alert(`🌈 ¡DONACIÓN VIP! Un super fan te ha enviado +${premio.toLocaleString()} Wolfichas.`);
+    } else if (dado < 0.85) {
+      // 40% Probabilidad: Multiplicador x2 por 20 segundos
+      duracionBuffGalleta = 20;
+      multiplicadorGalleta = 2.0;
+      alert("🚀 ¡HYPE MASIVO EN EL CHAT! Multiplicador x2.0 activo por 20 segundos.");
+    } else {
+      // 15% Probabilidad: Nueva Moneda (Wolfilletes)
+      var wolfilletes = (typeof wolfilletes !== 'undefined') ? wolfilletes + 1 : 1;
+      alert("💵 ¡RECOMPENSA MÍSTICA! Has recibido 1 Wolfillete.");
+    }
+    
+    guardarJuego();
+    render();
+  };
+
+  document.body.appendChild(chatBox);
+}
 }
 
 function producir() {
