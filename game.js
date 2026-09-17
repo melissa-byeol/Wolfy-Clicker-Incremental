@@ -22,7 +22,7 @@ let mejoraGalleta = { comprado: false };
 var ultimoTiempoClick = 0;
 var esSpeedrunner = true;
 
-// Configuración de los elementos (21 elementos: índices 0 al 20)
+// Configuración de los elementos
 var esMejoraUnica = [true, true, true, false, true, false, false, true, false, true, true, true, false, false, false, true, false, true, true, true, false, true, false, true, true, false];
 var inventario      = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
 var wolfichasProduce = [0, 0, 0, 0.1, 0, 0, 1, 0, 5, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 200, 0, 0, 0, 0, 0]; 
@@ -74,6 +74,16 @@ function clic() {
 function comprar(objeto) {
   if (esMejoraUnica[objeto] && inventario[objeto] > 0) return;
 
+  // Bloqueo de fechas especiales
+  if ([21, 22, 24].includes(objeto)) {
+    alert("hey, no te apures, espera hasta el 18/09 XD");
+    return;
+  }
+  if ([23, 25].includes(objeto)) {
+    alert("hey, no te apures, espera hasta el 20/09 XD");
+    return;
+  }
+
   if (wolfichas >= precioProducto[objeto]) {
     wolfichas -= precioProducto[objeto];
     inventario[objeto]++;
@@ -83,11 +93,6 @@ function comprar(objeto) {
     if (objeto === 5) wolfichasProduce[3] += 0.1;
     if (objeto === 7) wolfichasProduce[6] *= 2;
     if (objeto === 9) wolfichasProduce[8] *= 2;
-
-    if (objeto === 13 && (inventario[13] || 0) >= 16) {
-      alert("¡Tus patitas ya no pueden amasar más rápido! (Mínimo de 2s alcanzado)");
-      return;
-    }
 
     if (objeto === 17) wolfichasProduce[16] *= 2;
     if (objeto === 18) wolfichasProduce[16] *= 2;
@@ -102,33 +107,12 @@ function comprar(objeto) {
       iniciarChatStreamer();
     }
 
-    if (objeto === 21) {
-      console.log("espera hasta el 18/09");
-      alert("hey, no te apures, espera hasta el 18/09 XD");
-      return;
-    }
-    if (objeto === 22) {
-      console.log("espera hasta el 18/09");
-      alert("hey, no te apures, espera hasta el 18/09 XD");
-      return;
-    }
-    if (objeto === 23) {
-      console.log("espera hasta el 20/09");
-      alert("hey, no te apures, espera hasta el 20/09 XD");
-      return;
-    }
-    if (objeto === 24) {
-      console.log("espera hasta el 18/09");
-      alert("hey, no te apures, espera hasta el 18/09 XD");
-      return;
-    }
-    if (objeto === 25) {
-      console.log("espera hasta el 20/09");
-      alert("hey, no te apures, espera hasta el 20/09 XD");
-      return;
-    }
     if (!esMejoraUnica[objeto]) {
       precioProducto[objeto] = precioBase[objeto] * (1 + 0.15 * inventario[objeto]);
+    }
+
+    if (objeto === 13 && (inventario[13] || 0) >= 16) {
+      alert("¡Tus patitas ya no pueden amasar más rápido! (Mínimo de 2s alcanzado)");
     }
 
     guardarJuego();
@@ -274,8 +258,8 @@ function ocultarGalleta() {
 
 // --- SISTEMA DE CHAT DE STREAMER WOLFY ---
 var timerChatStreamer = null;
-var penalizacionWCS = 0; // Descuento de WC/s por hater ignorado
-var productorSecuestrado = false; // Bloqueo si diste Like a un Hater
+var penalizacionWCS = 0;
+var productorSecuestrado = false;
 
 function iniciarChatStreamer() {
   if (timerChatStreamer) clearInterval(timerChatStreamer);
@@ -486,7 +470,7 @@ function generarComentarioEspecial() {
   contenedorChat.appendChild(chatBox);
 }
 
-// --- NAVEGACIÓN Y ANIMACIÓN DEL DERECHO / CONTADOR ---
+// --- NAVEGACIÓN Y ANIMACIÓN ---
 function actualizarContadorConEfectos(diferencia) {
   let contadorEl = document.getElementById("contador");
   let subContadorEl = document.getElementById("sub-contador");
@@ -545,14 +529,16 @@ function cambiarVistaDerecha(direccion) {
   let idolView = document.getElementById("vista-idol-ritmo");
   let titulo = document.getElementById("titulo-vista-derecha");
 
-  if (vistaActual === 0) {
-    chatView.style.display = "block";
-    idolView.style.display = "none";
-    titulo.innerText = "Chat Streamer Wolfy";
-  } else {
-    chatView.style.display = "none";
-    idolView.style.display = "block";
-    titulo.innerText = "Idol Wolfy: Ritmo";
+  if (chatView && idolView && titulo) {
+    if (vistaActual === 0) {
+      chatView.style.display = "block";
+      idolView.style.display = "none";
+      titulo.innerText = "Chat Streamer Wolfy";
+    } else {
+      chatView.style.display = "none";
+      idolView.style.display = "block";
+      titulo.innerText = "Idol Wolfy: Ritmo";
+    }
   }
 }
 
@@ -596,13 +582,14 @@ function producir() {
   }
 
   // 3. Aplicación del buff del Hueso de Oro
-  let multiplicador = 1;
   if (tiempoBuffHueso > 0) {
-    multiplicador = 7;
+    multiplicadorHueso = 7;
     tiempoBuffHueso--;
+  } else {
+    multiplicadorHueso = 1;
   }
 
-  let produccionBruta = (produccionPasiva + gananciaHornoTotal) * multiplicador;
+  let produccionBruta = (produccionPasiva + gananciaHornoTotal) * multiplicadorHueso;
 
   // 4. Penalización por Productor Secuestrado
   if (productorSecuestrado) {
@@ -614,7 +601,7 @@ function producir() {
   let tiempoCicloMax = Math.max(2, 10 - (comprasPatas * 0.95));
   let promedioBaker = (cantBakers > 0) ? ((5 + (inventario[14] || 0)) * 10 * cantBakers) / tiempoCicloMax : 0;
   
-  let wcPorSegundoCalculado = (produccionPasiva + promedioBaker) * multiplicador;
+  let wcPorSegundoCalculado = (produccionPasiva + promedioBaker) * multiplicadorHueso;
   if (productorSecuestrado) wcPorSegundoCalculado *= 0.95;
 
   wolfichasPorSegundo = Math.max(0, wcPorSegundoCalculado - penalizacionWCS);
@@ -706,8 +693,7 @@ function cargarJuego() {
     localStorage.removeItem("wolfyCompensacion");
     guardarJuego();
 
-    alert("Sorry por tu save avanzado, resulta que un Wolfy detectó una anomalía en ahí, asi que decidió borrarlo por ti,.. pero al menos te dejaron unas cositas");
-    alert("bueno, resulta que tuvimos suerte de salvar del save infestado 1000 wolfichas (aunque sea poco es un mega impulso), 10 Clicker Wolfies (un poco traumados, pero bueno XD) y 1 Miner Wolfy (el unicó que cooperó jejeje)");
+    alert("Sorry por tu save avanzado, resulta que un Wolfy detectó una anomalía ahí y decidió borrarlo... ¡pero te dejamos compensación!");
   }
 
   let datosGuardados = localStorage.getItem("wolfyClickerSave");
@@ -717,7 +703,7 @@ function cargarJuego() {
     let datos = JSON.parse(datosGuardados);
 
     if (isNaN(datos.wolfichas) || !Array.isArray(datos.inventario)) {
-      ejecutarAutoreparacion();
+      console.warn("Save corrupto detectado. Reiniciando valores por defecto...");
       return;
     }
 
@@ -746,7 +732,7 @@ function cargarJuego() {
       }
     }
   } catch (e) {
-    ejecutarAutoreparacion();
+    console.error("Error al cargar la partida:", e);
   }
 
   if (inventario[19] > 0) {
@@ -761,6 +747,7 @@ function cargarJuego() {
 function ejecutarAutoreparacion() {
   localStorage.setItem("wolfyCompensacion", "true");
   localStorage.removeItem("wolfyClickerSave");
+  wolfichas = 0;
   location.reload();
 }
 
@@ -941,6 +928,8 @@ Object.defineProperty(window, 'streamtime', {
   }
 });
 
-// Inicialización del juego
-cargarJuego();
-setInterval(guardarJuego, 5000);
+// Inicialización del juego segura
+window.addEventListener("DOMContentLoaded", () => {
+  cargarJuego();
+  setInterval(guardarJuego, 5000);
+});
