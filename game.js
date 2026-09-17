@@ -71,11 +71,11 @@ function clic() {
   guardarJuego();
 }
 
-function mostrarAlertComingSoon(fechaObjetivo = "20/09") {
+function mostrarAlertComingSoon() {
   const mensajes = [
-    `hey, no te apures, espera hasta el ${fechaObjetivo}`,
+    `hey, no te apures, espera hasta el lanzamiento`,
     "tick taaaaack, espera al reloooooj",
-    `wolfy está igual de emocionado que tu, aunque esto no haga nada hasta el ${fechaObjetivo}`
+    `wolfy está igual de emocionado que tu, aunque esto no haga nada hasta el lanzamiento`
   ];
 
   const mensajeAleatorio = mensajes[Math.floor(Math.random() * mensajes.length)];
