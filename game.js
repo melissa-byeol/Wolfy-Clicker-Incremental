@@ -248,46 +248,9 @@ function ocultarGalleta() {
 }
 
 // --- SISTEMA DE CHAT DE STREAMER WOLFY ---
-var timerChatStreamer = null;
-
-var comentariosPositivos = [
-  "¿Cómo se llama el juego? ¡¡Me encanta!!",
-  "¡Wolfy Go Studio nunca dececciona! 🔥",
-  "¡Esas mecánicas están 10/10!",
-  "¡DONACIÓN EN CAMINO! 🪙✨",
-  "¡Juegazo supremo!",
-  "Digno de un Oscar",
-  "Mis ahorros quizás ayuden",
-  "Cookie clicker? Mejor Wolfy Clicker Incremental"
-];
-
-var comentariosNegativos = [
-  "Qué aburrido, grrrrr 😡",
-  "Meh, prefiero jugar a perseguir la pelota 🥎",
-  "Mucho lag en la transmisión 🔌",
-  "¡Hater en el chat detectado!",
-  "Porqué tanto hype?",
-  "Muy básico",
-  "Faltan más cosas, bruh",
-  "Donan a alguien que no conocen... qué poco instinto"
-];
-
-function obtenerComentarioEspecial() {
-  let anioRandom = Math.floor(Math.random() * (2023 - 2006 + 1)) + 2006;
-  let anioActual = new Date().getFullYear();
-  let wolfichasTexto = Math.floor(wolfichas).toLocaleString();
-
-  let comentariosEspeciales = [
-    `¡No he visto algo tan bueno desde ${anioRandom}!`,
-    `#ElMejorJuegoDe${anioActual}`,
-    "¿Alguien lo conoce? Porque amo sus accesorios y el orden de todo ✨",
-    `¡Cuántas Wolfichas! Ojalá tuviera esas ${wolfichasTexto} Wolfichas 🪙`,
-    "🎵 ¡Quién lo diría... que se podía hacer juegos así con mucha armonía~ 🎵",
-    "L0L, 3RES EL M3J0R DE ESTA G3N, BR0 🔥"
-  ];
-
-  return comentariosEspeciales[Math.floor(Math.random() * comentariosEspeciales.length)];
-}
+// --- NUEVAS VARIABLES DE MODERACIÓN DE CHAT ---
+var penalizacionWCS = 0; // Descuento de WC/s por hater ignorado
+var productorSecuestrado = false; // Bloqueo si diste Like a un Hater
 
 function iniciarChatStreamer() {
   if (timerChatStreamer) clearInterval(timerChatStreamer);
@@ -315,35 +278,115 @@ function generarComentarioChat() {
 
   let chatBox = document.createElement("div");
   chatBox.className = esNegativo ? "chat-stream hater" : "chat-stream vip";
-  chatBox.style.backgroundColor = esNegativo ? "#ff4d4d" : "#4caf50";
+  chatBox.style.backgroundColor = esNegativo ? "#e63946" : "#2a9d8f";
   chatBox.style.color = "#ffffff";
-  chatBox.innerHTML = `💬 <strong>Chat:</strong> "${texto}"`;
 
-  let timerDesaparicion = setTimeout(() => {
-    if (contenedorChat.contains(chatBox)) {
-      contenedorChat.removeChild(chatBox);
-    }
-  }, 7000);
+  let tiempoInicio = Date.now();
+  let ignoradoEvaluado = false;
 
-  chatBox.onclick = function() {
-    clearTimeout(timerDesaparicion);
-    if (contenedorChat.contains(chatBox)) {
-      contenedorChat.removeChild(chatBox);
-    }
+  // Render HTML según el tipo de comentario
+  if (!esNegativo) {
+    // --- COMENTARIO BUENO ---
+    chatBox.innerHTML = `
+      <div>💬 <strong>Chat:</strong> "${texto}" <span class="ico-like"></span></div>
+      <div class="chat-acciones">
+        <button class="btn-chat btn-like">❤️ Like</button>
+        <button class="btn-chat btn-dislike">💔 Dislike</button>
+      </div>
+    `;
 
-    if (esNegativo) {
-      let perdida = Math.min(wolfichas, 200);
-      wolfichas -= perdida;
-      alert(`❌ ¡Le diste atención al Hater! Perdiste ${perdida} Wolfichas.`);
-    } else {
+    let btnLike = chatBox.querySelector(".btn-like");
+    let btnDislike = chatBox.querySelector(".btn-dislike");
+
+    btnLike.onclick = function() {
       let premio = Math.floor(Math.random() * (1000 - 200 + 1)) + 200;
       wolfichas += premio;
-      alert(`🎉 ¡Comentario destacado a tiempo! Ganaste +${premio} Wolfichas de donación.`);
-    }
-    
-    guardarJuego();
-    render();
-  };
+      chatBox.querySelector(".ico-like").innerText = "❤️";
+      chatBox.classList.add("desactivado");
+      guardarJuego();
+      render();
+    };
+
+    btnDislike.onclick = function() {
+      let castigo = Math.floor(Math.random() * (500 - 200 + 1)) + 200;
+      wolfichas = Math.max(0, wolfichas - castigo);
+      chatBox.querySelector(".ico-like").innerText = "💔";
+      chatBox.classList.add("desactivado");
+      guardarJuego();
+      render();
+    };
+
+  } else {
+    // --- COMENTARIO MALO (HATER) ---
+    chatBox.innerHTML = `
+      <div>🤬 <strong>Hater:</strong> "${texto}"</div>
+      <div class="chat-acciones">
+        <button class="btn-chat btn-borrar">🗑️ Borrar</button>
+        <button class="btn-chat btn-dislike">💔 Dislike</button>
+        <button class="btn-chat btn-like">❤️ Like</button>
+      </div>
+    `;
+
+    let btnBorrar = chatBox.querySelector(".btn-borrar");
+    let btnDislike = chatBox.querySelector(".btn-dislike");
+    let btnLike = chatBox.querySelector(".btn-like");
+
+    // Lógica para borrar hater (Moderación)
+    btnBorrar.onclick = function() {
+      let duracion = (Date.now() - tiempoInicio) / 1000;
+
+      if (duracion <= 2.0) {
+        // Clic rápido: Fuegos artificiales
+        chatBox.classList.add("efecto-exito");
+        setTimeout(() => { if (contenedorChat.contains(chatBox)) contenedorChat.removeChild(chatBox); }, 400);
+      } else {
+        if (contenedorChat.contains(chatBox)) contenedorChat.removeChild(chatBox);
+      }
+
+      // Devolver al productor si estaba secuestrado
+      if (productorSecuestrado) {
+        productorSecuestrado = false;
+        alert("👮 ¡Has moderado al hater! Tu productor ha sido rescatado de las garras del secuestro.");
+      }
+
+      guardarJuego();
+      render();
+    };
+
+    // Dar Dislike a un Hater
+    btnDislike.onclick = function() {
+      chatBox.classList.add("desactivado");
+      chatBox.querySelector(".chat-acciones").innerHTML = "<small>💔 Neutralizado</small>";
+    };
+
+    // Error fatal: Dar Like a un Hater
+    btnLike.onclick = function() {
+      if (!productorSecuestrado) {
+        productorSecuestrado = true;
+        let robo = Math.floor(wolfichas * 0.10);
+        wolfichas -= robo;
+        alert(`🚨 ¡ERROR DE MODERACIÓN! Le diste Like a un Hater.\n¡Se han robado a tu Productor y un 10% de tus ahorros (${robo.toLocaleString()} WC)! Modéralo (🗑️) para rescatar a tu productor.`);
+      }
+      chatBox.classList.add("desactivado");
+      guardarJuego();
+      render();
+    };
+
+    // Evaluar penalización si pasan 2 segundos sin moderar
+    let timerPenalty = setInterval(() => {
+      if (!ignoradoEvaluado && contenedorChat.contains(chatBox) && !chatBox.classList.contains("desactivado")) {
+        let transcurrido = (Date.now() - tiempoInicio) / 1000;
+        if (transcurrido > 2.0) {
+          ignoradoEvaluado = true;
+          // Quitar equivalente a un edificio básico (e.g. Worker Wolfy = 50 WC/s o Miner = 5)
+          penalizacionWCS += 5; 
+          chatBox.style.border = "2px solid #ff0000";
+        }
+      } else if (!contenedorChat.contains(chatBox) || chatBox.classList.contains("desactivado")) {
+        clearInterval(timerPenalty);
+      }
+    }, 500);
+  }
 
   contenedorChat.appendChild(chatBox);
 }
@@ -355,40 +398,32 @@ function generarComentarioEspecial() {
 
   let chatBox = document.createElement("div");
   chatBox.className = "chat-stream arcoiris";
-  chatBox.innerHTML = `🌟 <strong>SUPER DONACIÓN:</strong> "${texto}"`;
+  chatBox.innerHTML = `🌟 <strong>SUPER FANÁTICO:</strong> "${texto}"`;
   
   chatBox.style.background = "linear-gradient(45deg, #ff0000, #ff7300, #fffb00, #48ff00, #00ffd5, #002bfd, #7a00ff, #ff00c8)";
   chatBox.style.backgroundSize = "400% 400%";
   chatBox.style.color = "#ffffff";
   chatBox.style.textShadow = "1px 1px 3px #000";
 
-  let timerDesaparicion = setTimeout(() => {
-    if (contenedorChat.contains(chatBox)) {
-      contenedorChat.removeChild(chatBox);
-    }
-  }, 7000);
+  let tiempoAparicion = Date.now();
 
   chatBox.onclick = function() {
-    clearTimeout(timerDesaparicion);
+    let tiempoReaccion = (Date.now() - tiempoAparicion) / 1000;
+    
     if (contenedorChat.contains(chatBox)) {
       contenedorChat.removeChild(chatBox);
     }
 
-    let dado = Math.random();
+    let premioBase = Math.floor(Math.random() * (15000 - 5000 + 1)) + 5000;
+    wolfichas += premioBase;
 
-    if (dado < 0.45) {
-      let premio = Math.floor(Math.random() * (15000 - 5000 + 1)) + 5000;
-      wolfichas += premio;
-      alert(`🌈 ¡DONACIÓN VIP! Un super fan te ha enviado +${premio.toLocaleString()} Wolfichas.`);
-    } else if (dado < 0.85) {
-      duracionBuffGalleta = 20;
-      multiplicadorGalleta = 2.0;
-      alert("🚀 ¡HYPE MASIVO EN EL CHAT! Multiplicador x2.0 activo por 20 segundos.");
+    if (tiempoReaccion <= 5.0) {
+      wolfilletes += 10;
+      alert(`⚡ ¡REFLEJOS DE ACERO! Reaccionaste en ${tiempoReaccion.toFixed(1)}s.\nPremio: +${premioBase.toLocaleString()} WC y 💵 +10 Wolfilletes.`);
     } else {
-      wolfilletes += 1;
-      alert("💵 ¡RECOMPENSA MÍSTICA! Has recibido 1 Wolfillete.");
+      alert(`🎉 ¡Súper Donación reclamada! +${premioBase.toLocaleString()} Wolfichas.`);
     }
-    
+
     guardarJuego();
     render();
   };
@@ -466,7 +501,6 @@ function cambiarVistaDerecha(direccion) {
   }
 }
 
-// --- BUCLE DE PRODUCCIÓN Y RENDER ---
 function producir() {
   // 🛡️ COMPROBACIÓN EN VIVO: Si wolfichas se vuelve NaN durante el juego
   if (isNaN(wolfichas)) {
@@ -475,13 +509,16 @@ function producir() {
     return;
   }
 
-  let totalClickers = (inventario[3] || 0) * wolfichasProduce[3];
-  let totalFarmers  = (inventario[6] || 0) * wolfichasProduce[6];
-  let totalMiners   = (inventario[8] || 0) * wolfichasProduce[8];
-  let totalWorkers  = (inventario[16] || 0) * wolfichasProduce[16];
+  // 1. Producción básica de edificios
+  let totalClickers  = (inventario[3] || 0) * wolfichasProduce[3];
+  let totalFarmers   = (inventario[6] || 0) * wolfichasProduce[6];
+  let totalMiners    = (inventario[8] || 0) * wolfichasProduce[8];
+  let totalWorkers   = (inventario[16] || 0) * wolfichasProduce[16];
   let totalStreamers = (inventario[20] || 0) * wolfichasProduce[20];
-  let produccionPasiva = (totalClickers + totalFarmers + totalMiners + totalWorkers + totalStreamers) * multiplicadorGalleta;
   
+  let produccionPasiva = (totalClickers + totalFarmers + totalMiners + totalWorkers + totalStreamers) * multiplicadorGalleta;
+
+  // 2. Producción de la Pastelería (Bakers)
   let cantBakers = inventario[12] || 0;
   let gananciaHornoTotal = 0;
 
@@ -504,21 +541,31 @@ function producir() {
     tiempoHorno = 10;
   }
 
+  // 3. Aplicación del buff del Hueso de Oro
   let multiplicador = 1;
   if (tiempoBuffHueso > 0) {
     multiplicador = 7;
     tiempoBuffHueso--;
   }
 
-  wolfichas += (produccionPasiva + gananciaHornoTotal) * multiplicador;
+  let produccionBruta = (produccionPasiva + gananciaHornoTotal) * multiplicador;
 
+  // 4. Penalización por Productor Secuestrado (Reducción del 5% de la producción total)
+  if (productorSecuestrado) {
+    produccionBruta *= 0.95;
+  }
+
+  // 5. Descuento pasivo de WC/s acumulado por Haters no moderados a tiempo
   let comprasPatas = inventario[13] || 0;
-  let tiempoCicloMax = Math.max(2, 10 - (comprasPatas * 0.5));
+  let tiempoCicloMax = Math.max(2, 10 - (comprasPatas * 0.95));
   let promedioBaker = (cantBakers > 0) ? ((5 + (inventario[14] || 0)) * 10 * cantBakers) / tiempoCicloMax : 0;
   
-  wolfichasPorSegundo = (produccionPasiva + promedioBaker) * multiplicador;
-}
+  let wcPorSegundoCalculado = (produccionPasiva + promedioBaker) * multiplicador;
+  if (productorSecuestrado) wcPorSegundoCalculado *= 0.95;
 
+  wolfichasPorSegundo = Math.max(0, wcPorSegundoCalculado - penalizacionWCS);
+  wolfichas += wolfichasPorSegundo;
+}
 function render() {
   let diferencia = wolfichas - wolfichasAnteriores;
   actualizarContadorConEfectos(diferencia);
