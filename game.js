@@ -116,16 +116,16 @@ function comprar(objeto) {
     }
 
     if (objeto === 21) {
-      mostrarAlertComingSoon("18/09");
+      mostrarAlertComingSoon();
     }
     if (objeto === 22) {
-      mostrarAlertComingSoon("19/09");
+      mostrarAlertComingSoon();
     }
     if (objeto === 23) {
       mostrarAlertComingSoon();
     }
     if (objeto === 24) {
-      mostrarAlertComingSoon("18/09");
+      mostrarAlertComingSoon();
     }
     if (objeto === 25) {
       mostrarAlertComingSoon();
