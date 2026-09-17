@@ -1,5 +1,6 @@
 // --- VARIABLES GLOBALES ---
 var wolfichas = 0;
+var wolfichasAnteriores = 0;
 var wolfichasPorClic = 1;
 var multiplicadorGalleta = 1;
 var duracionBuffGalleta = 0;
@@ -34,6 +35,7 @@ var probSuperCrit = 0;
 var tiempoHorno = 10; 
 var gananciaUltimaHorneada = 0; 
 var wolfichasPorSegundo = 0;
+var vistaActual = 0; // 0: Streamer Chat, 1: Idol Ritmo
 
 var logros = [
   { id: "badge-1", titulo: "Primer Ahorro", descripcion: "Ten 100 Wolfichas Ahorradas", condicion: function() { return wolfichas >= 100; }, completado: false },
@@ -59,6 +61,7 @@ var logros = [
   { id: "badge-21", titulo: "Comida Tramposa", descripcion: "¡¡QUÉ CERCA!! Cómete una galleta con menos de 2s sobrantes", condicion: function() { return false; }, completado: false }
 ];  
 
+// --- FUNCIONES INTERACTIVAS Y UI ---
 function clic() {
   let bonoCooperacion = 0;
   if (inventario[10] > 0) {
@@ -115,6 +118,7 @@ function girarRuleta() {
   return 1;
 }
 
+// --- SISTEMA DE GALLETA CROCANTE (QTE) ---
 function iniciarLoopGalletas() {
   if (timerLoopGalleta) clearInterval(timerLoopGalleta);
   timerLoopGalleta = setInterval(function() {
@@ -135,45 +139,23 @@ function aparecerGalletitaCrocante() {
   tiempoLimiteQTE = Math.floor(Math.random() * 9) + 7;
 
   let cookieElement = document.getElementById("galleta-crocante");
-  if (!cookieElement) {
-    cookieElement = document.createElement("img");
-    cookieElement.id = "galleta-crocante";
-    cookieElement.src = "imagenes-wolfy/plain_cookie.png";
-    cookieElement.alt = "Galletita Crocante";
-    cookieElement.style.position = "absolute";
-    cookieElement.style.cursor = "pointer";
-    cookieElement.style.zIndex = "9999";
-    cookieElement.style.width = "75px";
-    cookieElement.onclick = clickGalletita;
-    document.body.appendChild(cookieElement);
-  }
-
   let qteInfo = document.getElementById("qte-info");
-  if (!qteInfo) {
-    qteInfo = document.createElement("div");
-    qteInfo.id = "qte-info";
-    qteInfo.style.position = "absolute";
-    qteInfo.style.zIndex = "10000";
-    qteInfo.style.fontWeight = "bold";
-    qteInfo.style.color = "#ffffff";
-    qteInfo.style.fontSize = "16px";
-    qteInfo.style.textShadow = "2px 2px 4px #000000, -1px -1px 0 #000";
-    qteInfo.style.pointerEvents = "none";
-    qteInfo.style.textAlign = "center";
-    document.body.appendChild(qteInfo);
-  }
 
   let topPos = Math.floor(Math.random() * 60 + 15);
   let leftPos = Math.floor(Math.random() * 60 + 15);
 
-  cookieElement.style.top = topPos + "%";
-  cookieElement.style.left = leftPos + "%";
-  cookieElement.style.display = "block";
+  if (cookieElement) {
+    cookieElement.style.top = topPos + "%";
+    cookieElement.style.left = leftPos + "%";
+    cookieElement.style.display = "block";
+  }
 
-  qteInfo.style.top = (topPos - 5) + "%";
-  qteInfo.style.left = leftPos + "%";
-  qteInfo.style.display = "block";
-  qteInfo.innerHTML = `🍪 Faltan: ${clicksRequeridos - clicksActuales}<br>⏱️ ${tiempoLimiteQTE.toFixed(1)}s`;
+  if (qteInfo) {
+    qteInfo.style.top = (topPos - 5) + "%";
+    qteInfo.style.left = leftPos + "%";
+    qteInfo.style.display = "block";
+    qteInfo.innerHTML = `🍪 Faltan: ${clicksRequeridos - clicksActuales}<br>⏱️ ${tiempoLimiteQTE.toFixed(1)}s`;
+  }
 
   timerQTE = setInterval(() => {
     tiempoLimiteQTE -= 0.1;
@@ -328,35 +310,25 @@ function generarComentarioChat() {
     ? comentariosNegativos[Math.floor(Math.random() * comentariosNegativos.length)]
     : comentariosPositivos[Math.floor(Math.random() * comentariosPositivos.length)];
 
+  let contenedorChat = document.getElementById("comentarios-chat");
+  if (!contenedorChat) return;
+
   let chatBox = document.createElement("div");
   chatBox.className = esNegativo ? "chat-stream hater" : "chat-stream vip";
-  chatBox.innerHTML = `💬 <strong>Chat:</strong> "${texto}"`;
-  
-  let topPos = Math.floor(Math.random() * 60 + 20);
-  let leftPos = Math.floor(Math.random() * 60 + 10);
-  
-  chatBox.style.position = "absolute";
-  chatBox.style.top = topPos + "%";
-  chatBox.style.left = leftPos + "%";
-  chatBox.style.padding = "10px 15px";
-  chatBox.style.borderRadius = "8px";
-  chatBox.style.cursor = "pointer";
-  chatBox.style.zIndex = "10000";
-  chatBox.style.fontWeight = "bold";
-  chatBox.style.boxShadow = "0px 4px 8px rgba(0,0,0,0.3)";
   chatBox.style.backgroundColor = esNegativo ? "#ff4d4d" : "#4caf50";
   chatBox.style.color = "#ffffff";
+  chatBox.innerHTML = `💬 <strong>Chat:</strong> "${texto}"`;
 
   let timerDesaparicion = setTimeout(() => {
-    if (document.body.contains(chatBox)) {
-      document.body.removeChild(chatBox);
+    if (contenedorChat.contains(chatBox)) {
+      contenedorChat.removeChild(chatBox);
     }
   }, 7000);
 
   chatBox.onclick = function() {
     clearTimeout(timerDesaparicion);
-    if (document.body.contains(chatBox)) {
-      document.body.removeChild(chatBox);
+    if (contenedorChat.contains(chatBox)) {
+      contenedorChat.removeChild(chatBox);
     }
 
     if (esNegativo) {
@@ -373,44 +345,33 @@ function generarComentarioChat() {
     render();
   };
 
-  document.body.appendChild(chatBox);
+  contenedorChat.appendChild(chatBox);
 }
 
 function generarComentarioEspecial() {
   let texto = obtenerComentarioEspecial();
+  let contenedorChat = document.getElementById("comentarios-chat");
+  if (!contenedorChat) return;
 
   let chatBox = document.createElement("div");
   chatBox.className = "chat-stream arcoiris";
   chatBox.innerHTML = `🌟 <strong>SUPER DONACIÓN:</strong> "${texto}"`;
   
-  let topPos = Math.floor(Math.random() * 60 + 20);
-  let leftPos = Math.floor(Math.random() * 60 + 10);
-  
-  chatBox.style.position = "absolute";
-  chatBox.style.top = topPos + "%";
-  chatBox.style.left = leftPos + "%";
-  chatBox.style.padding = "12px 18px";
-  chatBox.style.borderRadius = "10px";
-  chatBox.style.cursor = "pointer";
-  chatBox.style.zIndex = "10001";
-  chatBox.style.fontWeight = "bold";
-  chatBox.style.color = "#ffffff";
-  chatBox.style.textShadow = "1px 1px 3px #000";
-  
   chatBox.style.background = "linear-gradient(45deg, #ff0000, #ff7300, #fffb00, #48ff00, #00ffd5, #002bfd, #7a00ff, #ff00c8)";
   chatBox.style.backgroundSize = "400% 400%";
-  chatBox.style.boxShadow = "0px 0px 15px rgba(255, 255, 255, 0.8)";
+  chatBox.style.color = "#ffffff";
+  chatBox.style.textShadow = "1px 1px 3px #000";
 
   let timerDesaparicion = setTimeout(() => {
-    if (document.body.contains(chatBox)) {
-      document.body.removeChild(chatBox);
+    if (contenedorChat.contains(chatBox)) {
+      contenedorChat.removeChild(chatBox);
     }
   }, 7000);
 
   chatBox.onclick = function() {
     clearTimeout(timerDesaparicion);
-    if (document.body.contains(chatBox)) {
-      document.body.removeChild(chatBox);
+    if (contenedorChat.contains(chatBox)) {
+      contenedorChat.removeChild(chatBox);
     }
 
     let dado = Math.random();
@@ -432,15 +393,86 @@ function generarComentarioEspecial() {
     render();
   };
 
-  document.body.appendChild(chatBox);
+  contenedorChat.appendChild(chatBox);
 }
 
+// --- NAVEGACIÓN Y ANIMACIÓN DEL DERECHO / CONTADOR ---
+function actualizarContadorConEfectos(diferencia) {
+  let contadorEl = document.getElementById("contador");
+  let subContadorEl = document.getElementById("sub-contador");
+  let lblWolfilletes = document.getElementById("lbl-wolfilletes");
+
+  if (lblWolfilletes) lblWolfilletes.innerText = wolfilletes;
+
+  if (contadorEl) {
+    let limpio = Math.round(wolfichas * 10) / 10;
+    contadorEl.innerText = `${limpio.toFixed(1)} Wolfichas`;
+
+    if (Math.abs(diferencia) >= 0.1) {
+      let esGanancia = diferencia > 0;
+      let claseParpadeo = esGanancia ? "flash-ganar" : "flash-perder";
+      
+      contadorEl.classList.add(claseParpadeo);
+      mostrarCantidadFlotante(diferencia, esGanancia);
+
+      setTimeout(() => {
+        contadorEl.classList.remove("flash-ganar", "flash-perder");
+      }, 200);
+    }
+  }
+
+  if (subContadorEl) {
+    subContadorEl.innerText = `${wolfichasPorSegundo.toFixed(1)} WC/s | Wolfilletes: ${wolfilletes} 💵`;
+  }
+}
+
+function mostrarCantidadFlotante(monto, esGanancia) {
+  let header = document.querySelector(".header-top");
+  if (!header) return;
+
+  let flotante = document.createElement("div");
+  flotante.className = `dinero-flotante ${esGanancia ? 'ganancia' : 'perdida'}`;
+  flotante.innerText = (esGanancia ? "+" : "") + monto.toFixed(1);
+
+  header.appendChild(flotante);
+
+  setTimeout(() => {
+    flotante.style.transform = "translateY(-15px)";
+    flotante.style.opacity = "0";
+  }, 50);
+
+  setTimeout(() => {
+    if (header.contains(flotante)) header.removeChild(flotante);
+  }, 650);
+}
+
+function cambiarVistaDerecha(direccion) {
+  vistaActual += direccion;
+  if (vistaActual < 0) vistaActual = 1;
+  if (vistaActual > 1) vistaActual = 0;
+
+  let chatView = document.getElementById("vista-chat-streamer");
+  let idolView = document.getElementById("vista-idol-ritmo");
+  let titulo = document.getElementById("titulo-vista-derecha");
+
+  if (vistaActual === 0) {
+    chatView.style.display = "block";
+    idolView.style.display = "none";
+    titulo.innerText = "Chat Streamer Wolfy";
+  } else {
+    chatView.style.display = "none";
+    idolView.style.display = "block";
+    titulo.innerText = "Idol Wolfy: Ritmo";
+  }
+}
+
+// --- BUCLE DE PRODUCCIÓN Y RENDER ---
 function producir() {
   // 🛡️ COMPROBACIÓN EN VIVO: Si wolfichas se vuelve NaN durante el juego
   if (isNaN(wolfichas)) {
     console.error("⚠️ Se detectó corrupción en tiempo real (NaN). Activando protocolo de rescate...");
     ejecutarAutoreparacion();
-    return; // Detiene la producción para procesar la recarga
+    return;
   }
 
   let totalClickers = (inventario[3] || 0) * wolfichasProduce[3];
@@ -488,13 +520,9 @@ function producir() {
 }
 
 function render() {
-  let limpio = Math.round(wolfichas * 100) / 100;
-  let wolfichasMostrar = (limpio % 1 === 0) ? limpio : limpio.toFixed(2);
-
-  let contadorEl = document.getElementById("contador");
-  if (contadorEl) {
-    contadorEl.innerHTML = `${wolfichasMostrar} Wolfichas <br><small>(${wolfichasPorSegundo.toFixed(1)} WC/s)</small>`;
-  }
+  let diferencia = wolfichas - wolfichasAnteriores;
+  actualizarContadorConEfectos(diferencia);
+  wolfichasAnteriores = wolfichas;
 
   let inventarioEl = document.getElementById("inventario");
   if (inventarioEl) {
@@ -503,9 +531,13 @@ function render() {
   }
 
   for (let i = 0; i < esMejoraUnica.length; i++) {
-    if (esMejoraUnica[i] && inventario[i] > 0) {
-      let btn = document.getElementById(`btn-${i}`);
-      if (btn) btn.disabled = true;
+    let btn = document.getElementById(`btn-${i}`);
+    if (btn) {
+      if (esMejoraUnica[i] && inventario[i] > 0) {
+        btn.disabled = true;
+      } else {
+        btn.disabled = wolfichas < precioProducto[i];
+      }
     }
   }
 
@@ -530,7 +562,13 @@ function actualizarBadges() {
   badgeUI.innerHTML = htmlAcumulado;
 }
 
+// --- GUARDADO / CARGA Y AUTO-REPARACIÓN ---
 function guardarJuego() {
+  if (isNaN(wolfichas)) {
+    console.error("⚠️ Se detectó NaN en vivo. Restaurando valor seguro...");
+    wolfichas = 0;
+  }
+
   let datos = {
     wolfichas: wolfichas,
     wolfichasPorClic: wolfichasPorClic,
@@ -555,37 +593,32 @@ function guardarJuego() {
 }
 
 function cargarJuego() {
-  // 1. REVISAR SI VIENE DE UN REINICIO POR ERROR
-if (localStorage.getItem("wolfyCompensacion") === "true") {
-  // Entrega de recursos
-  wolfichas += 1000;
-  inventario[3] = (inventario[3] || 0) + 10;
-  inventario[8] = (inventario[8] || 0) + 1;
+  if (localStorage.getItem("wolfyCompensacion") === "true") {
+    wolfichas += 1000;
+    inventario[3] = (inventario[3] || 0) + 10;
+    inventario[8] = (inventario[8] || 0) + 1;
 
-  // Actualizar precios de tienda
-  precioProducto[3] = precioBase[3] * (1 + 0.15 * inventario[3]);
-  precioProducto[8] = precioBase[8] * (1 + 0.15 * inventario[8]);
+    precioProducto[3] = precioBase[3] * (1 + 0.15 * inventario[3]);
+    precioProducto[8] = precioBase[8] * (1 + 0.15 * inventario[8]);
 
-  localStorage.removeItem("wolfyCompensacion");
-  guardarJuego();
+    localStorage.removeItem("wolfyCompensacion");
+    guardarJuego();
 
-  // Tus mensajes personales con tu voz auténtica
-  alert("Sorry por tu save avanzado, resulta que un Wolfy detectó una anomalía en ahí, asi que decidió borrarlo por ti,.. pero al menos te dejaron unas cositas");
-  alert("bueno, resulta que tuvimos suerte de salvar del save infestado 1000 wolfichas (aunque sea poco es un mega impulso), 10 Clicker Wolfies (un poco traumados, pero bueno XD) y 1 Miner Wolfy (el unicó que cooperó jejeje)");
-}
+    alert("Sorry por tu save avanzado, resulta que un Wolfy detectó una anomalía en ahí, asi que decidió borrarlo por ti,.. pero al menos te dejaron unas cositas");
+    alert("bueno, resulta que tuvimos suerte de salvar del save infestado 1000 wolfichas (aunque sea poco es un mega impulso), 10 Clicker Wolfies (un poco traumados, pero bueno XD) y 1 Miner Wolfy (el unicó que cooperó jejeje)");
+  }
+
   let datosGuardados = localStorage.getItem("wolfyClickerSave");
   if (!datosGuardados) return;
 
   try {
     let datos = JSON.parse(datosGuardados);
 
-    // 2. VALIDAR SI EL SAVE ESTÁ CORRUPTO
     if (isNaN(datos.wolfichas) || !Array.isArray(datos.inventario)) {
       ejecutarAutoreparacion();
       return;
     }
 
-    // Cargar datos normalmente...
     wolfichas = datos.wolfichas ?? wolfichas;
     wolfichasPorClic = datos.wolfichasPorClic ?? wolfichasPorClic;
     inventario = datos.inventario ?? inventario;
@@ -611,7 +644,6 @@ if (localStorage.getItem("wolfyCompensacion") === "true") {
       }
     }
   } catch (e) {
-    // Si falla el JSON parsing
     ejecutarAutoreparacion();
   }
 
@@ -624,13 +656,13 @@ if (localStorage.getItem("wolfyCompensacion") === "true") {
   }
 }
 
-// 3. FUNCIÓN AUXILIAR DE LIMPIEZA
 function ejecutarAutoreparacion() {
   localStorage.setItem("wolfyCompensacion", "true");
   localStorage.removeItem("wolfyClickerSave");
   location.reload();
 }
 
+// --- HUESO DE ORO ---
 function aparecerHuesoOro(esNatural = false) {
   let hueso = document.getElementById("hueso-oro");
   if (!hueso) return;
@@ -676,7 +708,7 @@ function clickHuesoOro() {
   render();
 }
 
-// Intervenciones e intervalos de ejecución
+// Intervenciones e intervalos
 setInterval(() => {
   if (Math.random() < 0.01) aparecerHuesoOro(true);
 }, 1000);
@@ -807,6 +839,6 @@ Object.defineProperty(window, 'streamtime', {
   }
 });
 
-// Inicialización del juego al cargar el script
+// Inicialización del juego
 cargarJuego();
 setInterval(guardarJuego, 5000);
