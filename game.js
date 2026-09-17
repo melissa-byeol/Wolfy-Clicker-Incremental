@@ -249,6 +249,7 @@ function ocultarGalleta() {
 
 // --- SISTEMA DE CHAT DE STREAMER WOLFY ---
 // --- NUEVAS VARIABLES DE MODERACIÓN DE CHAT ---
+var timerChatStreamer = null; // 👈 ¡AGREGA ESTA LÍNEA AQUÍ!
 var penalizacionWCS = 0; // Descuento de WC/s por hater ignorado
 var productorSecuestrado = false; // Bloqueo si diste Like a un Hater
 
