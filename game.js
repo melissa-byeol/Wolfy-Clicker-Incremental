@@ -23,12 +23,12 @@ var ultimoTiempoClick = 0;
 var esSpeedrunner = true;
 
 // Configuración de los elementos (21 elementos: índices 0 al 20)
-var esMejoraUnica = [true, true, true, false, true, false, false, true, false, true, true, true, false, false, false, true, false, true, true, true, false];
-var inventario      = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
-var wolfichasProduce = [0, 0, 0, 0.1, 0, 0, 1, 0, 5, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 200]; 
+var esMejoraUnica = [true, true, true, false, true, false, false, true, false, true, true, true, false, false, false, true, false, true, true, true, false, true, false, true, true, false];
+var inventario      = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,0, 0, 0, 0, 0];
+var wolfichasProduce = [0, 0, 0, 0.1, 0, 0, 1, 0, 5, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 200, 0, 0, 0, 0, 0]; 
 
-var precioBase      = [50, 750, 5500, 10, 500, 200, 150, 500, 800, 2000, 3000, 2500, 2000, 5000, 10000, 15000, 30000, 40000, 65000, 9999, 120000];
-var precioProducto  = [50, 750, 5500, 10, 500, 200, 150, 500, 800, 2000, 3000, 2500, 2000, 5000, 10000, 15000, 30000, 40000, 65000, 9999, 120000];
+var precioBase      = [50, 750, 5500, 10, 500, 200, 150, 500, 800, 2000, 3000, 2500, 2000, 5000, 10000, 15000, 30000, 40000, 65000, 9999, 120000, 0, 0, 0, 0, 0];
+var precioProducto  = [50, 750, 5500, 10, 500, 200, 150, 500, 800, 2000, 3000, 2500, 2000, 5000, 10000, 15000, 30000, 40000, 65000, 9999, 120000, 0, 0, 0, 0, 0];
 
 var probCrit = 0;
 var probSuperCrit = 0;
@@ -71,6 +71,18 @@ function clic() {
   guardarJuego();
 }
 
+function mostrarAlertComingSoon(fechaObjetivo = "20/09") {
+  const mensajes = [
+    `hey, no te apures, espera hasta el ${fechaObjetivo}`,
+    "tick taaaaack, espera al reloooooj",
+    `wolfy está igual de emocionado que tu, aunque esto no haga nada hasta el ${fechaObjetivo}`
+  ];
+
+  const mensajeAleatorio = mensajes[Math.floor(Math.random() * mensajes.length)];
+  
+  alert(mensajeAleatorio);
+}
+
 function comprar(objeto) {
   if (esMejoraUnica[objeto] && inventario[objeto] > 0) return;
 
@@ -101,7 +113,22 @@ function comprar(objeto) {
     if (objeto === 20 && inventario[20] === 1) {
       iniciarChatStreamer();
     }
-    
+
+    if (objeto === 21) {
+     mostrarAlertCominSoon("18/09")
+    }
+    if (objeto === 22) {
+      mostrarAlertCominSoon("19/09")
+    }
+    if (objeto === 23) {
+      mostrarAlertCominSoon()
+    }
+    if (objeto === 24) {
+      mostrarAlertCominSoon("18/09")
+    }
+    if (objeto === 25) {
+      mostrarAlertCominSoon()
+    }
     if (!esMejoraUnica[objeto]) {
       precioProducto[objeto] = precioBase[objeto] * (1 + 0.15 * inventario[objeto]);
     }
