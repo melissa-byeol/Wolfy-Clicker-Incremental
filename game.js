@@ -71,19 +71,6 @@ function clic() {
   guardarJuego();
 }
 
-function mostrarAlertComingSoon() {
-  const mensajes = [
-    `hey, no te apures, espera hasta el lanzamiento`,
-    "tick taaaaack, espera al reloooooj",
-    `wolfy está igual de emocionado que tu, aunque esto no haga nada hasta el lanzamiento`
-  ];
-
-  const mensajeAleatorio = mensajes[Math.floor(Math.random() * mensajes.length)];
-  
-  console.log(mensajeAleatorio);
-  
-}
-
 function comprar(objeto) {
   if (esMejoraUnica[objeto] && inventario[objeto] > 0) return;
 
@@ -116,19 +103,29 @@ function comprar(objeto) {
     }
 
     if (objeto === 21) {
-      mostrarAlertComingSoon();
+      console.log("espera hasta el 18/09");
+      alert("hey, no te apures, espera hasta el 18/09 XD)
+      return;
     }
     if (objeto === 22) {
-      mostrarAlertComingSoon();
+      console.log("espera hasta el 18/09");
+      alert("hey, no te apures, espera hasta el 18/09 XD)
+      return;
     }
     if (objeto === 23) {
-      mostrarAlertComingSoon();
+      console.log("espera hasta el 20/09");
+      alert("hey, no te apures, espera hasta el 20/09 XD)
+      return;
     }
     if (objeto === 24) {
-      mostrarAlertComingSoon();
+      console.log("espera hasta el 18/09");
+      alert("hey, no te apures, espera hasta el 18/09 XD)
+      return;
     }
     if (objeto === 25) {
-      mostrarAlertComingSoon();
+      console.log("espera hasta el 20/09");
+      alert("hey, no te apures, espera hasta el 20/09 XD)
+      return;
     }
     if (!esMejoraUnica[objeto]) {
       precioProducto[objeto] = precioBase[objeto] * (1 + 0.15 * inventario[objeto]);
