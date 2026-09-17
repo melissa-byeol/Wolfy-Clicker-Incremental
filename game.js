@@ -115,19 +115,19 @@ function comprar(objeto) {
     }
 
     if (objeto === 21) {
-     mostrarAlertCominSoon("18/09")
+     mostrarAlertComingSoon("18/09")
     }
     if (objeto === 22) {
-      mostrarAlertCominSoon("19/09")
+      mostrarAlertComingSoon("19/09")
     }
     if (objeto === 23) {
-      mostrarAlertCominSoon()
+      mostrarAlertComingSoon()
     }
     if (objeto === 24) {
-      mostrarAlertCominSoon("18/09")
+      mostrarAlertComingSoon("18/09")
     }
     if (objeto === 25) {
-      mostrarAlertCominSoon()
+      mostrarAlertComingSoon()
     }
     if (!esMejoraUnica[objeto]) {
       precioProducto[objeto] = precioBase[objeto] * (1 + 0.15 * inventario[objeto]);
