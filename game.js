@@ -80,7 +80,8 @@ function mostrarAlertComingSoon(fechaObjetivo = "20/09") {
 
   const mensajeAleatorio = mensajes[Math.floor(Math.random() * mensajes.length)];
   
-  alert(mensajeAleatorio);
+  console.log(mensajeAleatorio);
+  
 }
 
 function comprar(objeto) {
