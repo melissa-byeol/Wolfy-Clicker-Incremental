@@ -267,6 +267,45 @@ function iniciarChatStreamer() {
     }
   }, 20000);
 }
+// --- LISTAS DE TEXTOS Y COMENTARIOS DEL CHAT ---
+var comentariosPositivos = [
+  "¿Cómo se llama el juego? ¡¡Me encanta!!",
+  "¡Wolfy Go Studio nunca dececciona! 🔥",
+  "¡Esas mecánicas están 10/10!",
+  "¡DONACIÓN EN CAMINO! 🪙✨",
+  "¡Juegazo supremo!",
+  "Digno de un Oscar",
+  "Mis ahorros quizás ayuden",
+  "Cookie clicker? Mejor Wolfy Clicker Incremental"
+];
+
+var comentariosNegativos = [
+  "Qué aburrido, grrrrr 😡",
+  "Meh, prefiero jugar a perseguir la pelota 🥎",
+  "Mucho lag en la transmisión 🔌",
+  "¡Hater en el chat detectado!",
+  "Porqué tanto hype?",
+  "Muy básico",
+  "Faltan más cosas, bruh",
+  "Donan a alguien que no conocen... qué poco instinto"
+];
+
+function obtenerComentarioEspecial() {
+  let anioRandom = Math.floor(Math.random() * (2023 - 2006 + 1)) + 2006;
+  let anioActual = new Date().getFullYear();
+  let wolfichasTexto = Math.floor(wolfichas).toLocaleString();
+
+  let comentariosEspeciales = [
+    `¡No he visto algo tan bueno desde ${anioRandom}!`,
+    `#ElMejorJuegoDe${anioActual}`,
+    "¿Alguien lo conoce? Porque amo sus accesorios y el orden de todo ✨",
+    `¡Cuántas Wolfichas! Ojalá tuviera esas ${wolfichasTexto} Wolfichas 🪙`,
+    "🎵 ¡Quién lo diría... que se podía hacer juegos así con mucha armonía~ 🎵",
+    "L0L, 3RES EL M3J0R DE ESTA G3N, BR0 🔥"
+  ];
+
+  return comentariosEspeciales[Math.floor(Math.random() * comentariosEspeciales.length)];
+}
 
 function generarComentarioChat() {
   let esNegativo = Math.random() < 0.30;
