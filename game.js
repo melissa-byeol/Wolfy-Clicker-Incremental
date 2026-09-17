@@ -548,11 +548,37 @@ function guardarJuego() {
 }
 
 function cargarJuego() {
+  // 1. REVISAR SI VIENE DE UN REINICIO POR ERROR
+if (localStorage.getItem("wolfyCompensacion") === "true") {
+  // Entrega de recursos
+  wolfichas += 1000;
+  inventario[3] = (inventario[3] || 0) + 10;
+  inventario[8] = (inventario[8] || 0) + 1;
+
+  // Actualizar precios de tienda
+  precioProducto[3] = precioBase[3] * (1 + 0.15 * inventario[3]);
+  precioProducto[8] = precioBase[8] * (1 + 0.15 * inventario[8]);
+
+  localStorage.removeItem("wolfyCompensacion");
+  guardarJuego();
+
+  // Tus mensajes personales con tu voz auténtica
+  alert("Sorry por tu save avanzado, resulta que un Wolfy detectó una anomalía en ahí, asi que decidió borrarlo por ti,.. pero al menos te dejaron unas cositas");
+  alert("bueno, resulta que tuvimos suerte de salvar del save infestado 1000 wolfichas (aunque sea poco es un mega impulso), 10 Clicker Wolfies (un poco traumados, pero bueno XD) y 1 Miner Wolfy (el unicó que cooperó jejeje)");
+}
   let datosGuardados = localStorage.getItem("wolfyClickerSave");
   if (!datosGuardados) return;
 
   try {
     let datos = JSON.parse(datosGuardados);
+
+    // 2. VALIDAR SI EL SAVE ESTÁ CORRUPTO
+    if (isNaN(datos.wolfichas) || !Array.isArray(datos.inventario)) {
+      ejecutarAutoreparacion();
+      return;
+    }
+
+    // Cargar datos normalmente...
     wolfichas = datos.wolfichas ?? wolfichas;
     wolfichasPorClic = datos.wolfichasPorClic ?? wolfichasPorClic;
     inventario = datos.inventario ?? inventario;
@@ -578,7 +604,8 @@ function cargarJuego() {
       }
     }
   } catch (e) {
-    console.error("Error al cargar la partida guardada", e);
+    // Si falla el JSON parsing
+    ejecutarAutoreparacion();
   }
 
   if (inventario[19] > 0) {
@@ -588,6 +615,13 @@ function cargarJuego() {
   if ((inventario[20] || 0) > 0) {
     iniciarChatStreamer();
   }
+}
+
+// 3. FUNCIÓN AUXILIAR DE LIMPIEZA
+function ejecutarAutoreparacion() {
+  localStorage.setItem("wolfyCompensacion", "true");
+  localStorage.removeItem("wolfyClickerSave");
+  location.reload();
 }
 
 function aparecerHuesoOro(esNatural = false) {
