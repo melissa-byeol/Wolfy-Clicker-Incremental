@@ -436,6 +436,13 @@ function generarComentarioEspecial() {
 }
 
 function producir() {
+  // 🛡️ COMPROBACIÓN EN VIVO: Si wolfichas se vuelve NaN durante el juego
+  if (isNaN(wolfichas)) {
+    console.error("⚠️ Se detectó corrupción en tiempo real (NaN). Activando protocolo de rescate...");
+    ejecutarAutoreparacion();
+    return; // Detiene la producción para procesar la recarga
+  }
+
   let totalClickers = (inventario[3] || 0) * wolfichasProduce[3];
   let totalFarmers  = (inventario[6] || 0) * wolfichasProduce[6];
   let totalMiners   = (inventario[8] || 0) * wolfichasProduce[8];
