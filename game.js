@@ -24,7 +24,7 @@ var esSpeedrunner = true;
 
 // Configuración de los elementos (21 elementos: índices 0 al 20)
 var esMejoraUnica = [true, true, true, false, true, false, false, true, false, true, true, true, false, false, false, true, false, true, true, true, false, true, false, true, true, false];
-var inventario      = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,0, 0, 0, 0, 0];
+var inventario      = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
 var wolfichasProduce = [0, 0, 0, 0.1, 0, 0, 1, 0, 5, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 200, 0, 0, 0, 0, 0]; 
 
 var precioBase      = [50, 750, 5500, 10, 500, 200, 150, 500, 800, 2000, 3000, 2500, 2000, 5000, 10000, 15000, 30000, 40000, 65000, 9999, 120000, 0, 0, 0, 0, 0];
@@ -115,19 +115,19 @@ function comprar(objeto) {
     }
 
     if (objeto === 21) {
-     mostrarAlertComingSoon("18/09")
+      mostrarAlertComingSoon("18/09");
     }
     if (objeto === 22) {
-      mostrarAlertComingSoon("19/09")
+      mostrarAlertComingSoon("19/09");
     }
     if (objeto === 23) {
-      mostrarAlertComingSoon()
+      mostrarAlertComingSoon();
     }
     if (objeto === 24) {
-      mostrarAlertComingSoon("18/09")
+      mostrarAlertComingSoon("18/09");
     }
     if (objeto === 25) {
-      mostrarAlertComingSoon()
+      mostrarAlertComingSoon();
     }
     if (!esMejoraUnica[objeto]) {
       precioProducto[objeto] = precioBase[objeto] * (1 + 0.15 * inventario[objeto]);
@@ -262,7 +262,7 @@ function clickGalletita() {
     render();
   }
 }
-    
+
 function ocultarGalleta() {
   if (timerQTE) clearInterval(timerQTE);
   galletaActiva = false;
@@ -275,8 +275,7 @@ function ocultarGalleta() {
 }
 
 // --- SISTEMA DE CHAT DE STREAMER WOLFY ---
-// --- NUEVAS VARIABLES DE MODERACIÓN DE CHAT ---
-var timerChatStreamer = null; // 👈 ¡AGREGA ESTA LÍNEA AQUÍ!
+var timerChatStreamer = null;
 var penalizacionWCS = 0; // Descuento de WC/s por hater ignorado
 var productorSecuestrado = false; // Bloqueo si diste Like a un Hater
 
@@ -294,6 +293,7 @@ function iniciarChatStreamer() {
     }
   }, 20000);
 }
+
 // --- LISTAS DE TEXTOS Y COMENTARIOS DEL CHAT ---
 var comentariosPositivos = [
   "¿Cómo se llama el juego? ¡¡Me encanta!!",
@@ -351,9 +351,7 @@ function generarComentarioChat() {
   let tiempoInicio = Date.now();
   let ignoradoEvaluado = false;
 
-  // Render HTML según el tipo de comentario
   if (!esNegativo) {
-    // --- COMENTARIO BUENO ---
     chatBox.innerHTML = `
       <div>💬 <strong>Chat:</strong> "${texto}" <span class="ico-like"></span></div>
       <div class="chat-acciones">
@@ -384,7 +382,6 @@ function generarComentarioChat() {
     };
 
   } else {
-    // --- COMENTARIO MALO (HATER) ---
     chatBox.innerHTML = `
       <div>🤬 <strong>Hater:</strong> "${texto}"</div>
       <div class="chat-acciones">
@@ -398,19 +395,16 @@ function generarComentarioChat() {
     let btnDislike = chatBox.querySelector(".btn-dislike");
     let btnLike = chatBox.querySelector(".btn-like");
 
-    // Lógica para borrar hater (Moderación)
     btnBorrar.onclick = function() {
       let duracion = (Date.now() - tiempoInicio) / 1000;
 
       if (duracion <= 2.0) {
-        // Clic rápido: Fuegos artificiales
         chatBox.classList.add("efecto-exito");
         setTimeout(() => { if (contenedorChat.contains(chatBox)) contenedorChat.removeChild(chatBox); }, 400);
       } else {
         if (contenedorChat.contains(chatBox)) contenedorChat.removeChild(chatBox);
       }
 
-      // Devolver al productor si estaba secuestrado
       if (productorSecuestrado) {
         productorSecuestrado = false;
         alert("👮 ¡Has moderado al hater! Tu productor ha sido rescatado de las garras del secuestro.");
@@ -420,13 +414,11 @@ function generarComentarioChat() {
       render();
     };
 
-    // Dar Dislike a un Hater
     btnDislike.onclick = function() {
       chatBox.classList.add("desactivado");
       chatBox.querySelector(".chat-acciones").innerHTML = "<small>💔 Neutralizado</small>";
     };
 
-    // Error fatal: Dar Like a un Hater
     btnLike.onclick = function() {
       if (!productorSecuestrado) {
         productorSecuestrado = true;
@@ -439,13 +431,11 @@ function generarComentarioChat() {
       render();
     };
 
-    // Evaluar penalización si pasan 2 segundos sin moderar
     let timerPenalty = setInterval(() => {
       if (!ignoradoEvaluado && contenedorChat.contains(chatBox) && !chatBox.classList.contains("desactivado")) {
         let transcurrido = (Date.now() - tiempoInicio) / 1000;
         if (transcurrido > 2.0) {
           ignoradoEvaluado = true;
-          // Quitar equivalente a un edificio básico (e.g. Worker Wolfy = 50 WC/s o Miner = 5)
           penalizacionWCS += 5; 
           chatBox.style.border = "2px solid #ff0000";
         }
@@ -569,7 +559,6 @@ function cambiarVistaDerecha(direccion) {
 }
 
 function producir() {
-  // 🛡️ COMPROBACIÓN EN VIVO: Si wolfichas se vuelve NaN durante el juego
   if (isNaN(wolfichas)) {
     console.error("⚠️ Se detectó corrupción en tiempo real (NaN). Activando protocolo de rescate...");
     ejecutarAutoreparacion();
@@ -577,7 +566,7 @@ function producir() {
   }
 
   // 1. Producción básica de edificios
-  let totalClickers  = (inventario[3] || 0) * wolfichasProduce[3];
+  let totalClickers   = (inventario[3] || 0) * wolfichasProduce[3];
   let totalFarmers   = (inventario[6] || 0) * wolfichasProduce[6];
   let totalMiners    = (inventario[8] || 0) * wolfichasProduce[8];
   let totalWorkers   = (inventario[16] || 0) * wolfichasProduce[16];
@@ -617,7 +606,7 @@ function producir() {
 
   let produccionBruta = (produccionPasiva + gananciaHornoTotal) * multiplicador;
 
-  // 4. Penalización por Productor Secuestrado (Reducción del 5% de la producción total)
+  // 4. Penalización por Productor Secuestrado
   if (productorSecuestrado) {
     produccionBruta *= 0.95;
   }
@@ -633,6 +622,7 @@ function producir() {
   wolfichasPorSegundo = Math.max(0, wcPorSegundoCalculado - penalizacionWCS);
   wolfichas += wolfichasPorSegundo;
 }
+
 function render() {
   let diferencia = wolfichas - wolfichasAnteriores;
   actualizarContadorConEfectos(diferencia);
