@@ -104,27 +104,27 @@ function comprar(objeto) {
 
     if (objeto === 21) {
       console.log("espera hasta el 18/09");
-      alert("hey, no te apures, espera hasta el 18/09 XD);
+      alert("hey, no te apures, espera hasta el 18/09 XD");
       return;
     }
     if (objeto === 22) {
       console.log("espera hasta el 18/09");
-      alert("hey, no te apures, espera hasta el 18/09 XD);
+      alert("hey, no te apures, espera hasta el 18/09 XD");
       return;
     }
     if (objeto === 23) {
       console.log("espera hasta el 20/09");
-      alert("hey, no te apures, espera hasta el 20/09 XD);
+      alert("hey, no te apures, espera hasta el 20/09 XD");
       return;
     }
     if (objeto === 24) {
       console.log("espera hasta el 18/09");
-      alert("hey, no te apures, espera hasta el 18/09 XD);
+      alert("hey, no te apures, espera hasta el 18/09 XD");
       return;
     }
     if (objeto === 25) {
       console.log("espera hasta el 20/09");
-      alert("hey, no te apures, espera hasta el 20/09 XD);
+      alert("hey, no te apures, espera hasta el 20/09 XD");
       return;
     }
     if (!esMejoraUnica[objeto]) {
