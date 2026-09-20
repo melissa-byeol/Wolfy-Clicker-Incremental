@@ -76,11 +76,11 @@ function comprar(objeto) {
 
   // Bloqueo de fechas especiales
   if ([21, 22, 24].includes(objeto)) {
-    alert("hey, no te apures, espera hasta el 18/09 XD");
+    alert("hey, no te apures, espera hasta el 21/09 XD");
     return;
   }
   if ([23, 25].includes(objeto)) {
-    alert("hey, no te apures, espera hasta el 20/09 XD");
+    alert("hey, no te apures, espera hasta el 24/09 XD");
     return;
   }
 
