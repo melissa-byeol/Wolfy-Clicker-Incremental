@@ -138,6 +138,23 @@ function comprar(objeto) {
 }
 
 // --- TIENDA DE FONDOS Y COLORES (ACTUALIZACIÓN 2.0) ---
+function aplicarEstiloFondo(color) {
+  document.body.style.backgroundColor = color;
+
+  // Seleccionamos las secciones del Grid que tapan el fondo
+  const elementos = document.querySelectorAll('.header-top, .panel-izquierdo, .panel-centro, .panel-derecho');
+  
+  elementos.forEach(el => {
+    // Para el fondo por defecto (blanco/transparente) dejamos los paneles transparentes u opacos según el color
+    if (color === '#ffffff' || color === 'white' || !color) {
+      el.style.backgroundColor = ''; // Restaura el color de tu CSS original
+    } else {
+      // Hace que los paneles adopten el color del fondo con un toque de opacidad
+      el.style.backgroundColor = 'transparent'; 
+    }
+  });
+}
+
 function comprarFondo(indexFondo) {
   let fondo = catalogoFondos[indexFondo];
   if (!fondo) return;
@@ -146,7 +163,7 @@ function comprarFondo(indexFondo) {
     // Si ya está comprado, solo se equipa
     fondoEquipado = indexFondo;
     multiplicadorFondo = fondo.multiplicador;
-    document.body.style.backgroundColor = fondo.color;
+    aplicarEstiloFondo(fondo.color);
     alert(`🎨 Fondo "${fondo.nombre}" equipado. ¡Multiplicador x${fondo.multiplicador} activo!`);
   } else if (wolfilletes >= fondo.costo) {
     // Proceso de compra con Wolfilletes
@@ -154,7 +171,7 @@ function comprarFondo(indexFondo) {
     fondosComprados[indexFondo] = true;
     fondoEquipado = indexFondo;
     multiplicadorFondo = fondo.multiplicador;
-    document.body.style.backgroundColor = fondo.color;
+    aplicarEstiloFondo(fondo.color);
     alert(`🎉 ¡Fondo "${fondo.nombre}" comprado por ${fondo.costo} Wolfilletes! Tu ganancia ahora tiene un multiplicador x${fondo.multiplicador}.`);
   } else {
     alert(`No tienes suficientes Wolfilletes. Necesitas 💵 ${fondo.costo} Wolfilletes.`);
@@ -798,6 +815,9 @@ function cargarJuego() {
   if ((inventario[20] || 0) > 0) {
     iniciarChatStreamer();
   }
+  if (catalogoFondos[fondoEquipado]) {
+  aplicarEstiloFondo(catalogoFondos[fondoEquipado].color);
+}
 }
 
 function ejecutarAutoreparacion() {
