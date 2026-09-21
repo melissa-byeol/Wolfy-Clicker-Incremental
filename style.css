@@ -333,28 +333,37 @@ button:disabled {
 }
 
 /* --- TEMAS COMPATIBLES (TIENDA DE FONDOS) --- */
-body.tema-verde {
-  background-color: #e8f5e9;
-  color: #1b5e20;
-}
-body.tema-verde .panel-centro,
-body.tema-verde .header-top {
-  background-color: #e8f5e9;
-}
-body.tema-verde .panel-izquierdo,
-body.tema-verde .panel-derecho {
-  background-color: #c8e6c9;
+/* --- TEMAS DE COLOR --- */
+body.tema-default {
+  background-color: #ffffff !important;
 }
 
-body.tema-amarillo {
-  background-color: #fffde7;
-  color: #f57f17;
+body.tema-verde, 
+body.tema-verde .panel-izquierdo,
+body.tema-verde .panel-derecho,
+body.tema-verde .panel-centro,
+body.tema-verde .header-top {
+  background-color: #e8f5e9 !important;
+  color: #1b5e20;
 }
+
+body.tema-verde button {
+  background-color: #a5d6a7;
+  color: #1b5e20;
+  border-color: #81c784;
+}
+
+body.tema-amarillo, 
+body.tema-amarillo .panel-izquierdo,
+body.tema-amarillo .panel-derecho,
 body.tema-amarillo .panel-centro,
 body.tema-amarillo .header-top {
-  background-color: #fffde7;
+  background-color: #fffde7 !important;
+  color: #f57f17;
 }
-body.tema-amarillo .panel-izquierdo,
-body.tema-amarillo .panel-derecho {
-  background-color: #fff9c4;
+
+body.tema-amarillo button {
+  background-color: #fff59d;
+  color: #f57f17;
+  border-color: #ffee58;
 }
