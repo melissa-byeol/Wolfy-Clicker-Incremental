@@ -7,9 +7,16 @@ var duracionBuffGalleta = 0;
 var wolfilletes = 0;
 
 // Sistema de Fondos y Colores (Actualización 2.0 - 27/09)
-var fondoEquipado = "defecto";
+var fondoEquipado = 0;
 var multiplicadorFondo = 1.0; 
-var fondosComprados = [true, false, false, false]; // Defecto, Azul, Dorado, Neón
+var fondosComprados = [true, false, false]; // Default, Calma Verdosa, Amarillo Energético
+
+// Catálogo de Fondos
+var catalogoFondos = [
+  { nombre: "Default", costo: 0, multiplicador: 1.0, color: "#1a1a1a" },
+  { nombre: "Calma Verdosa", costo: 10, multiplicador: 1.2, color: "#2d5a27" },
+  { nombre: "Amarillo Energético", costo: 25, multiplicador: 1.5, color: "#d4a373" }
+];
 
 // Buffs de Hueso
 var multiplicadorHueso = 1;
@@ -131,23 +138,28 @@ function comprar(objeto) {
 }
 
 // --- TIENDA DE FONDOS Y COLORES (ACTUALIZACIÓN 2.0) ---
-function comprarFondo(indexFondo, costo, multiplicador, colorHex) {
+function comprarFondo(indexFondo) {
+  let fondo = catalogoFondos[indexFondo];
+  if (!fondo) return;
+
   if (fondosComprados[indexFondo]) {
-    // Equipa el fondo si ya fue comprado
+    // Si ya está comprado, solo se equipa
     fondoEquipado = indexFondo;
-    multiplicadorFondo = multiplicador;
-    document.body.style.backgroundColor = colorHex;
-    alert(`🎨 Fondo equipado. ¡Multiplicador de color activo: x${multiplicador}!`);
-  } else if (wolfichas >= costo) {
-    wolfichas -= costo;
+    multiplicadorFondo = fondo.multiplicador;
+    document.body.style.backgroundColor = fondo.color;
+    alert(`🎨 Fondo "${fondo.nombre}" equipado. ¡Multiplicador x${fondo.multiplicador} activo!`);
+  } else if (wolfilletes >= fondo.costo) {
+    // Proceso de compra con Wolfilletes
+    wolfilletes -= fondo.costo;
     fondosComprados[indexFondo] = true;
     fondoEquipado = indexFondo;
-    multiplicadorFondo = multiplicador;
-    document.body.style.backgroundColor = colorHex;
-    alert(`🎉 ¡Nuevo fondo comprado! Tu nuevo color otorga un multiplicador de x${multiplicador}.`);
+    multiplicadorFondo = fondo.multiplicador;
+    document.body.style.backgroundColor = fondo.color;
+    alert(`🎉 ¡Fondo "${fondo.nombre}" comprado por ${fondo.costo} Wolfilletes! Tu ganancia ahora tiene un multiplicador x${fondo.multiplicador}.`);
   } else {
-    alert("No tienes suficientes Wolfichas para este fondo de color.");
+    alert(`No tienes suficientes Wolfilletes. Necesitas 💵 ${fondo.costo} Wolfilletes.`);
   }
+
   guardarJuego();
   render();
 }
@@ -752,9 +764,13 @@ function cargarJuego() {
     probSuperCrit = datos.probSuperCrit ?? probSuperCrit;
     wolfichasProduce = datos.wolfichasProduce ?? wolfichasProduce;
     wolfilletes = datos.wolfilletes ?? wolfilletes;
-    fondoEquipado = datos.fondoEquipado ?? "defecto";
+    fondoEquipado = datos.fondoEquipado ?? 0;
     multiplicadorFondo = datos.multiplicadorFondo ?? 1.0;
-    fondosComprados = datos.fondosComprados ?? [true, false, false, false];
+    fondosComprados = datos.fondosComprados ?? [true, false, false];
+
+    if (catalogoFondos[fondoEquipado]) {
+      document.body.style.backgroundColor = catalogoFondos[fondoEquipado].color;
+    }
 
     if (datos.codes) {
       helloworldUsado = datos.codes.helloworld ?? false;
