@@ -12,10 +12,10 @@ var multiplicadorFondo = 1.0;
 var fondosComprados = [true, false, false]; // Default, Calma Verdosa, Amarillo Energético
 
 // Catálogo de Fondos
-var catalogoFondos = [
-  { nombre: "Default", costo: 0, multiplicador: 1.0, color: "#1a1a1a" },
-  { nombre: "Calma Verdosa", costo: 10, multiplicador: 1.2, color: "#2d5a27" },
-  { nombre: "Amarillo Energético", costo: 25, multiplicador: 1.5, color: "#d4a373" }
+const catalogoFondos = [
+  { nombre: "Default", multiplicador: 1.0, costo: 0, color: "#ffffff", colorBoton: "#ffffff", colorTexto: "#222222" },
+  { nombre: "Calma Verdosa", multiplicador: 1.2, costo: 10, color: "#e8f5e9", colorBoton: "#a5d6a7", colorTexto: "#1b5e20" },
+  { nombre: "Amarillo Energético", multiplicador: 1.5, costo: 25, color: "#fffde7", colorBoton: "#fff59d", colorTexto: "#f57f17" }
 ];
 
 // Buffs de Hueso
@@ -138,20 +138,21 @@ function comprar(objeto) {
 }
 
 // --- TIENDA DE FONDOS Y COLORES (ACTUALIZACIÓN 2.0) ---
-function aplicarEstiloFondo(color) {
-  document.body.style.backgroundColor = color;
+function aplicarEstiloFondo(index) {
+  const fondo = catalogoFondos[index];
+  if (!fondo) return;
 
-  // Seleccionamos las secciones del Grid que tapan el fondo
-  const elementos = document.querySelectorAll('.header-top, .panel-izquierdo, .panel-centro, .panel-derecho');
-  
-  elementos.forEach(el => {
-    // Para el fondo por defecto (blanco/transparente) dejamos los paneles transparentes u opacos según el color
-    if (color === '#ffffff' || color === 'white' || !color) {
-      el.style.backgroundColor = ''; // Restaura el color de tu CSS original
-    } else {
-      // Hace que los paneles adopten el color del fondo con un toque de opacidad
-      el.style.backgroundColor = 'transparent'; 
-    }
+  document.body.style.backgroundColor = fondo.color;
+
+  const paneles = document.querySelectorAll('.header-top, .panel-izquierdo, .panel-centro, .panel-derecho');
+  const botones = document.querySelectorAll('button, .flecha-btn');
+
+  paneles.forEach(el => el.style.backgroundColor = 'transparent');
+
+  botones.forEach(btn => {
+    btn.style.backgroundColor = fondo.colorBoton;
+    btn.style.color = fondo.colorTexto;
+    btn.style.borderColor = 'rgba(0, 0, 0, 0.12)';
   });
 }
 
