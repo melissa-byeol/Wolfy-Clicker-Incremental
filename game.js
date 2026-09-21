@@ -6,6 +6,11 @@ var multiplicadorGalleta = 1;
 var duracionBuffGalleta = 0;
 var wolfilletes = 0;
 
+// Sistema de Fondos y Colores (Actualización 2.0 - 27/09)
+var fondoEquipado = "defecto";
+var multiplicadorFondo = 1.0; 
+var fondosComprados = [true, false, false, false]; // Defecto, Azul, Dorado, Neón
+
 // Buffs de Hueso
 var multiplicadorHueso = 1;
 var tiempoBuffHueso = 0;
@@ -22,13 +27,13 @@ let mejoraGalleta = { comprado: false };
 var ultimoTiempoClick = 0;
 var esSpeedrunner = true;
 
-// Configuración de los elementos
+// Configuración de los elementos (21/09: Desbloqueados | 24/09: Bloqueados | 27/09: Actu 2.0)
 var esMejoraUnica = [true, true, true, false, true, false, false, true, false, true, true, true, false, false, false, true, false, true, true, true, false, true, false, true, true, false];
 var inventario      = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
-var wolfichasProduce = [0, 0, 0, 0.1, 0, 0, 1, 0, 5, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 200, 0, 0, 0, 0, 0]; 
+var wolfichasProduce = [0, 0, 0, 0.1, 0, 0, 1, 0, 5, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 200, 0, 500, 0, 0, 1500]; 
 
-var precioBase      = [50, 750, 5500, 10, 500, 200, 150, 500, 800, 2000, 3000, 2500, 2000, 5000, 10000, 15000, 30000, 40000, 65000, 9999, 120000, 0, 0, 0, 0, 0];
-var precioProducto  = [50, 750, 5500, 10, 500, 200, 150, 500, 800, 2000, 3000, 2500, 2000, 5000, 10000, 15000, 30000, 40000, 65000, 9999, 120000, 0, 0, 0, 0, 0];
+var precioBase      = [50, 750, 5500, 10, 500, 200, 150, 500, 800, 2000, 3000, 2500, 2000, 5000, 10000, 15000, 30000, 40000, 65000, 9999, 120000, 150000, 250000, 350000, 500000, 750000];
+var precioProducto  = [50, 750, 5500, 10, 500, 200, 150, 500, 800, 2000, 3000, 2500, 2000, 5000, 10000, 15000, 30000, 40000, 65000, 9999, 120000, 150000, 250000, 350000, 500000, 750000];
 
 var probCrit = 0;
 var probSuperCrit = 0;
@@ -67,20 +72,21 @@ function clic() {
   if (inventario[10] > 0) {
     bonoCooperacion = inventario[3] * 0.1;
   }
-  wolfichas += wolfichasPorClic + bonoCooperacion;
+  wolfichas += (wolfichasPorClic + bonoCooperacion) * multiplicadorFondo;
   guardarJuego();
 }
 
 function comprar(objeto) {
   if (esMejoraUnica[objeto] && inventario[objeto] > 0) return;
 
-  // Bloqueo de fechas especiales
-  if ([21, 22, 24].includes(objeto)) {
-    alert("hey, no te apures, espera hasta el 21/09 XD");
+  // Bloqueos de fechas
+  if ([23, 24, 25].includes(objeto)) {
+    alert("Hey, no te apures. ¡Este contenido se desbloquea el 24/09! 🚕🎶");
     return;
   }
-  if ([23, 25].includes(objeto)) {
-    alert("hey, no te apures, espera hasta el 24/09 XD");
+
+  if (objeto >= 26) {
+    alert("🚀 ¡Atento! Este contenido pertenece a la súper Actualización 2.0 (27/09). ¡Falta muy poco!");
     return;
   }
 
@@ -107,6 +113,10 @@ function comprar(objeto) {
       iniciarChatStreamer();
     }
 
+    if (objeto === 24) {
+      wolfichasProduce[22] *= 2;
+    }
+
     if (!esMejoraUnica[objeto]) {
       precioProducto[objeto] = precioBase[objeto] * (1 + 0.15 * inventario[objeto]);
     }
@@ -118,6 +128,28 @@ function comprar(objeto) {
     guardarJuego();
     render();
   }
+}
+
+// --- TIENDA DE FONDOS Y COLORES (ACTUALIZACIÓN 2.0) ---
+function comprarFondo(indexFondo, costo, multiplicador, colorHex) {
+  if (fondosComprados[indexFondo]) {
+    // Equipa el fondo si ya fue comprado
+    fondoEquipado = indexFondo;
+    multiplicadorFondo = multiplicador;
+    document.body.style.backgroundColor = colorHex;
+    alert(`🎨 Fondo equipado. ¡Multiplicador de color activo: x${multiplicador}!`);
+  } else if (wolfichas >= costo) {
+    wolfichas -= costo;
+    fondosComprados[indexFondo] = true;
+    fondoEquipado = indexFondo;
+    multiplicadorFondo = multiplicador;
+    document.body.style.backgroundColor = colorHex;
+    alert(`🎉 ¡Nuevo fondo comprado! Tu nuevo color otorga un multiplicador de x${multiplicador}.`);
+  } else {
+    alert("No tienes suficientes Wolfichas para este fondo de color.");
+  }
+  guardarJuego();
+  render();
 }
 
 function girarRuleta() {
@@ -208,7 +240,7 @@ function clickGalletita() {
     ocultarGalleta();
 
     duracionBuffGalleta = 10 + tiempoGanado; 
-    multiplicadorGalleta = 1.5; 
+    multiplicadorGalleta = (inventario[21] > 0) ? 2.0 : 1.5;
 
     let timerBuff = setInterval(() => {
       duracionBuffGalleta--;
@@ -235,9 +267,9 @@ function clickGalletita() {
     }
 
     if (tiempoRestanteExacto <= 3.0) {
-      alert(`¡Esa galleta casi se nos arranca! 🍪💥 Pero lo logramos. ¡Multiplicador x1.5 activo por ${10 + tiempoGanado}s!`);
+      alert(`¡Esa galleta casi se nos arranca! 🍪💥 Pero lo logramos. ¡Multiplicador x${multiplicadorGalleta} activo por ${10 + tiempoGanado}s!`);
     } else {
-      alert(`¡Nuestros lobitos se comieron la galleta a tiempo! 🍪 Multiplicador x1.5 activo por ${10 + tiempoGanado}s.`);
+      alert(`¡Nuestros lobitos se comieron la galleta a tiempo! 🍪 Multiplicador x${multiplicadorGalleta} activo por ${10 + tiempoGanado}s.`);
     }
 
     guardarJuego();
@@ -496,7 +528,7 @@ function actualizarContadorConEfectos(diferencia) {
   }
 
   if (subContadorEl) {
-    subContadorEl.innerText = `${wolfichasPorSegundo.toFixed(1)} WC/s | Wolfilletes: ${wolfilletes} 💵`;
+    subContadorEl.innerText = `${wolfichasPorSegundo.toFixed(1)} WC/s (x${multiplicadorFondo} Color) | Wolfilletes: ${wolfilletes} 💵`;
   }
 }
 
@@ -551,12 +583,14 @@ function producir() {
 
   // 1. Producción básica de edificios
   let totalClickers   = (inventario[3] || 0) * wolfichasProduce[3];
-  let totalFarmers   = (inventario[6] || 0) * wolfichasProduce[6];
-  let totalMiners    = (inventario[8] || 0) * wolfichasProduce[8];
-  let totalWorkers   = (inventario[16] || 0) * wolfichasProduce[16];
-  let totalStreamers = (inventario[20] || 0) * wolfichasProduce[20];
+  let totalFarmers    = (inventario[6] || 0) * wolfichasProduce[6];
+  let totalMiners     = (inventario[8] || 0) * wolfichasProduce[8];
+  let totalWorkers    = (inventario[16] || 0) * wolfichasProduce[16];
+  let totalStreamers  = (inventario[20] || 0) * wolfichasProduce[20];
+  let totalTaxists    = (inventario[22] || 0) * wolfichasProduce[22];
+  let totalIdols      = (inventario[25] || 0) * wolfichasProduce[25];
   
-  let produccionPasiva = (totalClickers + totalFarmers + totalMiners + totalWorkers + totalStreamers) * multiplicadorGalleta;
+  let produccionPasiva = (totalClickers + totalFarmers + totalMiners + totalWorkers + totalStreamers + totalTaxists + totalIdols) * multiplicadorGalleta;
 
   // 2. Producción de la Pastelería (Bakers)
   let cantBakers = inventario[12] || 0;
@@ -589,7 +623,7 @@ function producir() {
     multiplicadorHueso = 1;
   }
 
-  let produccionBruta = (produccionPasiva + gananciaHornoTotal) * multiplicadorHueso;
+  let produccionBruta = (produccionPasiva + gananciaHornoTotal) * multiplicadorHueso * multiplicadorFondo;
 
   // 4. Penalización por Productor Secuestrado
   if (productorSecuestrado) {
@@ -601,7 +635,7 @@ function producir() {
   let tiempoCicloMax = Math.max(2, 10 - (comprasPatas * 0.95));
   let promedioBaker = (cantBakers > 0) ? ((5 + (inventario[14] || 0)) * 10 * cantBakers) / tiempoCicloMax : 0;
   
-  let wcPorSegundoCalculado = (produccionPasiva + promedioBaker) * multiplicadorHueso;
+  let wcPorSegundoCalculado = (produccionPasiva + promedioBaker) * multiplicadorHueso * multiplicadorFondo;
   if (productorSecuestrado) wcPorSegundoCalculado *= 0.95;
 
   wolfichasPorSegundo = Math.max(0, wcPorSegundoCalculado - penalizacionWCS);
@@ -616,7 +650,7 @@ function render() {
   let inventarioEl = document.getElementById("inventario");
   if (inventarioEl) {
     inventarioEl.innerHTML = 
-      `Clickers: ${inventario[3]} | Farmers: ${inventario[6]} | Mineros: ${inventario[8]} | Bakers: ${inventario[12]} | Workers: ${inventario[16]} | Streamers: ${inventario[20]}`;
+      `Clickers: ${inventario[3]} | Farmers: ${inventario[6]} | Mineros: ${inventario[8]} | Bakers: ${inventario[12]} | Workers: ${inventario[16]} | Streamers: ${inventario[20]} | Taxists: ${inventario[22]} | Idols: ${inventario[25]}`;
   }
 
   for (let i = 0; i < esMejoraUnica.length; i++) {
@@ -667,6 +701,9 @@ function guardarJuego() {
     probSuperCrit: probSuperCrit,
     wolfichasProduce: wolfichasProduce,
     wolfilletes: wolfilletes,
+    fondoEquipado: fondoEquipado,
+    multiplicadorFondo: multiplicadorFondo,
+    fondosComprados: fondosComprados,
     codes: {
       helloworld: helloworldUsado,
       thekitchenisopen: thekitchenisopenUsado,
@@ -715,6 +752,9 @@ function cargarJuego() {
     probSuperCrit = datos.probSuperCrit ?? probSuperCrit;
     wolfichasProduce = datos.wolfichasProduce ?? wolfichasProduce;
     wolfilletes = datos.wolfilletes ?? wolfilletes;
+    fondoEquipado = datos.fondoEquipado ?? "defecto";
+    multiplicadorFondo = datos.multiplicadorFondo ?? 1.0;
+    fondosComprados = datos.fondosComprados ?? [true, false, false, false];
 
     if (datos.codes) {
       helloworldUsado = datos.codes.helloworld ?? false;
