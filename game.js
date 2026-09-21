@@ -138,22 +138,18 @@ function comprar(objeto) {
 }
 
 // --- TIENDA DE FONDOS Y COLORES (ACTUALIZACIÓN 2.0) ---
-function aplicarEstiloFondo(index) {
-  const fondo = catalogoFondos[index];
-  if (!fondo) return;
+function aplicarTemaVisual(indexFondo) {
+  // Limpiamos cualquier tema previo
+  document.body.classList.remove('tema-default', 'tema-verde', 'tema-amarillo');
 
-  document.body.style.backgroundColor = fondo.color;
-
-  const paneles = document.querySelectorAll('.header-top, .panel-izquierdo, .panel-centro, .panel-derecho');
-  const botones = document.querySelectorAll('button, .flecha-btn');
-
-  paneles.forEach(el => el.style.backgroundColor = 'transparent');
-
-  botones.forEach(btn => {
-    btn.style.backgroundColor = fondo.colorBoton;
-    btn.style.color = fondo.colorTexto;
-    btn.style.borderColor = 'rgba(0, 0, 0, 0.12)';
-  });
+  // Aplicamos la clase correspondiente
+  if (indexFondo === 1) {
+    document.body.classList.add('tema-verde');
+  } else if (indexFondo === 2) {
+    document.body.classList.add('tema-amarillo');
+  } else {
+    document.body.classList.add('tema-default');
+  }
 }
 
 function comprarFondo(indexFondo) {
@@ -161,21 +157,19 @@ function comprarFondo(indexFondo) {
   if (!fondo) return;
 
   if (fondosComprados[indexFondo]) {
-    // Si ya está comprado, solo se equipa
     fondoEquipado = indexFondo;
     multiplicadorFondo = fondo.multiplicador;
-    aplicarEstiloFondo(fondo.color);
-    alert(`🎨 Fondo "${fondo.nombre}" equipado. ¡Multiplicador x${fondo.multiplicador} activo!`);
+    aplicarTemaVisual(indexFondo);
+    alert(`🎨 Fondo "${fondo.nombre}" equipado.`);
   } else if (wolfilletes >= fondo.costo) {
-    // Proceso de compra con Wolfilletes
     wolfilletes -= fondo.costo;
     fondosComprados[indexFondo] = true;
     fondoEquipado = indexFondo;
     multiplicadorFondo = fondo.multiplicador;
-    aplicarEstiloFondo(fondo.color);
-    alert(`🎉 ¡Fondo "${fondo.nombre}" comprado por ${fondo.costo} Wolfilletes! Tu ganancia ahora tiene un multiplicador x${fondo.multiplicador}.`);
+    aplicarTemaVisual(indexFondo);
+    alert(`🎉 ¡Fondo "${fondo.nombre}" comprado!`);
   } else {
-    alert(`No tienes suficientes Wolfilletes. Necesitas 💵 ${fondo.costo} Wolfilletes.`);
+    alert(`No tienes suficientes Wolfilletes. Necesitas 💵 ${fondo.costo}.`);
   }
 
   guardarJuego();
