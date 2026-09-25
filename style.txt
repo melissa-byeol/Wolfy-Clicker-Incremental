@@ -1,0 +1,369 @@
+/* --- CONFIGURACIÓN GENERAL Y RESET --- */
+* {
+  box-sizing: border-box;
+}
+
+body {
+  background-color: #ffffff;
+  color: #222222;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  user-select: none;
+  transition: background-color 0.4s ease, color 0.4s ease;
+}
+
+/* --- ESTRUCTURA GRID 3 COLUMNAS --- */
+.game-container {
+  display: grid;
+  grid-template-columns: 320px 1fr 340px;
+  grid-template-rows: 90px calc(100vh - 90px);
+  height: 100vh;
+  width: 100vw;
+}
+
+/* --- SUPERIOR: CONTADOR CENTRADO --- */
+.header-top {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  border-bottom: 2px solid #eeeeee;
+  background-color: #ffffff;
+  position: relative;
+  z-index: 10;
+  transition: background-color 0.4s ease, border-color 0.4s ease;
+}
+
+#contador-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+#contador {
+  font-size: 2.2rem;
+  font-weight: 800;
+  color: #111111;
+  padding: 2px 16px;
+  border-radius: 8px;
+  transition: color 0.15s ease, background-color 0.15s ease, transform 0.1s ease;
+}
+
+#sub-contador {
+  font-size: 0.95rem;
+  color: #666666;
+  font-weight: 600;
+  margin-top: -2px;
+}
+
+/* Efectos de parpadeo */
+.flash-ganar {
+  color: #d4a000 !important; /* Amarillo / Dorado */
+  background-color: #fffde6;
+  transform: scale(1.02);
+}
+
+.flash-perder {
+  color: #e63946 !important; /* Rojo */
+  background-color: #ffe6e6;
+  transform: scale(0.98);
+}
+
+/* Flotante de ganancia/pérdida (+0.1 / -50) */
+.dinero-flotante {
+  position: absolute;
+  top: 65px;
+  font-weight: 800;
+  font-size: 1.15rem;
+  opacity: 1;
+  transition: all 0.6s cubic-bezier(0.25, 1, 0.5, 1);
+  pointer-events: none;
+}
+
+.dinero-flotante.ganancia { color: #2e7d32; }
+.dinero-flotante.perdida  { color: #e63946; }
+
+/* --- COLUMNA IZQUIERDA: TIENDA --- */
+.panel-izquierdo {
+  border-right: 2px solid #eeeeee;
+  display: flex;
+  flex-direction: column;
+  background-color: #fafafa;
+  overflow: hidden;
+  transition: background-color 0.4s ease, border-color 0.4s ease;
+}
+
+.mitad-superior-mejoras, 
+.mitad-inferior-infinitas {
+  flex: 1;
+  padding: 12px;
+  overflow-y: auto;
+}
+
+.mitad-superior-mejoras {
+  border-bottom: 2px dashed #e0e0e0;
+}
+
+.titulo-seccion {
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: #888888;
+  letter-spacing: 0.8px;
+  margin-bottom: 10px;
+}
+
+/* Estilo de Botones de Tienda */
+.tienda-grupo {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.tienda-grupo h4 {
+  margin: 4px 0;
+  font-size: 0.9rem;
+  color: #444;
+}
+
+button {
+  background-color: #ffffff;
+  border: 1px solid #cccccc;
+  border-radius: 6px;
+  padding: 8px 12px;
+  font-weight: 600;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.15s ease;
+}
+
+button:hover:not(:disabled) {
+  background-color: #f0f0f0;
+  border-color: #bbb;
+  transform: translateY(-1px);
+}
+
+button:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background-color: #e5e5e5;
+}
+
+/* --- COLUMNA CENTRO: WOLFICHA --- */
+.panel-centro {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  background-color: #ffffff;
+  transition: background-color 0.4s ease;
+}
+
+.wolficha-btn {
+  width: 220px;
+  height: auto;
+  cursor: pointer;
+  filter: drop-shadow(0 8px 12px rgba(0, 0, 0, 0.15));
+  transition: transform 0.08s ease, filter 0.2s ease;
+}
+
+.wolficha-btn:hover {
+  transform: scale(1.03);
+  filter: drop-shadow(0 10px 16px rgba(0, 0, 0, 0.22));
+}
+
+.wolficha-btn:active {
+  transform: scale(0.92);
+}
+
+/* --- COLUMNA DERECHA: CHAT / IDOL WOLFY & BADGES --- */
+.panel-derecho {
+  border-left: 2px solid #eeeeee;
+  display: flex;
+  flex-direction: column;
+  background-color: #fafafa;
+  overflow: hidden;
+  transition: background-color 0.4s ease, border-color 0.4s ease;
+}
+
+.controles-navegacion {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 14px;
+  background-color: #f0f0f0;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.flecha-btn {
+  background: #ffffff;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-weight: bold;
+  padding: 4px 10px;
+  cursor: pointer;
+}
+
+.vista-dinamica {
+  flex: 1;
+  padding: 12px;
+  overflow-y: auto;
+  position: relative;
+}
+
+#comentarios-chat {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.seccion-bonos-juegos {
+  height: 220px;
+  border-top: 2px solid #eeeeee;
+  padding: 10px;
+  background-color: #f7f7f7;
+  overflow-y: auto;
+}
+
+/* Badges / Logros */
+#contenedor-badges {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.logro {
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  transition: all 0.2s ease;
+}
+
+.logro.completado { 
+  background-color: #e8f5e9; 
+  border: 1px solid #c8e6c9; 
+  color: #2e7d32; 
+}
+
+.logro.bloqueado { 
+  background-color: #f5f5f5; 
+  border: 1px solid #e0e0e0; 
+  color: #9e9e9e; 
+}
+
+/* --- CHATS DEL STREAMER Y MODERACIÓN --- */
+.chat-stream {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px 12px;
+  border-radius: 6px;
+  background-color: #ffffff;
+  border: 1px solid #e0e0e0;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.03);
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+.chat-acciones {
+  display: flex;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.btn-chat {
+  background: #4a4a4a;
+  border: none;
+  color: #ffffff;
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  cursor: pointer;
+}
+
+.btn-chat:hover {
+  background: #222222;
+}
+
+/* Estado desactivado cuando recibe "Like" o interactúas */
+.chat-stream.desactivado {
+  background-color: #cfd8dc !important;
+  color: #78909c !important;
+  opacity: 0.7;
+  pointer-events: none;
+}
+
+/* --- EVENTOS QTE: GALLETA Y HUESO DE ORO --- */
+#galleta-crocante {
+  animation: pulsoFlotante 1.2s infinite alternate ease-in-out;
+}
+
+#hueso-oro {
+  animation: brilloGiro 2s infinite linear;
+}
+
+@keyframes pulsoFlotante {
+  0% { transform: scale(1); }
+  100% { transform: scale(1.12); }
+}
+
+@keyframes brilloGiro {
+  0% { transform: rotate(0deg); }
+  50% { transform: rotate(180deg) scale(1.1); }
+  100% { transform: rotate(360deg) scale(1); }
+}
+
+.efecto-exito {
+  animation: estrellasFuegos 0.4s ease-in-out;
+}
+
+@keyframes estrellasFuegos {
+  0% { transform: scale(1); filter: brightness(1); }
+  50% { transform: scale(1.08); filter: brightness(1.5); }
+  100% { transform: scale(1); filter: brightness(1); }
+}
+
+/* --- TEMAS COMPATIBLES (TIENDA DE FONDOS) --- */
+/* --- TEMAS DE COLOR --- */
+body.tema-default {
+  background-color: #ffffff !important;
+}
+
+body.tema-verde, 
+body.tema-verde .panel-izquierdo,
+body.tema-verde .panel-derecho,
+body.tema-verde .panel-centro,
+body.tema-verde .header-top {
+  background-color: #e8f5e9 !important;
+  color: #1b5e20;
+}
+
+body.tema-verde button {
+  background-color: #a5d6a7;
+  color: #1b5e20;
+  border-color: #81c784;
+}
+
+body.tema-amarillo, 
+body.tema-amarillo .panel-izquierdo,
+body.tema-amarillo .panel-derecho,
+body.tema-amarillo .panel-centro,
+body.tema-amarillo .header-top {
+  background-color: #fffde7 !important;
+  color: #f57f17;
+}
+
+body.tema-amarillo button {
+  background-color: #fff59d;
+  color: #f57f17;
+  border-color: #ffee58;
+}
