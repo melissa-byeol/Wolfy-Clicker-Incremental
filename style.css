@@ -302,36 +302,46 @@ button:disabled {
   pointer-events: none;
 }
 
-/* --- MINIJUEGO DE RITMO IDOL WOLFY (UPDATE) --- */
-.ritmo-container {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.selector-cancion {
-  display: flex;
-  flex-direction: column;
-  font-size: 0.85rem;
-  gap: 4px;
-}
-
+/* --- MINIJUEGO DE RITMO (4 CARRILES: A, S, D, F) --- */
 .pista-ritmo {
   position: relative;
   width: 100%;
-  height: 180px;
+  height: 200px;
   background-color: #1a1a24;
   border-radius: 8px;
   overflow: hidden;
   border: 2px solid #333;
+  display: flex; /* Divide el contenedor en 4 columnas */
+}
+
+.carril {
+  flex: 1;
+  position: relative;
+  border-right: 1px dashed #333344;
+  height: 100%;
+}
+
+.carril:last-child {
+  border-right: none;
+}
+
+.tecla-label {
+  position: absolute;
+  bottom: 2px;
+  left: 50%;
+  transform: translateX(-50%);
+  color: #00ffcc;
+  font-weight: bold;
+  font-size: 0.8rem;
+  z-index: 5;
 }
 
 .linea-target {
   position: absolute;
-  bottom: 15px;
+  bottom: 25px;
   left: 0;
   width: 100%;
-  height: 6px;
+  height: 4px;
   background-color: #00ffcc;
   box-shadow: 0 0 8px #00ffcc;
   z-index: 2;
@@ -341,19 +351,15 @@ button:disabled {
   position: absolute;
   left: 50%;
   transform: translateX(-50%);
-  width: 40px;
+  width: 80%;
   height: 16px;
   background: linear-gradient(90deg, #ff007f, #7f00ff);
   border: 1px solid #ffffff;
-  border-radius: 10px;
+  border-radius: 6px;
   box-shadow: 0 0 6px #ff007f;
   z-index: 3;
 }
 
-.controles-ritmo {
-  display: flex;
-  flex-direction: column;
-}
 
 /* --- EVENTOS QTE: GALLETA Y HUESO DE ORO --- */
 #galleta-crocante {
