@@ -94,33 +94,37 @@
           <div id="comentarios-chat"></div>
         </div>
 
-        <!-- VISTA 2: RITMO IDOL WOLFY (UPDATE RITMO SINCRO MP3) -->
-        <div id="vista-idol-ritmo" style="display: none;">
-          <div class="ritmo-container">
-            <h3>🎤 Idol Wolfy: Stage</h3>
-            <div class="selector-cancion">
-              <label for="cancion-select">Canción de prueba:</label>
-              <select id="cancion-select" onchange="seleccionarCancion(this.value)">
-                <option value="swim">"Swim" - BTS</option>
-                <option value="bed">"Bed" - AND2BLE</option>
-              </select>
-            </div>
+<!-- VISTA 2: RITMO IDOL WOLFY (4 CARRILES) -->
+<div id="vista-idol-ritmo" style="display: none;">
+  <div class="ritmo-container">
+    <h3>🎤 Idol Wolfy: Stage</h3>
+    <div class="selector-cancion">
+      <label for="cancion-select">Canción de prueba:</label>
+      <select id="cancion-select" onchange="seleccionarCancion(this.value)">
+        <option value="swim">"Swim" - BTS</option>
+        <option value="bed">"Bed" - AND2BLE</option>
+      </select>
+    </div>
 
-            <audio id="audio-player" style="width: 100%; margin: 8px 0;"></audio>
+    <audio id="audio-player" style="width: 100%; margin: 8px 0;"></audio>
 
-            <div id="pista-ritmo" class="pista-ritmo">
-              <div class="linea-target"></div>
-              <div id="contenedor-notas"></div>
-            </div>
+    <!-- Pista dividida en 4 carriles -->
+    <div id="pista-ritmo" class="pista-ritmo">
+      <div class="linea-target"></div>
+      
+      <div class="carril" id="carril-0"><span class="tecla-label">A</span></div>
+      <div class="carril" id="carril-1"><span class="tecla-label">S</span></div>
+      <div class="carril" id="carril-2"><span class="tecla-label">D</span></div>
+      <div class="carril" id="carril-3"><span class="tecla-label">F</span></div>
+    </div>
 
-            <div class="controles-ritmo">
-              <button id="btn-play-ritmo" onclick="iniciarCancionRitmo();">▶ Iniciar Canción</button>
-              <button id="btn-hit-ritmo" onclick="presionarNota();" style="text-align: center; font-weight: bold; padding: 12px; margin-top: 8px; background-color: #ff4081; color: white; border: none;">🎵 ¡GOLPEA LA NOTA! 🎵</button>
-            </div>
-            <div id="feedback-ritmo" style="text-align: center; margin-top: 5px; font-weight: bold;">Puntaje: 0</div>
-          </div>
-        </div>
-      </div>
+    <div class="controles-ritmo">
+      <button id="btn-play-ritmo" onclick="iniciarCancionRitmo();">▶ Iniciar Canción</button>
+    </div>
+    <div id="feedback-ritmo" style="text-align: center; margin-top: 5px; font-weight: bold;">Puntaje: 0</div>
+  </div>
+</div>
+
 
       <!-- ABAJO DERECHA: DESAFÍOS Y LOGROS -->
       <div class="seccion-bonos-juegos">
