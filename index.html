@@ -118,9 +118,13 @@
       <div class="carril" id="carril-3"><span class="tecla-label">F</span></div>
     </div>
 
-    <div class="controles-ritmo">
-      <button id="btn-play-ritmo" onclick="iniciarCancionRitmo();">▶ Iniciar Canción</button>
-    </div>
+    <!-- CONTROLES DEL MINIJUEGO DE RITMO -->
+<div class="controles-ritmo" style="margin-top: 10px; display: flex; gap: 8px; justify-content: center;">
+  <button id="btn-play-ritmo" onclick="iniciarCancionRitmo();">▶ Iniciar</button>
+  <button id="btn-pause-ritmo" onclick="pausarCancionRitmo();">⏸️ Pausa</button>
+  <button id="btn-continue-ritmo" onclick="continuarCancionRitmo();">▶️ Continuar</button>
+  <button id="btn-reset-ritmo" onclick="reiniciarCancionRitmo();">🔄 Reset</button>
+</div>
     <div id="feedback-ritmo" style="text-align: center; margin-top: 5px; font-weight: bold;">Puntaje: 0</div>
   </div>
 </div>
