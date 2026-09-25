@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Wolfy Clicker Incremental</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="game.js" defer></script>
+  <link rel="icon" type="image/ico" href="favicon.ico">
+</head>
+<body>
+
+  <div class="game-container">
+    <!-- 1. HEADER: CONTADOR CENTRADO -->
+    <header class="header-top">
+      <div id="contador-box">
+        <div id="contador">0.0 Wolfichas</div>
+        <div id="sub-contador">0.0 WC/s | Wolfilletes: <span id="lbl-wolfilletes">0</span> 💵</div>
+      </div>
+    </header>
+
+    <!-- 2. IZQUIERDA: TIENDA Y MEJORAS -->
+    <aside class="panel-izquierdo">
+      <!-- MITAD SUPERIOR: ÚNICAS / LIMITADAS -->
+      <div class="mitad-superior-mejoras">
+        <div class="titulo-seccion">Mejoras Únicas</div>
+        
+        <div class="tienda-grupo">
+          <h4>Clicks</h4>
+          <button id="btn-0" onclick="comprar(0);">Heavy Click</button>
+          <button id="btn-1" onclick="comprar(1);">Stronger Click</button>
+          <button id="btn-2" onclick="comprar(2);">Super Click</button>
+        </div>
+
+        <div class="tienda-grupo">
+          <h4>Sinergias & Muestras</h4>
+          <button id="btn-4" onclick="comprar(4);">Precise Hits</button>
+          <button id="btn-5" onclick="comprar(5);">Sharp Paws</button>
+          <button id="btn-7" onclick="comprar(7);">Mejor Calidad de Hoz</button>
+          <button id="btn-9" onclick="comprar(9);">Picos Reforzados</button>
+          <button id="btn-10" onclick="comprar(10);">Cooperación Pata-mano</button>
+          <button id="btn-11" onclick="comprar(11);">Picos y Palas [Dúo]</button>
+          <button id="btn-13" onclick="comprar(13);">Patas Rápidas</button>
+          <button id="btn-14" onclick="comprar(14);">Galletas A Remate</button>
+          <button id="btn-15" onclick="comprar(15);">Mineral Comestible</button>
+          <button id="btn-17" onclick="comprar(17);">Furpuccino Express</button>
+          <button id="btn-18" onclick="comprar(18);">Asiento Cómodo</button>
+          <button id="btn-23" onclick="comprar(23);">Motor Potenciado</button>
+          <button id="btn-19" onclick="comprar(19);">Galletitas Crocantes</button>
+          <button id="btn-21" onclick="comprar(21);">Galletitas Con Chocolate</button>
+          <button id="btn-24" onclick="comprar(24);">Galletitas de Vainilla</button>
+        </div>
+      </div>
+
+      <!-- TIENDA DE FONDOS Y COLORES (ACTUALIZACIÓN 2.0) -->
+      <div class="tienda-grupo">
+        <div class="titulo-seccion">Fondos & Personalización</div>
+        <button id="btn-fondo-0" onclick="comprarFondo(0);">Default (x1.0) - Gratis</button>
+        <button id="btn-fondo-1" onclick="comprarFondo(1);">Calma Verdosa (x1.2) - 💵 10</button>
+        <button id="btn-fondo-2" onclick="comprarFondo(2);">Amarillo Energético (x1.5) - 💵 25</button>
+      </div>
+
+      <!-- MITAD INFERIOR: REPETIBLES INFINITAS -->
+      <div class="mitad-inferior-infinitas">
+        <div class="titulo-seccion">Edificios / Producción</div>
+        <div class="tienda-grupo">
+          <button id="btn-3" onclick="comprar(3);">Clicker Wolfy</button>
+          <button id="btn-6" onclick="comprar(6);">Farmer Wolfy</button>
+          <button id="btn-8" onclick="comprar(8);">Miner Wolfy</button>
+          <button id="btn-12" onclick="comprar(12);">Baker Wolfy</button>
+          <button id="btn-16" onclick="comprar(16);">Worker Wolfy</button>
+          <button id="btn-20" onclick="comprar(20);">Streamer Wolfy</button>
+          <button id="btn-22" onclick="comprar(22);">Taxist Wolfy</button>
+          <button id="btn-25" onclick="comprar(25);">Idol Wolfy</button>
+        </div>
+      </div>
+    </aside>
+
+    <!-- 3. CENTRO: WOLFICHA PRINCIPAL -->
+    <main class="panel-centro">
+      <img src="imagenes-wolfy/coin.png" class="wolficha-btn" onclick="clic();" alt="Wolficha">
+    </main>
+
+    <!-- 4. DERECHA: STREAMER / IDOL & DESAFÍOS -->
+    <aside class="panel-derecho">
+      <div class="controles-navegacion">
+        <button class="flecha-btn" onclick="cambiarVistaDerecha(-1)">◀</button>
+        <span id="titulo-vista-derecha" style="font-weight:bold; font-size: 0.9rem;">Chat Streamer Wolfy</span>
+        <button class="flecha-btn" onclick="cambiarVistaDerecha(1)">▶</button>
+      </div>
+
+      <div class="vista-dinamica">
+        <!-- VISTA 1: CHAT DE STREAMER WOLFY -->
+        <div id="vista-chat-streamer">
+          <div id="comentarios-chat"></div>
+        </div>
+
+        <!-- VISTA 2: RITMO IDOL WOLFY (UPDATE 20/09) -->
+        <div id="vista-idol-ritmo" style="display: none;">
+          <p style="text-align: center; color: #777;">🎤 Minijuego de Ritmo de Idol Wolfy<br><small>(Próximamente 20/09)</small></p>
+        </div>
+      </div>
+
+      <!-- ABAJO DERECHA: DESAFÍOS Y LOGROS -->
+      <div class="seccion-bonos-juegos">
+        <div class="titulo-seccion">Logros y Desafíos</div>
+        <div id="inventario" style="font-size: 0.8rem; margin-bottom: 8px;"></div>
+        <div id="contenedor-badges"></div>
+      </div>
+    </aside>
+  </div>
+
+  <!-- ELEMENTOS FLOTANTES DE JUEGO -->
+  <img id="hueso-oro" src="imagenes-wolfy/hueso_oro.png" onclick="clickHuesoOro();" style="display:none; position:absolute; cursor:pointer; width:50px; z-index: 9999;" alt="Hueso de Oro">
+  <img id="galleta-crocante" src="imagenes-wolfy/plain_cookie.png" onclick="clickGalletita();" style="display:none; position:absolute; cursor:pointer; width:75px; z-index: 9999;" alt="Galleta Crocante">
+  <div id="qte-info" style="display:none; position:absolute; z-index: 10000; font-weight: bold; color: #fff; text-shadow: 2px 2px 4px #000; pointer-events: none; text-align: center;"></div>
+
+</body>
+</html>
