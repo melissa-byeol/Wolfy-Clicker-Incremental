@@ -51,8 +51,8 @@
         </div>
       </div>
 
-      <!-- TIENDA DE FONDOS Y COLORES (ACTUALIZACIÓN 2.0) -->
-      <div class="tienda-grupo">
+      <!-- TIENDA DE FONDOS Y COLORES -->
+      <div class="tienda-grupo" style="padding: 12px;">
         <div class="titulo-seccion">Fondos & Personalización</div>
         <button id="btn-fondo-0" onclick="comprarFondo(0);">Default (x1.0) - Gratis</button>
         <button id="btn-fondo-1" onclick="comprarFondo(1);">Calma Verdosa (x1.2) - 💵 10</button>
@@ -94,9 +94,31 @@
           <div id="comentarios-chat"></div>
         </div>
 
-        <!-- VISTA 2: RITMO IDOL WOLFY (UPDATE 20/09) -->
+        <!-- VISTA 2: RITMO IDOL WOLFY (UPDATE RITMO SINCRO MP3) -->
         <div id="vista-idol-ritmo" style="display: none;">
-          <p style="text-align: center; color: #777;">🎤 Minijuego de Ritmo de Idol Wolfy<br><small>(Próximamente 20/09)</small></p>
+          <div class="ritmo-container">
+            <h3>🎤 Idol Wolfy: Stage</h3>
+            <div class="selector-cancion">
+              <label for="cancion-select">Canción de prueba:</label>
+              <select id="cancion-select" onchange="seleccionarCancion(this.value)">
+                <option value="swim">"Swim" - BTS</option>
+                <option value="bed">"Bed" - AND2BLE</option>
+              </select>
+            </div>
+
+            <audio id="audio-player" style="width: 100%; margin: 8px 0;"></audio>
+
+            <div id="pista-ritmo" class="pista-ritmo">
+              <div class="linea-target"></div>
+              <div id="contenedor-notas"></div>
+            </div>
+
+            <div class="controles-ritmo">
+              <button id="btn-play-ritmo" onclick="iniciarCancionRitmo();">▶ Iniciar Canción</button>
+              <button id="btn-hit-ritmo" onclick="presionarNota();" style="text-align: center; font-weight: bold; padding: 12px; margin-top: 8px; background-color: #ff4081; color: white; border: none;">🎵 ¡GOLPEA LA NOTA! 🎵</button>
+            </div>
+            <div id="feedback-ritmo" style="text-align: center; margin-top: 5px; font-weight: bold;">Puntaje: 0</div>
+          </div>
         </div>
       </div>
 
