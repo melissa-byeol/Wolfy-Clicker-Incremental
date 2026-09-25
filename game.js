@@ -149,6 +149,12 @@ function seleccionarCancion(clave) {
   }
 }
 
+// --- VARIABLES ADICIONALES PARA EL DELAY Y ESTADO DE PAUSA ---
+var timeoutInicioAudio = null;
+var tiempoDelayRestante = 0;
+var timestampInicioDelay = 0;
+
+// 1. INICIAR CANCIÓN CON DELAY DE 3 SEGUNDOS
 function iniciarCancionRitmo() {
   if ((inventario[25] || 0) <= 0) {
     alert("🎤 ¡Necesitas contratar al menos 1 Idol Wolfy en la tienda para jugar!");
@@ -158,12 +164,16 @@ function iniciarCancionRitmo() {
   let audio = document.getElementById("audio-player");
   if (!audio) return;
 
+  // Cancelar timeouts/loops previos
+  if (timeoutInicioAudio) clearTimeout(timeoutInicioAudio);
+  if (loopRitmoFrame) cancelAnimationFrame(loopRitmoFrame);
+
   // Limpiar notas previas del DOM
   document.querySelectorAll('.nota-ritmo').forEach(n => n.remove());
 
+  audio.pause();
   audio.src = mapaCanciones[cancionSeleccionada].archivo;
   audio.currentTime = 0;
-  audio.play().catch(e => console.log("Coloca el archivo MP3 en 'musica/' para reproducir audio real."));
 
   notasActivas = mapaCanciones[cancionSeleccionada].mapaNotas.map(nota => ({
     tiempo: nota.tiempo,
@@ -173,22 +183,44 @@ function iniciarCancionRitmo() {
   }));
 
   puntajeRitmo = 0;
-  actualizarFeedbackRitmo("¡Usa A, S, D, F!");
+  tiempoDelayRestante = 3.0; // Configuración de 3 segundos de delay
+  timestampInicioDelay = Date.now();
 
-  if (loopRitmoFrame) cancelAnimationFrame(loopRitmoFrame);
+  actualizarFeedbackRitmo("⏳ Preparado... 3.0s");
+
+  // Iniciar la animación inmediatamente para que las primeras notas bajen durante la cuenta regresiva
   actualizarBucleRitmo();
+
+  // Programar la reproducción del audio tras 3 segundos
+  timeoutInicioAudio = setTimeout(() => {
+    audio.play().catch(e => console.log("Audio en reproducción o sin archivo local."));
+    actualizarFeedbackRitmo("🎶 ¡A JUGAR!");
+  }, 3000);
 }
 
+// 2. BUCLE PRINCIPAL DE ANIMACIÓN (ADAPTADO AL DELAY)
 function actualizarBucleRitmo() {
   let audio = document.getElementById("audio-player");
+  let tActual = 0;
 
   if (audio) {
-    let tActual = audio.currentTime;
+    // Si el audio aún no empieza, calculamos el tiempo negativo según la cuenta regresiva del delay
+    if (audio.paused && tiempoDelayRestante > 0) {
+      let transcurrido = (Date.now() - timestampInicioDelay) / 1000;
+      tiempoDelayRestante = Math.max(0, 3.0 - transcurrido);
+      tActual = -tiempoDelayRestante; // Tiempo negativo durante el conteo
+      
+      if (tiempoDelayRestante > 0) {
+        actualizarFeedbackRitmo(`⏳ Preparado... ${tiempoDelayRestante.toFixed(1)}s`);
+      }
+    } else {
+      tActual = audio.currentTime;
+    }
 
     notasActivas.forEach(nota => {
       let diferencia = nota.tiempo - tActual;
 
-      // Renderizar la nota 2 segundos antes del punto de impacto
+      // Renderizar y desplazar nota en un rango de 2 segundos de anticipación
       if (diferencia <= 2.0 && diferencia >= -0.3 && !nota.impactado) {
         if (!nota.elementoHTML) {
           let carrilElem = document.getElementById(`carril-${nota.carril}`);
@@ -200,7 +232,6 @@ function actualizarBucleRitmo() {
           }
         }
 
-        // Animación descendente
         let porcentajePos = (1 - (diferencia / 2.0)) * 160;
         if (nota.elementoHTML) {
           nota.elementoHTML.style.top = porcentajePos + "px";
@@ -215,13 +246,68 @@ function actualizarBucleRitmo() {
   loopRitmoFrame = requestAnimationFrame(actualizarBucleRitmo);
 }
 
-// Evento al presionar las teclas (A, S, D, F)
-window.addEventListener("keydown", function(e) {
-  if (teclasCarriles.hasOwnProperty(e.key)) {
-    let carrilPresionado = teclasCarriles[e.key];
-    presionarCarril(carrilPresionado);
+// 3. PAUSAR (TENE EN CUENTA SI ESTÁ EN DELAY O EN AUDIO)
+function pausarCancionRitmo() {
+  let audio = document.getElementById("audio-player");
+  
+  if (timeoutInicioAudio) {
+    clearTimeout(timeoutInicioAudio);
+    timeoutInicioAudio = null;
   }
-});
+
+  if (audio && !audio.paused) {
+    audio.pause();
+  }
+
+  if (loopRitmoFrame) cancelAnimationFrame(loopRitmoFrame);
+  actualizarFeedbackRitmo("Juego en Pausa ⏸️");
+}
+
+// 4. CONTINUAR
+function continuarCancionRitmo() {
+  let audio = document.getElementById("audio-player");
+
+  if (tiempoDelayRestante > 0) {
+    // Si se pausó en el conteo regresivo, reanudar el conteo
+    timestampInicioDelay = Date.now() - ((3.0 - tiempoDelayRestante) * 1000);
+    timeoutInicioAudio = setTimeout(() => {
+      audio.play().catch(e => console.log("Error al reanudar audio."));
+      actualizarFeedbackRitmo("🎶 ¡A JUGAR!");
+    }, tiempoDelayRestante * 1000);
+  } else if (audio && audio.currentTime > 0) {
+    audio.play().catch(e => console.log("Error al reanudar audio."));
+  }
+
+  if (loopRitmoFrame) cancelAnimationFrame(loopRitmoFrame);
+  actualizarBucleRitmo();
+}
+
+// 5. REINICIAR (RESET)
+function reiniciarCancionRitmo() {
+  let audio = document.getElementById("audio-player");
+  if (audio) {
+    audio.pause();
+    audio.currentTime = 0;
+  }
+
+  if (timeoutInicioAudio) clearTimeout(timeoutInicioAudio);
+  if (loopRitmoFrame) cancelAnimationFrame(loopRitmoFrame);
+
+  tiempoDelayRestante = 0;
+
+  // Limpiar notas en pantalla
+  document.querySelectorAll('.nota-ritmo').forEach(n => n.remove());
+
+  notasActivas = mapaCanciones[cancionSeleccionada].mapaNotas.map(nota => ({
+    tiempo: nota.tiempo,
+    carril: nota.carril,
+    impactado: false,
+    elementoHTML: null
+  }));
+
+  puntajeRitmo = 0;
+  actualizarFeedbackRitmo("Canción reiniciada 🔄. Haz clic en Iniciar.");
+}
 
 function presionarCarril(carril) {
   let audio = document.getElementById("audio-player");
