@@ -156,6 +156,14 @@ var timestampInicioDelay = 0;
 var juegoPausado = false; // Estado para frenar la animación de las notas
 
 // 1. INICIAR CANCIÓN CON DELAY DE 3 SEGUNDOS
+// --- VARIABLES DEL MINIJUEGO DE RITMO CON PAUSA EXACTA ---
+var timeoutInicioAudio = null;
+var tiempoDelayRestante = 0;
+var timestampInicioDelay = 0;
+var juegoPausado = false;
+var enPeriodoDelay = false;
+
+// 1. INICIAR CANCIÓN (3s DELAY)
 function iniciarCancionRitmo() {
   if ((inventario[25] || 0) <= 0) {
     alert("🎤 ¡Necesitas contratar al menos 1 Idol Wolfy en la tienda para jugar!");
@@ -165,12 +173,13 @@ function iniciarCancionRitmo() {
   let audio = document.getElementById("audio-player");
   if (!audio) return;
 
-  // Cancelar timeouts/loops previos y resetear estado de pausa
+  // Limpiar estados y timeouts
   if (timeoutInicioAudio) clearTimeout(timeoutInicioAudio);
   if (loopRitmoFrame) cancelAnimationFrame(loopRitmoFrame);
+  
   juegoPausado = false;
+  enPeriodoDelay = true;
 
-  // Limpiar notas previas del DOM
   document.querySelectorAll('.nota-ritmo').forEach(n => n.remove());
 
   audio.pause();
@@ -185,36 +194,34 @@ function iniciarCancionRitmo() {
   }));
 
   puntajeRitmo = 0;
-  tiempoDelayRestante = 3.0; // 3 segundos de delay
+  tiempoDelayRestante = 3.0;
   timestampInicioDelay = Date.now();
 
   actualizarFeedbackRitmo("⏳ Preparado... 3.0s");
 
-  // Iniciar la animación
   actualizarBucleRitmo();
 
-  // Programar la reproducción del audio tras 3 segundos
   timeoutInicioAudio = setTimeout(() => {
     if (!juegoPausado) {
+      enPeriodoDelay = false;
       audio.play().catch(e => console.log("Audio en reproducción o sin archivo local."));
       actualizarFeedbackRitmo("🎶 ¡A JUGAR!");
     }
   }, 3000);
 }
 
-// 2. BUCLE PRINCIPAL DE ANIMACIÓN
+// 2. BUCLE DE ANIMACIÓN
 function actualizarBucleRitmo() {
-  // Si el juego está pausado, cortamos la ejecución para congelar las notas en su lugar
-  if (juegoPausado) return;
+  if (juegoPausado) return; // Si está en pausa, NO ejecuta nada y congela la pantalla
 
   let audio = document.getElementById("audio-player");
   let tActual = 0;
 
   if (audio) {
-    if (audio.paused && tiempoDelayRestante > 0) {
+    if (enPeriodoDelay) {
       let transcurrido = (Date.now() - timestampInicioDelay) / 1000;
       tiempoDelayRestante = Math.max(0, 3.0 - transcurrido);
-      tActual = -tiempoDelayRestante;
+      tActual = transcurrido - 3.0; // tActual va de -3.0 a 0.0
       
       if (tiempoDelayRestante > 0) {
         actualizarFeedbackRitmo(`⏳ Preparado... ${tiempoDelayRestante.toFixed(1)}s`);
@@ -251,19 +258,19 @@ function actualizarBucleRitmo() {
   loopRitmoFrame = requestAnimationFrame(actualizarBucleRitmo);
 }
 
-// 3. ⏸️ PAUSAR CANCIÓN (DETIENE AUDIO Y ANIMACIÓN)
+// 3. ⏸️ PAUSAR (CONGELAMIENTO INMEDIATO)
 function pausarCancionRitmo() {
-  juegoPausado = true; // Congela la actualización visual
+  if (juegoPausado) return;
 
+  juegoPausado = true;
   let audio = document.getElementById("audio-player");
 
-  // Detener temporizadores de delay si estaba en cuenta regresiva
-  if (timeoutInicioAudio) {
-    clearTimeout(timeoutInicioAudio);
-    timeoutInicioAudio = null;
-  }
-
-  if (audio && !audio.paused) {
+  if (enPeriodoDelay) {
+    // Si pausamos durante la cuenta regresiva, guardamos exactamente cuánto tiempo quedaba
+    let transcurrido = (Date.now() - timestampInicioDelay) / 1000;
+    tiempoDelayRestante = Math.max(0, 3.0 - transcurrido);
+    if (timeoutInicioAudio) clearTimeout(timeoutInicioAudio);
+  } else if (audio && !audio.paused) {
     audio.pause();
   }
 
@@ -271,18 +278,19 @@ function pausarCancionRitmo() {
   actualizarFeedbackRitmo("Juego en Pausa ⏸️");
 }
 
-// 4. ▶️ CONTINUAR CANCIÓN (REANUDAR AUDIO Y ANIMACIÓN)
+// 4. ▶️ CONTINUAR (REANUDACIÓN SIN LUZ VERDE DE ESPERA)
 function continuarCancionRitmo() {
-  if (!juegoPausado) return; // Si ya está corriendo, no hace nada
+  if (!juegoPausado) return;
 
-  juegoPausado = false; // Reactiva la animación
+  juegoPausado = false;
   let audio = document.getElementById("audio-player");
 
-  if (tiempoDelayRestante > 0) {
-    // Si se pausó durante la cuenta regresiva de 3s
+  if (enPeriodoDelay) {
+    // Reanudamos el conteo regresivo desde el punto exacto donde se pausó
     timestampInicioDelay = Date.now() - ((3.0 - tiempoDelayRestante) * 1000);
     timeoutInicioAudio = setTimeout(() => {
       if (!juegoPausado) {
+        enPeriodoDelay = false;
         audio.play().catch(e => console.log("Error al reanudar audio."));
         actualizarFeedbackRitmo("🎶 ¡A JUGAR!");
       }
@@ -296,9 +304,10 @@ function continuarCancionRitmo() {
   actualizarBucleRitmo();
 }
 
-// 5. 🔄 REINICIAR CANCIÓN (RESET)
+// 5. 🔄 RESET
 function reiniciarCancionRitmo() {
   juegoPausado = false;
+  enPeriodoDelay = false;
   
   let audio = document.getElementById("audio-player");
   if (audio) {
@@ -311,7 +320,6 @@ function reiniciarCancionRitmo() {
 
   tiempoDelayRestante = 0;
 
-  // Limpiar notas en pantalla
   document.querySelectorAll('.nota-ritmo').forEach(n => n.remove());
 
   notasActivas = mapaCanciones[cancionSeleccionada].mapaNotas.map(nota => ({
