@@ -1,4 +1,4 @@
-// --- VARIABLES GLOBALES ---
+// --- VARIABLES GLOBALES Y SISTEMA BASE ---
 var wolfichas = 0;
 var wolfichasAnteriores = 0;
 var wolfichasPorClic = 1;
@@ -6,12 +6,11 @@ var multiplicadorGalleta = 1;
 var duracionBuffGalleta = 0;
 var wolfilletes = 0;
 
-// Sistema de Fondos y Colores (Actualización 2.0 - 27/09)
+// Sistema de Fondos y Colores (Actualización 2.0)
 var fondoEquipado = 0;
 var multiplicadorFondo = 1.0; 
 var fondosComprados = [true, false, false]; // Default, Calma Verdosa, Amarillo Energético
 
-// Catálogo de Fondos
 const catalogoFondos = [
   { nombre: "Default", multiplicador: 1.0, costo: 0, color: "#ffffff", colorBoton: "#ffffff", colorTexto: "#222222" },
   { nombre: "Calma Verdosa", multiplicador: 1.2, costo: 10, color: "#e8f5e9", colorBoton: "#a5d6a7", colorTexto: "#1b5e20" },
@@ -23,7 +22,7 @@ var multiplicadorHueso = 1;
 var tiempoBuffHueso = 0;
 var esHuesoNatural = false;
 
-// Variables globales del QTE de la galleta
+// QTE de la Galleta
 var clicksActuales = 0;
 var clicksRequeridos = 0;
 var tiempoLimiteQTE = 0;
@@ -34,7 +33,7 @@ let mejoraGalleta = { comprado: false };
 var ultimoTiempoClick = 0;
 var esSpeedrunner = true;
 
-// Configuración de los elementos (21/09: Desbloqueados | 24/09: Bloqueados | 27/09: Actu 2.0)
+// Configuración de Elementos e Inventario
 var esMejoraUnica = [true, true, true, false, true, false, false, true, false, true, true, true, false, false, false, true, false, true, true, true, false, true, false, true, true, false];
 var inventario      = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
 var wolfichasProduce = [0, 0, 0, 0.1, 0, 0, 1, 0, 5, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 200, 0, 500, 0, 0, 1500]; 
@@ -49,6 +48,7 @@ var gananciaUltimaHorneada = 0;
 var wolfichasPorSegundo = 0;
 var vistaActual = 0; // 0: Streamer Chat, 1: Idol Ritmo
 
+// --- SISTEMA LOGROS COMPLETO ---
 var logros = [
   { id: "badge-1", titulo: "Primer Ahorro", descripcion: "Ten 100 Wolfichas Ahorradas", condicion: function() { return wolfichas >= 100; }, completado: false },
   { id: "badge-2", titulo: "Alcancía Llena", descripcion: "Ten 500 Wolfichas Ahorradas", condicion: function() { return wolfichas >= 500; }, completado: false },
@@ -71,7 +71,55 @@ var logros = [
   { id: "badge-19", titulo: "Olor Creciente A Papel", descripcion: "Será comestible?, quien sabe. Contrata 1 Worker Wolfy y sube tus stonks", condicion: function() { return (inventario[16] || 0) >= 1; }, completado: false },
   { id: "badge-20", titulo: "Comegalletas Speedrunner", descripcion: "Haz todos los clics de la galleta con un intervalo inferior a 0.7s por clic", condicion: function() { return false; }, completado: false },
   { id: "badge-21", titulo: "Comida Tramposa", descripcion: "¡¡QUÉ CERCA!! Cómete una galleta con menos de 2s sobrantes", condicion: function() { return false; }, completado: false }
-];  
+];
+
+// --- SISTEMA RITMO IDOL WOLFY ---
+var mapaCanciones = {
+  swim: {
+    archivo: "musica/swim (alternative rock ver).mp3",
+    mapaNotas: [
+      { tiempo: 1.0, carril: 0 }, { tiempo: 2.5, carril: 3 },
+      { tiempo: 5.0, carril: 1 }, { tiempo: 5.0, carril: 2 },
+      { tiempo: 5.4, carril: 1 }, { tiempo: 5.4, carril: 0 },
+      { tiempo: 5.8, carril: 2 }, { tiempo: 5.8, carril: 0 },
+      { tiempo: 5.8, carril: 3 }, { tiempo: 6.2, carril: 0 },
+      { tiempo: 6.2, carril: 1 }, { tiempo: 6.6, carril: 0 },
+      { tiempo: 7.0, carril: 2 }, { tiempo: 7.0, carril: 3 },
+      { tiempo: 7.4, carril: 1 }, { tiempo: 7.4, carril: 2 },
+      { tiempo: 7.4, carril: 0 }, { tiempo: 7.8, carril: 3 },
+      { tiempo: 8.2, carril: 2 }, { tiempo: 8.35, carril: 2 },
+      { tiempo: 8.45, carril: 0 }, { tiempo: 8.55, carril: 0 },
+      { tiempo: 8.65, carril: 2 }, { tiempo: 8.75, carril: 2 },
+      { tiempo: 9.15, carril: 1 }, { tiempo: 9.45, carril: 1 }
+    ]
+  },
+  bed: {
+    archivo: "musica/bed.mp3",
+    mapaNotas: [
+      { tiempo: 0.8, carril: 0 }, { tiempo: 1.5, carril: 2 },
+      { tiempo: 2.5, carril: 1 }, { tiempo: 3.8, carril: 3 },
+      { tiempo: 5.0, carril: 0 }, { tiempo: 6.2, carril: 1 },
+      { tiempo: 7.5, carril: 2 }, { tiempo: 9.0, carril: 3 }
+    ]
+  }
+};
+
+var cancionSeleccionada = "swim";
+var notasActivas = [];
+var puntajeRitmo = 0;
+var loopRitmoFrame = null;
+var tiempoJuegoRitmo = -3.0;
+var juegoPausado = true;
+var juegoIniciado = false;
+var ultimoTimestamp = 0;
+var audioDisponible = false;
+
+const teclasCarriles = {
+  'a': 0, 'A': 0,
+  's': 1, 'S': 1,
+  'd': 2, 'D': 2,
+  'f': 3, 'F': 3
+};
 
 // --- FUNCIONES INTERACTIVAS Y UI ---
 function clic() {
@@ -86,17 +134,6 @@ function clic() {
 function comprar(objeto) {
   if (esMejoraUnica[objeto] && inventario[objeto] > 0) return;
 
-  // Bloqueos de fechas
-  if ([23, 24, 25].includes(objeto)) {
-    alert("Hey, no te apures. ¡Este contenido se desbloquea el 24/09! 🚕🎶");
-    return;
-  }
-
-  if (objeto >= 26) {
-    alert("🚀 ¡Atento! Este contenido pertenece a la súper Actualización 2.0 (27/09). ¡Falta muy poco!");
-    return;
-  }
-
   if (wolfichas >= precioProducto[objeto]) {
     wolfichas -= precioProducto[objeto];
     inventario[objeto]++;
@@ -106,7 +143,6 @@ function comprar(objeto) {
     if (objeto === 5) wolfichasProduce[3] += 0.1;
     if (objeto === 7) wolfichasProduce[6] *= 2;
     if (objeto === 9) wolfichasProduce[8] *= 2;
-
     if (objeto === 17) wolfichasProduce[16] *= 2;
     if (objeto === 18) wolfichasProduce[16] *= 2;
 
@@ -137,18 +173,207 @@ function comprar(objeto) {
   }
 }
 
-// --- TIENDA DE FONDOS Y COLORES (ACTUALIZACIÓN 2.0) ---
-function aplicarTemaVisual(indexFondo) {
-  // Limpiamos cualquier tema previo
-  document.body.classList.remove('tema-default', 'tema-verde', 'tema-amarillo');
+// --- LÓGICA DE JUEGO DE RITMO ---
+function seleccionarCancion(clave) {
+  cancionSeleccionada = clave;
+  let audio = document.getElementById("audio-player");
+  if (audio) {
+    audio.src = mapaCanciones[clave].archivo;
+  }
+}
 
-  // Aplicamos la clase correspondiente
-  if (indexFondo === 1) {
-    document.body.classList.add('tema-verde');
-  } else if (indexFondo === 2) {
-    document.body.classList.add('tema-amarillo');
+function iniciarCancionRitmo() {
+  if ((inventario[25] || 0) <= 0) {
+    alert("🎤 ¡Necesitas contratar al menos 1 Idol Wolfy en la tienda para jugar!");
+    return;
+  }
+
+  let audio = document.getElementById("audio-player");
+  document.querySelectorAll('.nota-ritmo').forEach(n => n.remove());
+
+  audioDisponible = false;
+  if (audio) {
+    audio.pause();
+    audio.src = mapaCanciones[cancionSeleccionada].archivo;
+    audio.currentTime = 0;
+
+    audio.oncanplaythrough = function() {
+      audioDisponible = true;
+    };
+    audio.onerror = function() {
+      audioDisponible = false;
+      console.warn("⚠️ No se pudo cargar el audio MP3. El juego correrá en modo silencioso.");
+    };
+    audio.load();
+  }
+
+  notasActivas = mapaCanciones[cancionSeleccionada].mapaNotas.map(nota => ({
+    tiempo: nota.tiempo,
+    carril: nota.carril,
+    impactado: false,
+    elementoHTML: null
+  }));
+
+  puntajeRitmo = 0;
+  tiempoJuegoRitmo = -3.0;
+  juegoPausado = false;
+  juegoIniciado = true;
+  ultimoTimestamp = performance.now();
+
+  if (loopRitmoFrame) cancelAnimationFrame(loopRitmoFrame);
+  actualizarBucleRitmo();
+}
+
+function actualizarBucleRitmo() {
+  if (juegoPausado || !juegoIniciado) return;
+
+  let ahora = performance.now();
+  let delta = (ahora - ultimoTimestamp) / 1000;
+  ultimoTimestamp = ahora;
+
+  let audio = document.getElementById("audio-player");
+
+  if (tiempoJuegoRitmo < 0) {
+    tiempoJuegoRitmo += delta;
+    actualizarFeedbackRitmo(`⏳ Preparado... ${Math.abs(tiempoJuegoRitmo).toFixed(1)}s`);
+
+    if (tiempoJuegoRitmo >= 0) {
+      tiempoJuegoRitmo = 0;
+      if (audio && audioDisponible) {
+        audio.currentTime = 0;
+        audio.play().catch(e => {
+          console.warn("Autoplay bloqueado por el navegador.");
+          audioDisponible = false;
+        });
+      }
+    }
   } else {
-    document.body.classList.add('tema-default');
+    if (audio && audioDisponible && !audio.paused && !audio.ended) {
+      tiempoJuegoRitmo = audio.currentTime;
+    } else {
+      tiempoJuegoRitmo += delta;
+    }
+    actualizarFeedbackRitmo("🎶 ¡A JUGAR!");
+  }
+
+  notasActivas.forEach(nota => {
+    let diferencia = nota.tiempo - tiempoJuegoRitmo;
+
+    if (diferencia <= 1.5 && diferencia >= -0.3 && !nota.impactado) {
+      if (!nota.elementoHTML) {
+        let carrilElem = document.getElementById(`carril-${nota.carril}`);
+        if (carrilElem) {
+          let el = document.createElement("div");
+          el.className = "nota-ritmo";
+          carrilElem.appendChild(el);
+          nota.elementoHTML = el;
+        }
+      }
+
+      let porcentajePos = (1 - (diferencia / 1.5)) * 160;
+      if (nota.elementoHTML) {
+        nota.elementoHTML.style.top = porcentajePos + "px";
+      }
+    } else if (diferencia < -0.3 && nota.elementoHTML) {
+      nota.elementoHTML.remove();
+      nota.elementoHTML = null;
+    }
+  });
+
+  loopRitmoFrame = requestAnimationFrame(actualizarBucleRitmo);
+}
+
+function pausarCancionRitmo() {
+  if (juegoPausado || !juegoIniciado) return;
+  juegoPausado = true;
+  let audio = document.getElementById("audio-player");
+  if (audio && !audio.paused) audio.pause();
+  if (loopRitmoFrame) cancelAnimationFrame(loopRitmoFrame);
+  actualizarFeedbackRitmo("Juego en Pausa ⏸️");
+}
+
+function continuarCancionRitmo() {
+  if (!juegoPausado || !juegoIniciado) return;
+  juegoPausado = false;
+  ultimoTimestamp = performance.now();
+  let audio = document.getElementById("audio-player");
+  if (tiempoJuegoRitmo >= 0 && audio && audioDisponible && audio.paused) {
+    audio.play().catch(e => console.warn("Error al reanudar audio"));
+  }
+  if (loopRitmoFrame) cancelAnimationFrame(loopRitmoFrame);
+  actualizarBucleRitmo();
+}
+
+function reiniciarCancionRitmo() {
+  juegoPausado = true;
+  juegoIniciado = false;
+  let audio = document.getElementById("audio-player");
+  if (audio) {
+    audio.pause();
+    audio.currentTime = 0;
+  }
+  if (loopRitmoFrame) cancelAnimationFrame(loopRitmoFrame);
+  tiempoJuegoRitmo = -3.0;
+  document.querySelectorAll('.nota-ritmo').forEach(n => n.remove());
+
+  notasActivas = mapaCanciones[cancionSeleccionada].mapaNotas.map(nota => ({
+    tiempo: nota.tiempo,
+    carril: nota.carril,
+    impactado: false,
+    elementoHTML: null
+  }));
+
+  puntajeRitmo = 0;
+  actualizarFeedbackRitmo("Canción reiniciada 🔄. Haz clic en Iniciar.");
+}
+
+function presionarCarril(carril) {
+  let audio = document.getElementById("audio-player");
+  if (!audio || audio.paused) return;
+
+  let tActual = audio.currentTime;
+  let acierto = false;
+
+  notasActivas.forEach(nota => {
+    if (!nota.impactado && nota.carril === carril) {
+      let diff = Math.abs(nota.tiempo - tActual);
+      if (diff <= 0.35) {
+        nota.impactado = true;
+        acierto = true;
+
+        let bonoWC = 1000 * (inventario[25] || 1);
+        wolfichas += bonoWC;
+        puntajeRitmo += 100;
+
+        if (nota.elementoHTML) {
+          nota.elementoHTML.remove();
+          nota.elementoHTML = null;
+        }
+
+        actualizarFeedbackRitmo(`¡HIT! +${bonoWC} WC 🎵`);
+      }
+    }
+  });
+
+  if (!acierto) {
+    actualizarFeedbackRitmo("¡MISS!");
+  }
+}
+
+function actualizarFeedbackRitmo(msg) {
+  let fb = document.getElementById("feedback-ritmo");
+  if (fb) fb.innerText = `${msg} | Puntaje: ${puntajeRitmo}`;
+}
+
+// --- FONDOS Y TEMAS ---
+function aplicarTemaVisual(indexFondo) {
+  document.body.classList.remove('tema-default', 'tema-verde', 'tema-amarillo');
+  if (indexFondo === 1) document.body.classList.add('tema-verde');
+  else if (indexFondo === 2) document.body.classList.add('tema-amarillo');
+  else document.body.classList.add('tema-default');
+
+  if (catalogoFondos[indexFondo]) {
+    document.body.style.backgroundColor = catalogoFondos[indexFondo].color;
   }
 }
 
@@ -183,7 +408,7 @@ function girarRuleta() {
   return 1;
 }
 
-// --- SISTEMA DE GALLETA CROCANTE (QTE) ---
+// --- QTE GALLETA CROCANTE ---
 function iniciarLoopGalletas() {
   if (timerLoopGalleta) clearInterval(timerLoopGalleta);
   timerLoopGalleta = setInterval(function() {
@@ -312,7 +537,7 @@ function ocultarGalleta() {
   if (qteInfo) qteInfo.style.display = "none";
 }
 
-// --- SISTEMA DE CHAT DE STREAMER WOLFY ---
+// --- CHAT DE STREAMER WOLFY ---
 var timerChatStreamer = null;
 var penalizacionWCS = 0;
 var productorSecuestrado = false;
@@ -332,7 +557,6 @@ function iniciarChatStreamer() {
   }, 20000);
 }
 
-// --- LISTAS DE TEXTOS Y COMENTARIOS DEL CHAT ---
 var comentariosPositivos = [
   "¿Cómo se llama el juego? ¡¡Me encanta!!",
   "¡Wolfy Go Studio nunca dececciona! 🔥",
@@ -526,7 +750,29 @@ function generarComentarioEspecial() {
   contenedorChat.appendChild(chatBox);
 }
 
-// --- NAVEGACIÓN Y ANIMACIÓN ---
+// --- NAVEGACIÓN Y RENDER ---
+function cambiarVistaDerecha(direccion) {
+  vistaActual += direccion;
+  if (vistaActual < 0) vistaActual = 1;
+  if (vistaActual > 1) vistaActual = 0;
+
+  let chatView = document.getElementById("vista-chat-streamer");
+  let idolView = document.getElementById("vista-idol-ritmo");
+  let titulo = document.getElementById("titulo-vista-derecha");
+
+  if (chatView && idolView && titulo) {
+    if (vistaActual === 0) {
+      chatView.style.display = "block";
+      idolView.style.display = "none";
+      titulo.innerText = "Chat Streamer Wolfy";
+    } else {
+      chatView.style.display = "none";
+      idolView.style.display = "block";
+      titulo.innerText = "Idol Wolfy: Ritmo";
+    }
+  }
+}
+
 function actualizarContadorConEfectos(diferencia) {
   let contadorEl = document.getElementById("contador");
   let subContadorEl = document.getElementById("sub-contador");
@@ -576,28 +822,6 @@ function mostrarCantidadFlotante(monto, esGanancia) {
   }, 650);
 }
 
-function cambiarVistaDerecha(direccion) {
-  vistaActual += direccion;
-  if (vistaActual < 0) vistaActual = 1;
-  if (vistaActual > 1) vistaActual = 0;
-
-  let chatView = document.getElementById("vista-chat-streamer");
-  let idolView = document.getElementById("vista-idol-ritmo");
-  let titulo = document.getElementById("titulo-vista-derecha");
-
-  if (chatView && idolView && titulo) {
-    if (vistaActual === 0) {
-      chatView.style.display = "block";
-      idolView.style.display = "none";
-      titulo.innerText = "Chat Streamer Wolfy";
-    } else {
-      chatView.style.display = "none";
-      idolView.style.display = "block";
-      titulo.innerText = "Idol Wolfy: Ritmo";
-    }
-  }
-}
-
 function producir() {
   if (isNaN(wolfichas)) {
     console.error("⚠️ Se detectó corrupción en tiempo real (NaN). Activando protocolo de rescate...");
@@ -605,7 +829,7 @@ function producir() {
     return;
   }
 
-  // 1. Producción básica de edificios
+  // Producción pasiva
   let totalClickers   = (inventario[3] || 0) * wolfichasProduce[3];
   let totalFarmers    = (inventario[6] || 0) * wolfichasProduce[6];
   let totalMiners     = (inventario[8] || 0) * wolfichasProduce[8];
@@ -613,10 +837,10 @@ function producir() {
   let totalStreamers  = (inventario[20] || 0) * wolfichasProduce[20];
   let totalTaxists    = (inventario[22] || 0) * wolfichasProduce[22];
   let totalIdols      = (inventario[25] || 0) * wolfichasProduce[25];
-  
+
   let produccionPasiva = (totalClickers + totalFarmers + totalMiners + totalWorkers + totalStreamers + totalTaxists + totalIdols) * multiplicadorGalleta;
 
-  // 2. Producción de la Pastelería (Bakers)
+  // Pastelería
   let cantBakers = inventario[12] || 0;
   let gananciaHornoTotal = 0;
 
@@ -639,7 +863,7 @@ function producir() {
     tiempoHorno = 10;
   }
 
-  // 3. Aplicación del buff del Hueso de Oro
+  // Buff de Hueso de Oro
   if (tiempoBuffHueso > 0) {
     multiplicadorHueso = 7;
     tiempoBuffHueso--;
@@ -649,12 +873,10 @@ function producir() {
 
   let produccionBruta = (produccionPasiva + gananciaHornoTotal) * multiplicadorHueso * multiplicadorFondo;
 
-  // 4. Penalización por Productor Secuestrado
   if (productorSecuestrado) {
     produccionBruta *= 0.95;
   }
 
-  // 5. Descuento pasivo de WC/s acumulado por Haters no moderados a tiempo
   let comprasPatas = inventario[13] || 0;
   let tiempoCicloMax = Math.max(2, 10 - (comprasPatas * 0.95));
   let promedioBaker = (cantBakers > 0) ? ((5 + (inventario[14] || 0)) * 10 * cantBakers) / tiempoCicloMax : 0;
@@ -709,7 +931,7 @@ function actualizarBadges() {
   badgeUI.innerHTML = htmlAcumulado;
 }
 
-// --- GUARDADO / CARGA Y AUTO-REPARACIÓN ---
+// --- GUARDA, CARGA Y AUTO-REPARACIÓN ---
 function guardarJuego() {
   if (isNaN(wolfichas)) {
     console.error("⚠️ Se detectó NaN en vivo. Restaurando valor seguro...");
@@ -780,9 +1002,7 @@ function cargarJuego() {
     multiplicadorFondo = datos.multiplicadorFondo ?? 1.0;
     fondosComprados = datos.fondosComprados ?? [true, false, false];
 
-    if (catalogoFondos[fondoEquipado]) {
-      document.body.style.backgroundColor = catalogoFondos[fondoEquipado].color;
-    }
+    aplicarTemaVisual(fondoEquipado);
 
     if (datos.codes) {
       helloworldUsado = datos.codes.helloworld ?? false;
@@ -810,9 +1030,6 @@ function cargarJuego() {
   if ((inventario[20] || 0) > 0) {
     iniciarChatStreamer();
   }
-  if (catalogoFondos[fondoEquipado]) {
-  aplicarEstiloFondo(catalogoFondos[fondoEquipado].color);
-}
 }
 
 function ejecutarAutoreparacion() {
@@ -867,17 +1084,6 @@ function clickHuesoOro() {
   guardarJuego();
   render();
 }
-
-// Intervenciones e intervalos
-setInterval(() => {
-  if (Math.random() < 0.01) aparecerHuesoOro(true);
-}, 1000);
-
-var produceFPS = 1;
-var gameFPS = 60;
-
-setInterval(function(){ producir(); }, 1000/produceFPS);
-setInterval(function(){ render(); }, 1000/gameFPS);
 
 // --- EASTER EGGS DE CONSOLA ---
 var helloworldUsado = false;
@@ -999,8 +1205,19 @@ Object.defineProperty(window, 'streamtime', {
   }
 });
 
-// Inicialización del juego segura
+// --- BUCLES Y EVENTOS DE INICIALIZACIÓN ---
+setInterval(() => {
+  if (Math.random() < 0.01) aparecerHuesoOro(true);
+}, 1000);
+
+var produceFPS = 1;
+var gameFPS = 60;
+
+setInterval(function() { producir(); }, 1000 / produceFPS);
+setInterval(function() { render(); }, 1000 / gameFPS);
+
 window.addEventListener("DOMContentLoaded", () => {
   cargarJuego();
+  seleccionarCancion("swim");
   setInterval(guardarJuego, 5000);
 });
