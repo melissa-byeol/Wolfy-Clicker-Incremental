@@ -888,6 +888,40 @@ function producir() {
   wolfichas += wolfichasPorSegundo;
 }
 
+// --- SISTEMA DE CONVERSIÓN DE CURRENCY ---
+function comprarWolfilletes() {
+  const PRECIO_WOLFILLETE = 100000;
+
+  // Preguntar al usuario cuántos Wolfilletes desea comprar
+  let cantidadInput = prompt("¿Cuántos Wolfilletes deseas comprar?\nPrecio: 100,000 Wolfichas por 1 Wolfillete", "1");
+
+  // Si el usuario cancela o no ingresa nada
+  if (cantidadInput === null) return;
+
+  let cantidad = parseInt(cantidadInput, 10);
+
+  // Validaciones
+  if (isNaN(cantidad) || cantidad <= 0) {
+    alert("⚠️ Por favor ingresa un número entero válido mayor a 0.");
+    return;
+  }
+
+  let costoTotal = cantidad * PRECIO_WOLFILLETE;
+
+  if (wolfichas >= costoTotal) {
+    wolfichas -= costoTotal;
+    wolfilletes += cantidad;
+
+    alert(`🎉 ¡Intercambio exitoso!\nGastaste ${costoTotal.toLocaleString()} Wolfichas y obtuviste 💵 ${cantidad} Wolfillete(s).`);
+
+    guardarJuego();
+    render();
+  } else {
+    let faltantes = costoTotal - wolfichas;
+    alert(`❌ No tienes suficientes Wolfichas.\nNecesitas ${costoTotal.toLocaleString()} WC (te faltan ${faltantes.toLocaleString()} WC).`);
+  }
+}
+
 function render() {
   let diferencia = wolfichas - wolfichasAnteriores;
   actualizarContadorConEfectos(diferencia);
