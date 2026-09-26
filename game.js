@@ -51,15 +51,23 @@ var vistaActual = 0;
 // SISTEMA RITMO IDOL WOLFY (4 CARRILES CON TECLAS A, S, D, F)
 var mapaCanciones = {
   swim: {
-    archivo: "musica/swim.mp3",
+    archivo: "musica/swim (alternative rock ver).mp3",
     // Formato: { tiempo: en segundos, carril: 0 a 3 }
     mapaNotas: [
-      { tiempo: 1.2, carril: 0 }, { tiempo: 2.0, carril: 1 },
-      { tiempo: 2.8, carril: 2 }, { tiempo: 3.5, carril: 3 },
-      { tiempo: 4.5, carril: 1 }, { tiempo: 5.5, carril: 0 },
-      { tiempo: 6.8, carril: 2 }, { tiempo: 8.0, carril: 3 },
-      { tiempo: 9.5, carril: 1 }, { tiempo: 11.0, carril: 0 },
-      { tiempo: 12.5, carril: 2 }, { tiempo: 14.0, carril: 3 }
+      { tiempo: 1.0, carril: 0 }, { tiempo: 2.5, carril: 3 },
+      { tiempo: 4.0, carril: 1 }, { tiempo: 4.0, carril: 2 },
+      { tiempo: 4.25, carril: 1 }, { tiempo: 4.25, carril: 0 },
+      { tiempo: 4.5, carril: 2 }, { tiempo: 4.5, carril: 0 },
+      { tiempo: 4.5, carril: 3 }, { tiempo: 4.75, carril: 0 },
+      { tiempo: 4.75, carril: 1 }, { tiempo: 5.0, carril: 0 },
+      { tiempo: 5.25, carril: 2 }, { tiempo: 5.25, carril: 3 },
+      { tiempo: 5.5, carril: 1 }, { tiempo: 5.5, carril: 2 },
+      { tiempo: 5.5, carril: 0 }, { tiempo: 5.75, carril: 3 },
+      { tiempo: 6.0, carril: 2 }, { tiempo: 6.25, carril: 2 },
+      { tiempo: 6.35, carril: 0 }, { tiempo: 6.45, carril: 0 },
+      { tiempo: 6.55, carril: 2 }, { tiempo: 6.65, carril: 2 },
+      { tiempo: 6.75, carril: 1 }, { tiempo: 7.0, carril: 1 },
+
     ]
   },
   bed: {
