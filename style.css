@@ -451,3 +451,27 @@ body.tema-amarillo button {
   color: #f57f17;
   border-color: #ffee58;
 }
+
+/* Estilos para el Tema Azul Fresco */
+body.tema-azul {
+  background-color: #e0f7fa !important;
+  color: #006064;
+}
+
+body.tema-azul .panel, 
+body.tema-azul .card,
+body.tema-azul .tienda-item {
+  background-color: #b2ebf2;
+  border-color: #00838f;
+  color: #004d40;
+}
+
+body.tema-azul button {
+  background-color: #80deea;
+  color: #004d40;
+  border: 1px solid #00838f;
+}
+
+body.tema-azul button:hover {
+  background-color: #4dd0e1;
+}
