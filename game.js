@@ -9,12 +9,13 @@ var wolfilletes = 0;
 // Sistema de Fondos y Colores (Actualización 2.0)
 var fondoEquipado = 0;
 var multiplicadorFondo = 1.0; 
-var fondosComprados = [true, false, false]; // Default, Calma Verdosa, Amarillo Energético
+var fondosComprados = [true, false, false, false]; // Default, Calma Verdosa, Amarillo Energético
 
 const catalogoFondos = [
   { nombre: "Default", multiplicador: 1.0, costo: 0, color: "#ffffff", colorBoton: "#ffffff", colorTexto: "#222222" },
   { nombre: "Calma Verdosa", multiplicador: 1.2, costo: 10, color: "#e8f5e9", colorBoton: "#a5d6a7", colorTexto: "#1b5e20" },
-  { nombre: "Amarillo Energético", multiplicador: 1.5, costo: 25, color: "#fffde7", colorBoton: "#fff59d", colorTexto: "#f57f17" }
+  { nombre: "Amarillo Energético", multiplicador: 1.5, costo: 25, color: "#fffde7", colorBoton: "#fff59d", colorTexto: "#f57f17" },
+  { nombre: "Azul Fresco", multiplicador: 2.0, costo: 70, color: "#e0f7fa", colorBoton: "#80deea", colorTexto: "#006064" }
 ];
 
 // Buffs de Hueso
@@ -367,9 +368,11 @@ function actualizarFeedbackRitmo(msg) {
 
 // --- FONDOS Y TEMAS ---
 function aplicarTemaVisual(indexFondo) {
-  document.body.classList.remove('tema-default', 'tema-verde', 'tema-amarillo');
+  document.body.classList.remove('tema-default', 'tema-verde', 'tema-amarillo', 'tema-azul');
+  
   if (indexFondo === 1) document.body.classList.add('tema-verde');
   else if (indexFondo === 2) document.body.classList.add('tema-amarillo');
+  else if (indexFondo === 3) document.body.classList.add('tema-azul');
   else document.body.classList.add('tema-default');
 
   if (catalogoFondos[indexFondo]) {
