@@ -255,24 +255,90 @@ function activarGamerWolfy() {
   if (typeof render === "function") render();
 }
 
-// --- MINIJUEGO A: QUIZ DE PREGUNTAS ---
+// --- SISTEMA CORREGIDO Y BLINDADO DE QUIZ ---
+
 function lanzarQuizGamerWolfy() {
+  // Elegir pregunta al azar del catálogo
   let trivia = triviasGamerWolfy[Math.floor(Math.random() * triviasGamerWolfy.length)];
-  let opciones = [trivia.correcta, ...trivia.incorrectas];
-  opciones.sort(() => Math.random() - 0.5);
+  let opciones = [];
 
   if (trivia.esTrampaLetra) {
+    // Si es la pregunta trampa, armamos exactamente 4 opciones
     let letras = ["A", "B", "C", "D"];
-    let idxCorrecto = opciones.indexOf(trivia.correcta);
-    let letrasFalsas = letras.filter((_, idx) => idx !== idxCorrecto);
-    let letraFalsaElegida = letrasFalsas[Math.floor(Math.random() * letrasFalsas.length)];
+    let falsas = [...trivia.incorrectas]; // 2 opciones incorrectas base
+    opciones = [trivia.correcta, ...falsas];
+    opciones.sort(() => Math.random() - 0.5); // Mezclar las primeras 3
 
-    opciones.push(`It's Not Letter ${letraFalsaElegida}`);
+    // Encontrar en qué posición (0 a 2) quedó la respuesta correcta
+    let idxCorrecto = opciones.indexOf(trivia.correcta);
+    
+    // Elegimos una letra de las opciones que NO sea la correcta para el engaño
+    let letrasDisponibles = letras.slice(0, 3).filter((_, idx) => idx !== idxCorrecto);
+    let letraFalsa = letrasDisponibles[Math.floor(Math.random() * letrasDisponibles.length)];
+
+    // Insertar la 4ta opción tramposa
+    opciones.push(`It's Not Letter ${letraFalsa}`);
+    opciones.sort(() => Math.random() - 0.5); // Mezcla final de las 4 opciones
+  } else {
+    // Pregunta normal: 1 correcta + 3 incorrectas
+    opciones = [trivia.correcta, ...trivia.incorrectas];
     opciones.sort(() => Math.random() - 0.5);
   }
 
   lanzarModalTrivia(trivia.pregunta, opciones, trivia.correcta);
 }
+
+function lanzarModalTrivia(pregunta, opciones, respuestaCorrecta) {
+  let letras = ["A", "B", "C", "D"];
+
+  let botonesHTML = opciones.map((opcion, idx) => {
+    let letra = letras[idx];
+    
+    // Sanitizar comillas para evitar fallos de sintaxis en el HTML onclick
+    let opcionLimpia = opcion.replace(/'/g, "\\'").replace(/"/g, "&quot;");
+    let correctaLimpia = respuestaCorrecta.replace(/'/g, "\\'").replace(/"/g, "&quot;");
+
+    return `
+      <button class="btn-opcion-trivia" onclick="evaluarRespuestaTrivia('${opcionLimpia}', '${correctaLimpia}')">
+        <strong>${letra}.</strong> ${opcion}
+      </button>
+    `;
+  }).join("");
+
+  let modalHTML = `
+    <div id="modal-gamer-wolfy" class="modal-overlay">
+      <div class="modal-contenido panel-trivia">
+        <h2>🎮 Gamer Wolfy Challenge</h2>
+        <p class="pregunta-trivia">"${pregunta}"</p>
+        <div class="grid-respuestas">
+          ${botonesHTML}
+        </div>
+      </div>
+    </div>
+  `;
+
+  // Remover modal previo si quedó alguno abierto
+  let modalPrevio = document.getElementById("modal-gamer-wolfy");
+  if (modalPrevio) modalPrevio.remove();
+
+  document.body.insertAdjacentHTML('beforeend', modalHTML);
+}
+
+function evaluarRespuestaTrivia(opcionSeleccionada, respuestaCorrecta) {
+  let modal = document.getElementById("modal-gamer-wolfy");
+  if (modal) modal.remove();
+
+  // Comparar respuestas ignorando discrepancias de comillas escapadas
+  let seleccion = opcionSeleccionada.replace(/\\'/g, "'");
+  let objetivo = respuestaCorrecta.replace(/\\'/g, "'");
+
+  if (seleccion === objetivo) {
+    darPremioAlAzarGamerWolfy();
+  } else {
+    alert("❌ ¡Respuesta incorrecta! Gamer Wolfy rompió el mando. ¡Inténtalo de nuevo!");
+  }
+}
+
 
 // --- MINIJUEGO B: DRAW OF FLAW (REFLEJOS EN ROJO) ---
 var tiempoInicioRojo = 0;
@@ -338,19 +404,6 @@ function finalizarMinijuegoReflejos(exito, mensaje) {
 
   if (typeof guardarJuego === "function") guardarJuego();
   if (typeof render === "function") render();
-}
-
-
-
-function evaluarRespuestaTrivia(opcionSeleccionada, respuestaCorrecta) {
-  let modal = document.getElementById("modal-gamer-wolfy");
-  if (modal) modal.remove();
-
-  if (opcionSeleccionada === respuestaCorrecta) {
-    darPremioAlAzarGamerWolfy();
-  } else {
-    alert("❌ ¡Respuesta incorrecta! Gamer Wolfy rompió el mando y regresó a su juego. ¡Inténtalo de nuevo!");
-  }
 }
 
 // --- SISTEMA DE PREMIOS REVISED PARA GAMER WOLFY ---
