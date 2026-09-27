@@ -193,6 +193,9 @@ var coleccionConociendoWolfyGo = {
   ]
 };
 
+var temaRetroDesbloqueado = false;
+var temaRetroEquipado = false;
+
 // --- FUNCIONES DE APERTURA DE MODAL ---
 function abrirModalLibros() {
   let modal = document.getElementById("modal-libros");
@@ -274,26 +277,41 @@ function agregarPaginaLibro(idLibro) {
   if (typeof render === "function") render();
 }
 
+function alternarTemaRetro() {
+  if (!temaRetroDesbloqueado) {
+    alert("🔒 Debes completar la colección 'Conociendo Wolfy Go' para desbloquear el Tema Retro.");
+    return;
+  }
+
+  temaRetroEquipado = !temaRetroEquipado;
+
+  if (temaRetroEquipado) {
+    // Aplicar la clase Retro y fijar el multiplicador
+    document.body.classList.add("tema-retro");
+    multiplicadorFondo = 2.5; 
+    alert("🎮 ¡Tema 'Retro Pixel' activado! Multiplicador x2.5 WC aplicado.");
+  } else {
+    // Remover la clase Retro y volver al multiplicador base o anterior
+    document.body.classList.remove("tema-retro");
+    multiplicadorFondo = 1.0; 
+    alert("🎨 Has vuelto al tema por defecto.");
+  }
+
+  if (typeof guardarJuego === "function") guardarJuego();
+  if (typeof render === "function") render();
+}
+
 function verificarColeccionCompleta() {
   let todosCompletados = coleccionConociendoWolfyGo.libros.every(l => l.completado);
 
   if (todosCompletados && !coleccionConociendoWolfyGo.completada) {
     coleccionConociendoWolfyGo.completada = true;
+    temaRetroDesbloqueado = true;
     
-    // Desbloqueo del tema Retro
-    if (typeof catalogoFondos !== "undefined") {
-      catalogoFondos.push({
-        nombre: "Retro Pixel",
-        multiplicador: 2.5,
-        costo: 0,
-        color: "#0f380f",
-        colorBoton: "#8bac0f",
-        colorTexto: "#9bbc0f"
-      });
-      fondosComprados.push(true);
-    }
+    // Activa automáticamente el tema al ganar
+    alternarTemaRetro();
 
-    alert(`🎉 ¡COLECCIÓN COMPLETA: ${coleccionConociendoWolfyGo.nombre}!\nHas desbloqueado el tema 'Retro' (x2.5 WC) con estilo PixelArt 👾.`);
+    alert(`🎉 ¡COLECCIÓN COMPLETA: ${coleccionConociendoWolfyGo.nombre}!\n\nHas desbloqueado el Tema Especial 'Retro' (x2.5 WC) con estilo PixelArt 👾.`);
   }
 }
 
