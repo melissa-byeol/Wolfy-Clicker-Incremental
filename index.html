@@ -12,6 +12,8 @@
   <div class="game-container">
     <!-- 1. HEADER: CONTADOR CENTRADO -->
     <header class="header-top">
+        <!-- Agrega este botón en tu barra de menú superior -->
+<button class="btn-info-top" onclick="abrirModalLibros()" title="Ver Libros y Lore">ℹ️ Libros & Lore</button>
       <div id="contador-box">
         <div id="contador">0.0 Wolfichas</div>
         <!-- Ejemplo de interfaz para Wolfilletes -->
@@ -149,5 +151,23 @@
   <img id="galleta-crocante" src="imagenes-wolfy/plain_cookie.png" onclick="clickGalletita();" style="display:none; position:absolute; cursor:pointer; width:75px; z-index: 9999;" alt="Galleta Crocante">
   <div id="qte-info" style="display:none; position:absolute; z-index: 10000; font-weight: bold; color: #fff; text-shadow: 2px 2px 4px #000; pointer-events: none; text-align: center;"></div>
 
+  <!-- Ventana Modal para la lectura de Lore y Colecciones -->
+<div id="modal-libros" class="modal-overlay" style="display: none;">
+  <div class="modal-contenido">
+    <div class="modal-header">
+      <h2>📚 Archivos & Lore de Wolfy Go</h2>
+      <button class="btn-cerrar" onclick="cerrarModalLibros()">✖</button>
+    </div>
+    <div class="modal-body">
+      <!-- Panel de lista de libros -->
+      <div id="lista-libros-ui" class="panel-lista-libros"></div>
+      <!-- Panel con el texto del libro seleccionado -->
+      <div id="detalle-libro-ui" class="panel-detalle-libro">
+        <p class="placeholder-text">Selecciona un libro desbloqueado para leer su contenido...</p>
+      </div>
+    </div>
+  </div>
+</div>
+  
 </body>
 </html>
