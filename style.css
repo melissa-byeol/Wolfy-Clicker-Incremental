@@ -475,3 +475,137 @@ body.tema-azul button {
 body.tema-azul button:hover {
   background-color: #4dd0e1;
 }
+
+/* Importar fuente retro pixelada */
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
+/* --- TEMA RETRO PIXEL --- */
+body.tema-retro {
+  font-family: 'Press Start 2P', cursive, monospace !important;
+  background-color: #0f380f !important;
+  color: #9bbc0f !important;
+  image-rendering: pixelated;
+}
+
+/* Paneles, Botones y Tarjetas en Modo Retro */
+body.tema-retro button,
+body.tema-retro .panel,
+body.tema-retro .card,
+body.tema-retro .modal-contenido {
+  background-color: #306230 !important;
+  color: #9bbc0f !important;
+  border: 4px solid #8bac0f !important;
+  box-shadow: none !important;
+  border-radius: 0px !important; /* Bordes totalmente cuadrados estilo retro */
+}
+
+/* Encabezados y títulos en el Tema Retro */
+body.tema-retro h1, 
+body.tema-retro h2, 
+body.tema-retro h3, 
+body.tema-retro .modal-header {
+  background-color: #0f380f !important;
+  color: #9bbc0f !important;
+  border-bottom: 2px solid #8bac0f !important;
+}
+
+/* Efecto Hover en Botones Retro */
+body.tema-retro button:hover {
+  background-color: #8bac0f !important;
+  color: #0f380f !important;
+  cursor: pointer;
+}
+
+/* --- ESTILOS DEL MODAL DE LIBROS Y LORE --- */
+.btn-info-top {
+  background-color: #2a9d8f;
+  color: #ffffff;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.modal-overlay {
+  position: fixed;
+  top: 0; left: 0; width: 100%; height: 100%;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 9999;
+}
+
+.modal-contenido {
+  background: #ffffff;
+  color: #222222;
+  border-radius: 12px;
+  width: 90%; max-width: 700px;
+  max-height: 80vh;
+  display: flex; flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0px 8px 24px rgba(0,0,0,0.3);
+}
+
+.modal-header {
+  padding: 15px 20px;
+  background: #2a9d8f;
+  color: white;
+  display: flex; justify-content: space-between; align-items: center;
+}
+
+.btn-cerrar {
+  background: transparent;
+  border: none;
+  color: white;
+  font-size: 18px;
+  cursor: pointer;
+}
+
+.modal-body {
+  display: flex;
+  height: 400px;
+}
+
+.panel-lista-libros {
+  width: 40%;
+  border-right: 1px solid #ddd;
+  overflow-y: auto;
+  padding: 10px;
+}
+
+.panel-detalle-libro {
+  width: 60%;
+  padding: 20px;
+  overflow-y: auto;
+}
+
+.item-libro-btn {
+  padding: 10px;
+  margin-bottom: 8px;
+  border-radius: 6px;
+  background: #f0f0f0;
+  cursor: pointer;
+  display: flex; justify-content: space-between; align-items: center;
+}
+
+.item-libro-btn.completado {
+  background: #e8f5e9;
+  border-left: 4px solid #2e7d32;
+}
+
+.lore-texto {
+  line-height: 1.6;
+  font-size: 14px;
+  font-style: italic;
+  color: #333;
+}
+
+.badge-rareza {
+  font-size: 11px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  color: white;
+}
+.rareza-épico { background-color: #9c27b0; }
+.rareza-raro { background-color: #2196f3; }
+.rareza-común { background-color: #4caf50; }
