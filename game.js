@@ -122,6 +122,181 @@ const teclasCarriles = {
   'f': 3, 'F': 3
 };
 
+// --- VARIABLES GLOBALES ---
+var wolfbytes = 0;
+
+// Definición de la primera colección
+var coleccionConociendoWolfyGo = {
+  nombre: "Conociendo Wolfy Go",
+  completada: false,
+  libros: [
+    {
+      id: "wolfichas",
+      nombre: "Wolfichas",
+      rareza: "Común",
+      paginasTotales: 10,
+      paginasObtenidas: 0,
+      completado: false,
+      rewardWolfbytes: 50,
+      lore: "Las Wolfichas son la moneda base del imperio. Nacieron como simples fichas de madera..."
+    },
+    {
+      id: "mejoras",
+      nombre: "Mejoras",
+      rareza: "Común",
+      paginasTotales: 10,
+      paginasObtenidas: 0,
+      completado: false,
+      rewardWolfbytes: 50,
+      lore: "Invertir en ciencia lupina es la clave para automatizar la economía..."
+    },
+    {
+      id: "wolfilletes",
+      nombre: "Wolfilletes",
+      rareza: "Raro",
+      paginasTotales: 10,
+      paginasObtenidas: 0,
+      completado: false,
+      rewardWolfbytes: 100,
+      lore: "Billetes respaldados por la reserva oficial de huesos y tecnología..."
+    },
+    {
+      id: "huesitos_dorados",
+      nombre: "Huesitos Dorados",
+      rareza: "Raro",
+      paginasTotales: 10,
+      paginasObtenidas: 0,
+      completado: false,
+      rewardWolfbytes: 100,
+      lore: "Reliquias legendarias que caen del cielo y multiplican la producción temporalmente..."
+    },
+    {
+      id: "conoce_a_wolfy",
+      nombre: "Conoce a Wolfy",
+      rareza: "Épico",
+      paginasTotales: 10,
+      paginasObtenidas: 0,
+      completado: false,
+      rewardWolfbytes: 250,
+      lore: "Wolfy es un lobito que le encanta conocer nuevos integrantes, es casi un humano en 4 patas que es super versatil a la hora de aprender, ¡¡incluso puede aprender a hablar!!\n\nSu fuerza es baja en temas fisicos, pero su fuerza de voluntad es enorme, por eso su inteligencia y capacidad definitiva de aprendizaje.\n\nSi debe luchar por su supervivencia, trata de evitar ello y hacer las paces, pero a pesar de su aspecto inocente... no significa que no entienda palabrotas."
+    },
+    {
+      id: "clicker_wolfies",
+      nombre: "Clicker Wolfies",
+      rareza: "Épico",
+      paginasTotales: 10,
+      paginasObtenidas: 0,
+      completado: false,
+      rewardWolfbytes: 250,
+      lore: "Los trabajadores más leales. Clican incansablemente día y noche para hacer crecer tu imperio..."
+    }
+  ]
+};
+
+// --- FUNCIONES DE APERTURA DE MODAL ---
+function abrirModalLibros() {
+  let modal = document.getElementById("modal-libros");
+  if (modal) {
+    modal.style.display = "flex";
+    renderizarListaLibrosUI();
+  }
+}
+
+function cerrarModalLibros() {
+  let modal = document.getElementById("modal-libros");
+  if (modal) modal.style.display = "none";
+}
+
+function renderizarListaLibrosUI() {
+  let listaContainer = document.getElementById("lista-libros-ui");
+  if (!listaContainer) return;
+
+  let html = "";
+  coleccionConociendoWolfyGo.libros.forEach((libro) => {
+    let estadoClase = libro.completado ? "completado" : "bloqueado";
+    let icono = libro.completado ? "📖" : "🔒";
+    
+    html += `
+      <div class="item-libro-btn ${estadoClase}" onclick="verDetalleLibro('${libro.id}')">
+        <span>${icono} ${libro.nombre}</span>
+        <small>${libro.paginasObtenidas}/${libro.paginasTotales}</small>
+      </div>
+    `;
+  });
+
+  listaContainer.innerHTML = html;
+}
+
+function verDetalleLibro(idLibro) {
+  let libro = coleccionConociendoWolfyGo.libros.find(l => l.id === idLibro);
+  let detalleContainer = document.getElementById("detalle-libro-ui");
+  if (!libro || !detalleContainer) return;
+
+  if (!libro.completado) {
+    detalleContainer.innerHTML = `
+      <div class="bloqueado-info">
+        <h3>🔒 ${libro.nombre} (${libro.rareza})</h3>
+        <p>Recolecta las <strong>${libro.paginasTotales} páginas</strong> de este libro para desbloquear su lore.</p>
+        <p>Progreso actual: <strong>${libro.paginasObtenidas} / ${libro.paginasTotales}</strong> páginas.</p>
+      </div>
+    `;
+  } else {
+    let textoFormateado = libro.lore.replace(/\n/g, "<br>");
+    detalleContainer.innerHTML = `
+      <div class="libro-contenido">
+        <h3>📖 ${libro.nombre} <span class="badge-rareza rareza-${libro.rareza.toLowerCase()}">${libro.rareza}</span></h3>
+        <hr>
+        <p class="lore-texto">${textoFormateado}</p>
+        <hr>
+        <div class="reward-info">💾 Recompensa entregada: <strong>+${libro.rewardWolfbytes} Wolfbytes</strong></div>
+      </div>
+    `;
+  }
+}
+
+// --- FUNCIÓN PARA AGREGAR PÁGINAS Y ENTREGAR RECOMPENSAS ---
+function agregarPaginaLibro(idLibro) {
+  let libro = coleccionConociendoWolfyGo.libros.find(l => l.id === idLibro);
+  if (libro && !libro.completado) {
+    libro.paginasObtenidas++;
+
+    if (libro.paginasObtenidas >= libro.paginasTotales) {
+      libro.paginasObtenidas = libro.paginasTotales;
+      libro.completado = true;
+      
+      wolfbytes += libro.rewardWolfbytes;
+      alert(`📖 ¡Libro completado: ${libro.nombre}!\nRecompensa: +${libro.rewardWolfbytes} Wolfbytes 💾`);
+      
+      verificarColeccionCompleta();
+    }
+  }
+  if (typeof guardarJuego === "function") guardarJuego();
+  if (typeof render === "function") render();
+}
+
+function verificarColeccionCompleta() {
+  let todosCompletados = coleccionConociendoWolfyGo.libros.every(l => l.completado);
+
+  if (todosCompletados && !coleccionConociendoWolfyGo.completada) {
+    coleccionConociendoWolfyGo.completada = true;
+    
+    // Desbloqueo del tema Retro
+    if (typeof catalogoFondos !== "undefined") {
+      catalogoFondos.push({
+        nombre: "Retro Pixel",
+        multiplicador: 2.5,
+        costo: 0,
+        color: "#0f380f",
+        colorBoton: "#8bac0f",
+        colorTexto: "#9bbc0f"
+      });
+      fondosComprados.push(true);
+    }
+
+    alert(`🎉 ¡COLECCIÓN COMPLETA: ${coleccionConociendoWolfyGo.nombre}!\nHas desbloqueado el tema 'Retro' (x2.5 WC) con estilo PixelArt 👾.`);
+  }
+}
+
 // --- FUNCIONES INTERACTIVAS Y UI ---
 function clic() {
   let bonoCooperacion = 0;
