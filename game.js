@@ -196,6 +196,151 @@ var coleccionConociendoWolfyGo = {
 var temaRetroDesbloqueado = false;
 var temaRetroEquipado = false;
 
+// ==========================================
+// --- EDIFICIO / MINIJUEGO: GAMER WOLFY ---
+// ==========================================
+
+var costoGamerWolfy = 100000;
+
+// Catálogo de Trivias Tramposas de Gamer Wolfy
+var triviasGamerWolfy = [
+  {
+    pregunta: "I Forgot The Question...",
+    correcta: "Woof Woof",
+    incorrectas: ["Pick This One", "Pick Me, Pick Me!!", "Don't Pick This One"]
+  },
+  {
+    pregunta: "Pick The Riight Answer",
+    correcta: "The Riight Answer",
+    incorrectas: ["The Right Answer", "Idk What You Mean, Bro"],
+    esTrampaLetra: true // Activa la opción especial con letra dinámica
+  },
+  {
+    pregunta: "How many stars are on the sky?",
+    correcta: "I Don't Know",
+    incorrectas: ["Infinite", "Trillions", "Octillions"]
+  },
+  {
+    pregunta: "La Respuesta Is",
+    correcta: "The Answer",
+    incorrectas: ["This One", "The First One", "My_Brain.exe Has Stopped Working"]
+  }
+];
+
+function activarGamerWolfy() {
+  // Verificar saldo de Wolfichas (ajusta 'wolfichas' a tu variable si usas inventario[0])
+  let saldoActual = typeof wolfichas !== "undefined" ? wolfichas : (typeof inventario !== "undefined" ? inventario[0] : 0);
+
+  if (saldoActual < costoGamerWolfy) {
+    alert(`❌ Necesitas ${costoGamerWolfy.toLocaleString()} WC para activar el desafío de Gamer Wolfy.`);
+    return;
+  }
+
+  // Cobrar costo
+  if (typeof wolfichas !== "undefined") wolfichas -= costoGamerWolfy;
+  else if (typeof inventario !== "undefined") inventario[0] -= costoGamerWolfy;
+
+  // Elegir pregunta al azar
+  let trivia = triviasGamerWolfy[Math.floor(Math.random() * triviasGamerWolfy.length)];
+
+  // Preparar opciones
+  let opciones = [trivia.correcta, ...trivia.incorrectas];
+  opciones.sort(() => Math.random() - 0.5); // Mezclar orden
+
+  // Si es la pregunta trampa de la letra, agregar la opción tramposa de forma segura
+  if (trivia.esTrampaLetra) {
+    let letras = ["A", "B", "C", "D"];
+    let idxCorrecto = opciones.indexOf(trivia.correcta);
+    
+    // Elegimos una letra falsa que NO sea la correcta
+    let letrasFalsas = letras.filter((_, idx) => idx !== idxCorrecto);
+    let letraFalsaElegida = letrasFalsas[Math.floor(Math.random() * letrasFalsas.length)];
+
+    opciones.push(`It's Not Letter ${letraFalsaElegida}`);
+    opciones.sort(() => Math.random() - 0.5); // Volver a mezclar con las 4 opciones
+  }
+
+  lanzarModalTrivia(trivia.pregunta, opciones, trivia.correcta);
+
+  if (typeof guardarJuego === "function") guardarJuego();
+  if (typeof render === "function") render();
+}
+
+function lanzarModalTrivia(pregunta, opciones, respuestaCorrecta) {
+  let letras = ["A", "B", "C", "D"];
+
+  let botonesHTML = opciones.map((opcion, idx) => {
+    let letra = letras[idx] || "";
+    // Escapar comillas para evitar errores en el evento onclick
+    let opcionEscapada = opcion.replace(/'/g, "\\'");
+    let correctaEscapada = respuestaCorrecta.replace(/'/g, "\\'");
+
+    return `
+      <button class="btn-opcion-trivia" onclick="evaluarRespuestaTrivia('${opcionEscapada}', '${correctaEscapada}')">
+        <strong>${letra}.</strong> ${opcion}
+      </button>
+    `;
+  }).join("");
+
+  let modalHTML = `
+    <div id="modal-gamer-wolfy" class="modal-overlay">
+      <div class="modal-contenido panel-trivia">
+        <h2>🎮 Gamer Wolfy Challenge</h2>
+        <p class="pregunta-trivia">"${pregunta}"</p>
+        <div class="grid-respuestas">
+          ${botonesHTML}
+        </div>
+      </div>
+    </div>
+  `;
+
+  document.body.insertAdjacentHTML('beforeend', modalHTML);
+}
+
+function evaluarRespuestaTrivia(opcionSeleccionada, respuestaCorrecta) {
+  let modal = document.getElementById("modal-gamer-wolfy");
+  if (modal) modal.remove();
+
+  if (opcionSeleccionada === respuestaCorrecta) {
+    darPremioAlAzarGamerWolfy();
+  } else {
+    alert("❌ ¡Respuesta incorrecta! Gamer Wolfy rompió el mando y regresó a su juego. ¡Inténtalo de nuevo!");
+  }
+}
+
+function darPremioAlAzarGamerWolfy() {
+  let rand = Math.random() * 100;
+  let mensaje = "";
+
+  if (rand < 50) {
+    // 50% Probabilidad: Super bote de Wolfichas (200k a 500k)
+    let ganancia = 200000 + Math.floor(Math.random() * 300000);
+    if (typeof wolfichas !== "undefined") wolfichas += ganancia;
+    else if (typeof inventario !== "undefined") inventario[0] += ganancia;
+    
+    mensaje = `🎉 ¡CORRECTO! Ganaste un super bote de ${ganancia.toLocaleString()} WC.`;
+  } else if (rand < 80) {
+    // 30% Probabilidad: Wolfbytes (15 a 35 WB)
+    let wbGanados = 15 + Math.floor(Math.random() * 20);
+    if (typeof wolfbytes !== "undefined") wolfbytes += wbGanados;
+    
+    mensaje = `💾 ¡CORRECTO! Gamer Wolfy te regaló +${wbGanados} Wolfbytes.`;
+  } else {
+    // 20% Probabilidad: Sobre de Páginas gratis
+    mensaje = `📖 ¡CORRECTO! Has ganado un Sobre Básico de Páginas gratis.`;
+    if (typeof abrirPaqueteBasicoGratis === "function") {
+      abrirPaqueteBasicoGratis();
+    } else if (typeof abrirPaqueteBasico === "function") {
+      // Si no existe la versión gratis, le abonamos 500 WB y abrimos
+      if (typeof wolfbytes !== "undefined") wolfbytes += 500;
+      abrirPaqueteBasico();
+    }
+  }
+
+  alert(mensaje);
+  if (typeof guardarJuego === "function") guardarJuego();
+  if (typeof render === "function") render();
+}
 // --- FUNCIONES DE APERTURA DE MODAL ---
 function abrirModalLibros() {
   let modal = document.getElementById("modal-libros");
