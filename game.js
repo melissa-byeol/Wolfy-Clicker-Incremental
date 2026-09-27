@@ -227,8 +227,10 @@ var triviasGamerWolfy = [
   }
 ];
 
+// --- ACTIVADOR GENERAL DE GAMER WOLFY (50% QUIZ / 50% DRAW OF FLAW) ---
+
 function activarGamerWolfy() {
-  // Verificar saldo de Wolfichas (ajusta 'wolfichas' a tu variable si usas inventario[0])
+  // Verificar si tiene saldo suficiente (100,000 WC)
   let saldoActual = typeof wolfichas !== "undefined" ? wolfichas : (typeof inventario !== "undefined" ? inventario[0] : 0);
 
   if (saldoActual < costoGamerWolfy) {
@@ -236,66 +238,109 @@ function activarGamerWolfy() {
     return;
   }
 
-  // Cobrar costo
+  // Cobrar los 100,000 WC antes de elegir el minijuego
   if (typeof wolfichas !== "undefined") wolfichas -= costoGamerWolfy;
   else if (typeof inventario !== "undefined") inventario[0] -= costoGamerWolfy;
 
-  // Elegir pregunta al azar
-  let trivia = triviasGamerWolfy[Math.floor(Math.random() * triviasGamerWolfy.length)];
+  // Sorteo 50% / 50%
+  let minijuegoElegido = Math.random() < 0.5 ? "QUIZ" : "DRAW_OF_FLAW";
 
-  // Preparar opciones
-  let opciones = [trivia.correcta, ...trivia.incorrectas];
-  opciones.sort(() => Math.random() - 0.5); // Mezclar orden
-
-  // Si es la pregunta trampa de la letra, agregar la opción tramposa de forma segura
-  if (trivia.esTrampaLetra) {
-    let letras = ["A", "B", "C", "D"];
-    let idxCorrecto = opciones.indexOf(trivia.correcta);
-    
-    // Elegimos una letra falsa que NO sea la correcta
-    let letrasFalsas = letras.filter((_, idx) => idx !== idxCorrecto);
-    let letraFalsaElegida = letrasFalsas[Math.floor(Math.random() * letrasFalsas.length)];
-
-    opciones.push(`It's Not Letter ${letraFalsaElegida}`);
-    opciones.sort(() => Math.random() - 0.5); // Volver a mezclar con las 4 opciones
+  if (minijuegoElegido === "QUIZ") {
+    lanzarQuizGamerWolfy();
+  } else {
+    lanzarDrawOfFlaw();
   }
-
-  lanzarModalTrivia(trivia.pregunta, opciones, trivia.correcta);
 
   if (typeof guardarJuego === "function") guardarJuego();
   if (typeof render === "function") render();
 }
 
-function lanzarModalTrivia(pregunta, opciones, respuestaCorrecta) {
-  let letras = ["A", "B", "C", "D"];
+// --- MINIJUEGO A: QUIZ DE PREGUNTAS ---
+function lanzarQuizGamerWolfy() {
+  let trivia = triviasGamerWolfy[Math.floor(Math.random() * triviasGamerWolfy.length)];
+  let opciones = [trivia.correcta, ...trivia.incorrectas];
+  opciones.sort(() => Math.random() - 0.5);
 
-  let botonesHTML = opciones.map((opcion, idx) => {
-    let letra = letras[idx] || "";
-    // Escapar comillas para evitar errores en el evento onclick
-    let opcionEscapada = opcion.replace(/'/g, "\\'");
-    let correctaEscapada = respuestaCorrecta.replace(/'/g, "\\'");
+  if (trivia.esTrampaLetra) {
+    let letras = ["A", "B", "C", "D"];
+    let idxCorrecto = opciones.indexOf(trivia.correcta);
+    let letrasFalsas = letras.filter((_, idx) => idx !== idxCorrecto);
+    let letraFalsaElegida = letrasFalsas[Math.floor(Math.random() * letrasFalsas.length)];
 
-    return `
-      <button class="btn-opcion-trivia" onclick="evaluarRespuestaTrivia('${opcionEscapada}', '${correctaEscapada}')">
-        <strong>${letra}.</strong> ${opcion}
-      </button>
-    `;
-  }).join("");
+    opciones.push(`It's Not Letter ${letraFalsaElegida}`);
+    opciones.sort(() => Math.random() - 0.5);
+  }
 
+  lanzarModalTrivia(trivia.pregunta, opciones, trivia.correcta);
+}
+
+// --- MINIJUEGO B: DRAW OF FLAW (REFLEJOS EN ROJO) ---
+var tiempoInicioRojo = 0;
+var timerEspera = null;
+var timerLimite = null;
+
+function lanzarDrawOfFlaw() {
   let modalHTML = `
-    <div id="modal-gamer-wolfy" class="modal-overlay">
+    <div id="modal-reflejos" class="modal-overlay">
       <div class="modal-contenido panel-trivia">
-        <h2>🎮 Gamer Wolfy Challenge</h2>
-        <p class="pregunta-trivia">"${pregunta}"</p>
-        <div class="grid-respuestas">
-          ${botonesHTML}
+        <h2>⚡ Gamer Wolfy: Draw Of Flaw</h2>
+        <p>Haz clic en el cuadrado EN CUANTO SE PONGA ROJO.<br><small>¡Tienes menos de 2 segundos!</small></p>
+        
+        <div id="cuadrado-reflejos" class="cuadrado-espera" onclick="procesarClicReflejo()">
+          PREPÁRATE...
         </div>
       </div>
     </div>
   `;
 
   document.body.insertAdjacentHTML('beforeend', modalHTML);
+
+  let tiempoEspera = 1500 + Math.random() * 2500;
+
+  timerEspera = setTimeout(() => {
+    let cuadrado = document.getElementById("cuadrado-reflejos");
+    if (cuadrado) {
+      cuadrado.className = "cuadrado-rojo";
+      cuadrado.innerText = "¡¡¡DRAW!!!";
+      tiempoInicioRojo = Date.now();
+
+      timerLimite = setTimeout(() => {
+        finalizarMinijuegoReflejos(false, "⏰ ¡Muy lento! Tardaste más de 2 segundos.");
+      }, 2000);
+    }
+  }, tiempoEspera);
 }
+
+function procesarClicReflejo() {
+  let cuadrado = document.getElementById("cuadrado-reflejos");
+  if (!cuadrado) return;
+
+  if (cuadrado.classList.contains("cuadrado-espera")) {
+    clearTimeout(timerEspera);
+    finalizarMinijuegoReflejos(false, "❌ ¡Disparaste/clicaste antes de tiempo!");
+  } else if (cuadrado.classList.contains("cuadrado-rojo")) {
+    clearTimeout(timerLimite);
+    let msReaccion = Date.now() - tiempoInicioRojo;
+    finalizarMinijuegoReflejos(true, `⚡ ¡Draw impecable! Tiempo de reacción: ${msReaccion} ms.`);
+  }
+}
+
+function finalizarMinijuegoReflejos(exito, mensaje) {
+  let modal = document.getElementById("modal-reflejos");
+  if (modal) modal.remove();
+
+  if (exito) {
+    alert(mensaje);
+    darPremioAlAzarGamerWolfy();
+  } else {
+    alert(mensaje + "\n¡Gamer Wolfy te ganó esta ronda!");
+  }
+
+  if (typeof guardarJuego === "function") guardarJuego();
+  if (typeof render === "function") render();
+}
+
+
 
 function evaluarRespuestaTrivia(opcionSeleccionada, respuestaCorrecta) {
   let modal = document.getElementById("modal-gamer-wolfy");
