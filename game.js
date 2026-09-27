@@ -308,39 +308,62 @@ function evaluarRespuestaTrivia(opcionSeleccionada, respuestaCorrecta) {
   }
 }
 
+// --- SISTEMA DE PREMIOS REVISED PARA GAMER WOLFY ---
+
+var cancionGameBoyDesbloqueada = false;
+
 function darPremioAlAzarGamerWolfy() {
-  let rand = Math.random() * 100;
+  let rand = Math.random() * 100; // Número entre 0 y 100
+  let baseWC = 100000; // Siempre recupera sus 100k WC
   let mensaje = "";
 
   if (rand < 50) {
-    // 50% Probabilidad: Super bote de Wolfichas (200k a 500k)
-    let ganancia = 200000 + Math.floor(Math.random() * 300000);
-    if (typeof wolfichas !== "undefined") wolfichas += ganancia;
-    else if (typeof inventario !== "undefined") inventario[0] += ganancia;
-    
-    mensaje = `🎉 ¡CORRECTO! Ganaste un super bote de ${ganancia.toLocaleString()} WC.`;
+    // 50% Probabilidad: 100k WC + (1,000 a 899,999 WC extra)
+    let wcBonus = 1000 + Math.floor(Math.random() * 899000);
+    let totalWC = baseWC + wcBonus;
+
+    if (typeof wolfichas !== "undefined") wolfichas += totalWC;
+    else if (typeof inventario !== "undefined") inventario[0] += totalWC;
+
+    mensaje = `🎉 ¡CORRECTO!\nRecuperas tus 100,000 WC y ganas +${wcBonus.toLocaleString()} WC extra.\n(Total ganado: ${totalWC.toLocaleString()} WC)`;
+
   } else if (rand < 80) {
-    // 30% Probabilidad: Wolfbytes (15 a 35 WB)
-    let wbGanados = 15 + Math.floor(Math.random() * 20);
+    // 30% Probabilidad: 100k WC + (10 a 50 Wolfilletes)
+    let wolfilletesGanados = 10 + Math.floor(Math.random() * 41);
+
+    if (typeof wolfichas !== "undefined") wolfichas += baseWC;
+    else if (typeof inventario !== "undefined") inventario[0] += baseWC;
+
+    if (typeof wolfilletes !== "undefined") wolfilletes += wolfilletesGanados;
+
+    mensaje = `💵 ¡CORRECTO!\nRecuperas tus 100,000 WC y ganas +${wolfilletesGanados} Wolfilletes.`;
+
+  } else if (rand < 95) {
+    // 15% Probabilidad: 100k WC + (100 a 10,000 Wolfbytes)
+    let wbGanados = 100 + Math.floor(Math.random() * 9901);
+
+    if (typeof wolfichas !== "undefined") wolfichas += baseWC;
+    else if (typeof inventario !== "undefined") inventario[0] += baseWC;
+
     if (typeof wolfbytes !== "undefined") wolfbytes += wbGanados;
-    
-    mensaje = `💾 ¡CORRECTO! Gamer Wolfy te regaló +${wbGanados} Wolfbytes.`;
+
+    mensaje = `💾 ¡CORRECTO!\nRecuperas tus 100,000 WC y ganas +${wbGanados.toLocaleString()} Wolfbytes.`;
+
   } else {
-    // 20% Probabilidad: Sobre de Páginas gratis
-    mensaje = `📖 ¡CORRECTO! Has ganado un Sobre Básico de Páginas gratis.`;
-    if (typeof abrirPaqueteBasicoGratis === "function") {
-      abrirPaqueteBasicoGratis();
-    } else if (typeof abrirPaqueteBasico === "function") {
-      // Si no existe la versión gratis, le abonamos 500 WB y abrimos
-      if (typeof wolfbytes !== "undefined") wolfbytes += 500;
-      abrirPaqueteBasico();
-    }
+    // 5% Probabilidad (MÁS RARO): 100k WC + Canción Especial "GAM3 BO1"
+    if (typeof wolfichas !== "undefined") wolfichas += baseWC;
+    else if (typeof inventario !== "undefined") inventario[0] += baseWC;
+
+    cancionGameBoyDesbloqueada = true;
+
+    mensaje = `👑 ¡JACKPOT LEGENDARIO!\nRecuperas tus 100,000 WC y has desbloqueado la Canción Especial: 🎵 "GAM3 BO1" para la Gramola / Reproductor.`;
   }
 
   alert(mensaje);
   if (typeof guardarJuego === "function") guardarJuego();
   if (typeof render === "function") render();
 }
+
 // --- FUNCIONES DE APERTURA DE MODAL ---
 function abrirModalLibros() {
   let modal = document.getElementById("modal-libros");
