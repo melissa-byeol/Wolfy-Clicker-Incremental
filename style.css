@@ -665,3 +665,44 @@ body.tema-retro button:hover {
 .btn-gamer-wolfy:hover {
   background-color: #ff2e63;
 }
+
+/* Estilos para el minijuego de reflejos */
+#cuadrado-reflejos {
+  width: 220px;
+  height: 220px;
+  margin: 20px auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 16px;
+  border-radius: 12px;
+  cursor: pointer;
+  user-select: none;
+  transition: background-color 0.1s transform 0.05s;
+}
+
+#cuadrado-reflejos:active {
+  transform: scale(0.96);
+}
+
+/* Estado 1: Espera */
+.cuadrado-espera {
+  background-color: #2b2d42;
+  color: #edf2f4;
+  border: 4px dashed #8d99ae;
+}
+
+/* Estado 2: ROJO REACTIVO */
+.cuadrado-rojo {
+  background-color: #d90429 !important;
+  color: #ffffff !important;
+  border: 4px solid #ef233c !important;
+  box-shadow: 0 0 20px #d90429;
+  animation: pulsoRojo 0.2s infinite alternate;
+}
+
+@keyframes pulsoRojo {
+  from { transform: scale(1); }
+  to { transform: scale(1.04); }
+}
