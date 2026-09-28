@@ -280,6 +280,50 @@ function desbloquearTemaWaffles() {
 var temaRetroDesbloqueado = false;
 var temaRetroEquipado = false;
 
+var coleccionModalActual = "col_1";
+
+function cambiarColeccionModal(idColeccion) {
+  coleccionModalActual = idColeccion;
+
+  // Actualizar estilos visuales de las pestañas
+  let botones = document.querySelectorAll(".pestanas-colecciones .btn-pestana");
+  botones.forEach((btn, idx) => {
+    if ((idColeccion === "col_1" && idx === 0) || (idColeccion === "col_2" && idx === 1)) {
+      btn.classList.add("active");
+    } else {
+      btn.classList.remove("active");
+    }
+  });
+
+  // Renderizar los libros correspondientes
+  renderizarListaLibrosModal();
+}
+
+function renderizarListaLibrosModal() {
+  let listaUI = document.getElementById("lista-libros-ui");
+  if (!listaUI) return;
+
+  // Elegir la fuente de datos
+  let coleccion = (coleccionModalActual === "col_1") 
+    ? coleccionConociendoWolfyGo 
+    : coleccionRecetasMananeras;
+
+  let htmlLibros = coleccion.libros.map((libro, idx) => {
+    let completado = libro.paginasObtenidas >= libro.paginasTotales;
+    let estadoIcono = completado ? "📖" : "🔒";
+    let claseEstado = completado ? "libro-desbloqueado" : "libro-bloqueado";
+
+    return `
+      <div class="item-lista-libro ${claseEstado}" onclick="verDetalleLibro('${coleccionModalActual}', ${idx})">
+        <span>${estadoIcono} ${libro.nombre}</span>
+        <small>${libro.paginasObtenidas}/${libro.paginasTotales}</small>
+      </div>
+    `;
+  }).join("");
+
+  listaUI.innerHTML = htmlLibros;
+}
+
 // ==========================================
 // --- EDIFICIO / MINIJUEGO: GAMER WOLFY ---
 // ==========================================
