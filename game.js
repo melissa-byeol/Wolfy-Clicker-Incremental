@@ -462,6 +462,79 @@ function darPremioAlAzarGamerWolfy() {
   if (typeof render === "function") render();
 }
 
+var paginasRepetidas = 0;
+
+function abrirPaqueteBasico() {
+  let costo = 500;
+  if (wolfbytes < costo) {
+    alert(`❌ Necesitas ${costo} Wolfbytes. Tienes: ${wolfbytes} WB.`);
+    return;
+  }
+
+  wolfbytes -= costo;
+  let resumen = [];
+
+  for (let i = 0; i < 5; i++) {
+    // 1. Determinar rareza
+    let rand = Math.random() * 100;
+    let rareza = rand < 10 ? "Épico" : (rand < 40 ? "Raro" : "Común");
+
+    // 2. Filtrar libros de esa rareza dentro de los primeros 6 libros
+    let candidatos = coleccionConociendoWolfyGo.libros.slice(0, 6).filter(l => l.rareza === rareza);
+    if (candidatos.length === 0) candidatos = coleccionConociendoWolfyGo.libros.slice(0, 6);
+
+    let libro = candidatos[Math.floor(Math.random() * candidatos.length)];
+
+    // 3. Procesar página
+    if (libro.paginasObtenidas < libro.paginasTotales) {
+      libro.paginasObtenidas++;
+      resumen.push(`✨ ${libro.nombre} (${libro.rareza})`);
+      if (libro.paginasObtenidas >= libro.paginasTotales) {
+        libro.completado = true;
+        wolfbytes += libro.rewardWolfbytes;
+        resumen.push(`  🎉 ¡LIBRO COMPLETADO! +${libro.rewardWolfbytes} WB`);
+      }
+    } else {
+      paginasRepetidas++;
+      resumen.push(`🔄 ${libro.nombre} (REPETIDA)`);
+    }
+  }
+
+  // 4. Bono de reciclaje por 100 repetidas
+  let bonoTxt = "";
+  if (paginasRepetidas >= 100) {
+    paginasRepetidas -= 100;
+    wolfbytes += 2000;
+    bonoTxt = "\n\n♻️ ¡ACUMULASTE 100 REPETIDAS! Recibes +2,000 Wolfbytes 💾";
+  }
+
+  if (typeof verificarColeccionCompleta === "function") verificarColeccionCompleta();
+  if (typeof guardarJuego === "function") guardarJuego();
+  if (typeof render === "function") render();
+
+  alert(`📦 PAQUETE BÁSICO (5 PÁGINAS)\n\n` + resumen.join("\n") + `\n\nAcumulado Repetidas: ${paginasRepetidas}/100` + bonoTxt);
+}
+
+function convertirWCAWolfbytes(cantidadWB) {
+  let costoPorWB = 10000;
+  let costoTotal = cantidadWB * costoPorWB;
+
+  let saldoWC = typeof wolfichas !== "undefined" ? wolfichas : (typeof inventario !== "undefined" ? inventario[0] : 0);
+
+  if (saldoWC >= costoTotal) {
+    if (typeof wolfichas !== "undefined") wolfichas -= costoTotal;
+    else if (typeof inventario !== "undefined") inventario[0] -= costoTotal;
+
+    wolfbytes += cantidadWB;
+    alert(`✅ Conversión exitosa: -${costoTotal.toLocaleString()} WC ➔ +${cantidadWB} Wolfbyte(s) 💾.`);
+  } else {
+    alert(`❌ Te faltan ${(costoTotal - saldoWC).toLocaleString()} WC para esta conversión.`);
+  }
+
+  if (typeof guardarJuego === "function") guardarJuego();
+  if (typeof render === "function") render();
+}
+
 // --- FUNCIONES DE APERTURA DE MODAL ---
 function abrirModalLibros() {
   let modal = document.getElementById("modal-libros");
