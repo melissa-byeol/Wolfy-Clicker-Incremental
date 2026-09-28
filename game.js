@@ -697,80 +697,6 @@ function cerrarModalLibros() {
 
 // --- RENDERIZADO DEL MENÚ DE COLECCIONES ---
 
-function renderizarMenuColecciones() {
-  let contenedor = document.getElementById("contenedor-colecciones");
-  if (!contenedor) return;
-
-  // Lista de todas las colecciones
-  let colecciones = [
-    coleccionConociendoWolfyGo,  // Colección 1
-    coleccionRecetasMananeras     // Colección 2
-  ];
-
-  let htmlFinal = "";
-
-  colecciones.forEach(coleccion => {
-    let estadoColeccion = coleccion.completada ? "🎉 ¡COMPLETADA!" : "EN PROGRESO";
-    
-    let librosHTML = coleccion.libros.map(libro => {
-      let porcentaje = Math.floor((libro.paginasObtenidas / libro.paginasTotales) * 100);
-      let estadoLibro = libro.completado ? "✅ Completado" : `${libro.paginasObtenidas} / ${libro.paginasTotales} págs.`;
-      
-      return `
-        <div class="tarjeta-libro rareza-${libro.rareza.toLowerCase()}">
-          <div class="header-libro">
-            <strong>${libro.nombre}</strong>
-            <span class="badge-rareza">${libro.rareza}</span>
-          </div>
-          
-          <div class="barra-progreso-contenedor">
-            <div class="barra-progreso-relleno" style="width: ${porcentaje}%;"></div>
-          </div>
-          
-          <div class="info-libro">
-            <small>${estadoLibro}</small>
-            <small class="recompensa-wb">+${libro.rewardWolfbytes} WB</small>
-          </div>
-        </div>
-      `;
-    }).join("");
-
-    htmlFinal += `
-      <div class="seccion-coleccion">
-        <div class="header-coleccion">
-          <h2>${coleccion.nombre}</h2>
-          <span class="estado-coleccion">${estadoColeccion}</span>
-        </div>
-        <div class="grid-libros">
-          ${librosHTML}
-        </div>
-      </div>
-    `;
-  });
-
-  contenedor.innerHTML = htmlFinal;
-}
-
-function renderizarListaLibrosUI() {
-  let listaContainer = document.getElementById("lista-libros-ui");
-  if (!listaContainer) return;
-
-  let html = "";
-  coleccionConociendoWolfyGo.libros.forEach((libro) => {
-    let estadoClase = libro.completado ? "completado" : "bloqueado";
-    let icono = libro.completado ? "📖" : "🔒";
-    
-    html += `
-      <div class="item-libro-btn ${estadoClase}" onclick="verDetalleLibro('${libro.id}')">
-        <span>${icono} ${libro.nombre}</span>
-        <small>${libro.paginasObtenidas}/${libro.paginasTotales}</small>
-      </div>
-    `;
-  });
-
-  listaContainer.innerHTML = html;
-}
-
 function verDetalleLibro(idLibro) {
   let libro = coleccionConociendoWolfyGo.libros.find(l => l.id === idLibro);
   let detalleContainer = document.getElementById("detalle-libro-ui");
@@ -1659,33 +1585,108 @@ function comprarWolfilletes() {
   }
 }
 
+// --- FUNCION RENDER GENERAL PROTEGIDA ---
+
 function render() {
-  let diferencia = wolfichas - wolfichasAnteriores;
-  actualizarContadorConEfectos(diferencia);
-  wolfichasAnteriores = wolfichas;
+  // 1. Actualizar Contadores de Saldo (WC y WB)
+  try {
+    let saldoWC = typeof wolfichas !== "undefined" ? wolfichas : (typeof inventario !== "undefined" ? inventario[0] : 0);
+    
+    let elWC = document.getElementById("contador-wc");
+    if (elWC) elWC.innerText = saldoWC.toLocaleString();
 
-  let inventarioEl = document.getElementById("inventario");
-  if (inventarioEl) {
-    inventarioEl.innerHTML = 
-      `Clickers: ${inventario[3]} | Farmers: ${inventario[6]} | Mineros: ${inventario[8]} | Bakers: ${inventario[12]} | Workers: ${inventario[16]} | Streamers: ${inventario[20]} | Taxists: ${inventario[22]} | Idols: ${inventario[25]}`;
+    let elWB = document.getElementById("visor-wolfbytes");
+    if (elWB) elWB.innerText = wolfbytes.toLocaleString();
+  } catch (e) {
+    console.error("Error al renderizar contadores de divisas:", e);
   }
 
-  for (let i = 0; i < esMejoraUnica.length; i++) {
-    let btn = document.getElementById(`btn-${i}`);
-    if (btn) {
-      if (esMejoraUnica[i] && inventario[i] > 0) {
-        btn.disabled = true;
-      } else {
-        btn.disabled = wolfichas < precioProducto[i];
-      }
-    }
+  // 2. Renderizar Colecciones (Protegido para que no rompa el resto)
+  try {
+    renderizarMenuColecciones();
+  } catch (e) {
+    console.error("Error en renderizado de Colecciones:", e);
   }
 
-let visorWB = document.getElementById("visor-wolfbytes");
-if (visorWB) visorWB.innerText = wolfbytes.toLocaleString();
-  
+  // 3. Re-garantizar el renderizado de la Tienda y Conversión
+  try {
+    renderizarTiendaYMercado();
+  } catch (e) {
+    console.error("Error en renderizado de la Tienda:", e);
+  }
   actualizarBadges();
 }
+
+// --- DIBUJADO SEGURO DE COLECCIONES ---
+function renderizarMenuColecciones() {
+  let contenedor = document.getElementById("contenedor-colecciones");
+  if (!contenedor) return; // Si el elemento no está en pantalla, sale limpiamente sin romper nada
+
+  let colecciones = [
+    typeof coleccionConociendoWolfyGo !== "undefined" ? coleccionConociendoWolfyGo : null,
+    typeof coleccionRecetasMananeras !== "undefined" ? coleccionRecetasMananeras : null
+  ].filter(c => c !== null);
+
+  let htmlFinal = "";
+
+  colecciones.forEach(coleccion => {
+    let completados = coleccion.libros.filter(l => l.paginasObtenidas >= l.paginasTotales).length;
+    
+    let librosHTML = coleccion.libros.map((libro, idx) => {
+      let pct = Math.floor((libro.paginasObtenidas / libro.paginasTotales) * 100);
+      let esCompletado = libro.paginasObtenidas >= libro.paginasTotales;
+
+      return `
+        <div class="item-libro-btn ${esCompletado ? 'completado' : ''}" onclick="abrirDetalleLibro('${coleccion.id}', ${idx})">
+          <span>${esCompletado ? '📖' : '🔒'} ${libro.nombre}</span>
+          <span class="badge-rareza rareza-${libro.rareza.toLowerCase()}">${libro.rareza}</span>
+          <small>${libro.paginasObtenidas}/${libro.paginasTotales}</small>
+        </div>
+      `;
+    }).join("");
+
+    htmlFinal += `
+      <div class="seccion-coleccion" style="margin-bottom: 15px;">
+        <h3>${coleccion.nombre} (${completados}/${coleccion.libros.length})</h3>
+        <div class="lista-libros-grid">${librosHTML}</div>
+      </div>
+    `;
+  });
+
+  contenedor.innerHTML = htmlFinal;
+}
+
+// --- DIBUJADO DE MERCADO Y GACHA (Garantiza que los botones nunca se pierdan) ---
+function renderizarTiendaYMercado() {
+  let contenedorMercado = document.getElementById("contenedor-mercado-tienda");
+  if (!contenedorMercado) return;
+
+  contenedorMercado.innerHTML = `
+    <div class="panel-tienda">
+      <!-- Conversión WC a WB -->
+      <div class="tarjeta-mercado">
+        <h3>💱 Conversión de Divisas</h3>
+        <p>Tus Wolfbytes: <strong id="visor-wolfbytes">${wolfbytes.toLocaleString()}</strong> 💾</p>
+        <p><small>1 Wolfbyte (WB) = 10,000 WC</small></p>
+        <div class="grupo-botones-mercado">
+          <button class="btn-mercado" onclick="convertirWCAWolfbytes(1)">+1 WB (10k WC)</button>
+          <button class="btn-mercado" onclick="convertirWCAWolfbytes(10)">+10 WB (100k WC)</button>
+          <button class="btn-mercado" onclick="convertirWCAWolfbytes(50)">+50 WB (500k WC)</button>
+        </div>
+      </div>
+
+      <!-- Gachapon -->
+      <div class="tarjeta-mercado">
+        <h3>📖 Librería / Gachapon</h3>
+        <p>Obtén 5 páginas (¡1 nueva garantizada!).</p>
+        <button class="btn-gacha" onclick="abrirPaqueteBasico()">
+          📦 Abrir Paquete Básico (500 WB)
+        </button>
+      </div>
+    </div>
+  `;
+}
+
 
 function actualizarBadges() {
   let badgeUI = document.getElementById("contenedor-badges");
