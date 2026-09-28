@@ -164,13 +164,28 @@
       <h2>📚 Archivos & Lore de Wolfy Go</h2>
       <button class="btn-cerrar" onclick="cerrarModalLibros()">✖</button>
     </div>
+    
+    <!-- Pestañas para cambiar entre Colecciones -->
+    <div class="pestanas-colecciones">
+      <button class="btn-pestana active" onclick="cambiarColeccionModal('col_1')">
+        📖 Conociendo Wolfy Go
+      </button>
+      <button class="btn-pestana" onclick="cambiarColeccionModal('col_2')">
+        🍳 Recetas Mañaneras
+      </button>
+    </div>
+
     <div class="modal-body">
-      <!-- Panel de lista de libros -->
+      <!-- Panel de lista de libros (se actualizará según la pestaña elegida) -->
       <div id="lista-libros-ui" class="panel-lista-libros"></div>
+      
       <!-- Panel con el texto del libro seleccionado -->
       <div id="detalle-libro-ui" class="panel-detalle-libro">
         <p class="placeholder-text">Selecciona un libro desbloqueado para leer su contenido...</p>
       </div>
+    </div>
+  </div>
+</div>
       <div class="panel-tienda">
   
  <!-- PANEL DE TIENDA / MERCADO DE WOLFY -->
