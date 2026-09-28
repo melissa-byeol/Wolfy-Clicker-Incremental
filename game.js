@@ -467,7 +467,7 @@ var paginasRepetidas = 0;
 function abrirPaqueteBasico() {
   let costo = 500;
   if (wolfbytes < costo) {
-    alert(`❌ Necesitas ${costo} Wolfbytes. Tienes: ${wolfbytes} WB.`);
+    console.log(`❌ Necesitas ${costo} Wolfbytes. Tienes: ${wolfbytes} WB.`);
     return;
   }
 
