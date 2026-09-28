@@ -193,6 +193,90 @@ var coleccionConociendoWolfyGo = {
   ]
 };
 
+// --- COLECCIÓN 2: RECETAS MAÑANERAS DELICIOSAS ---
+
+var coleccionRecetasMananeras = {
+  id: "col_recetas_mananeras",
+  nombre: "Colección 2: Recetas Mañaneras Deliciosas",
+  rewardTema: "Waffles",
+  completada: false,
+  libros: [
+    {
+      id: "receta_1",
+      nombre: "Huevos Fritos Con Salchichas",
+      rareza: "Común",
+      paginasTotales: 5,
+      paginasObtenidas: 0,
+      rewardWolfbytes: 100,
+      completado: false
+    },
+    {
+      id: "receta_2",
+      nombre: "Sandwich Gratinado de Jamón y Queso",
+      rareza: "Común",
+      paginasTotales: 5,
+      paginasObtenidas: 0,
+      rewardWolfbytes: 100,
+      completado: false
+    },
+    {
+      id: "receta_3",
+      nombre: "Café Espresso",
+      rareza: "Raro",
+      paginasTotales: 8,
+      paginasObtenidas: 0,
+      rewardWolfbytes: 350,
+      completado: false
+    },
+    {
+      id: "receta_4",
+      nombre: "Galletónes Con Berries",
+      rareza: "Raro",
+      paginasTotales: 8,
+      paginasObtenidas: 0,
+      rewardWolfbytes: 350,
+      completado: false
+    },
+    {
+      id: "receta_5",
+      nombre: "Panqueques Con Manjar",
+      rareza: "Épico",
+      paginasTotales: 12,
+      paginasObtenidas: 0,
+      rewardWolfbytes: 1000,
+      completado: false
+    },
+    {
+      id: "receta_6",
+      nombre: "Waffles Con Crema",
+      rareza: "Épico",
+      paginasTotales: 12,
+      paginasObtenidas: 0,
+      rewardWolfbytes: 1000,
+      completado: false
+    }
+  ]
+};
+
+// Función para verificar si la colección de Recetas fue completada
+function verificarColeccionRecetas() {
+  if (coleccionRecetasMananeras.completada) return;
+
+  let todosCompletados = coleccionRecetasMananeras.libros.every(libro => libro.completado);
+
+  if (todosCompletados) {
+    coleccionRecetasMananeras.completada = true;
+    desbloquearTemaWaffles();
+    
+    console.log("🥞 ¡COLECCIÓN 2 COMPLETADA! Desbloqueaste el Tema Especial 'Waffles'.");
+  }
+}
+
+// Aplicar estilos del Tema Visual Waffles
+function desbloquearTemaWaffles() {
+  document.body.classList.add("tema-waffles");
+}
+
 var temaRetroDesbloqueado = false;
 var temaRetroEquipado = false;
 
