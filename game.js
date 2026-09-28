@@ -1479,6 +1479,9 @@ function render() {
     }
   }
 
+let visorWB = document.getElementById("visor-wolfbytes");
+if (visorWB) visorWB.innerText = wolfbytes.toLocaleString();
+  
   actualizarBadges();
 }
 
