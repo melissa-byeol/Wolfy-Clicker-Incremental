@@ -158,41 +158,70 @@
   <div id="qte-info" style="display:none; position:absolute; z-index: 10000; font-weight: bold; color: #fff; text-shadow: 2px 2px 4px #000; pointer-events: none; text-align: center;"></div>
 
   <!-- Ventana Modal para la lectura de Lore y Colecciones -->
+<!-- MODAL INTEGRADO DE COLECCIONES Y MERCADO -->
 <div id="modal-libros" class="modal-overlay" style="display: none;">
   <div class="modal-contenido">
+    
+    <!-- Encabezado -->
     <div class="modal-header">
-      <h2>📚 Archivos & Lore de Wolfy Go</h2>
+      <h2>📚 Archivos, Colecciones & Mercado</h2>
       <button class="btn-cerrar" onclick="cerrarModalLibros()">✖</button>
     </div>
     
-    <!-- Pestañas para cambiar entre Colecciones -->
+    <!-- Pestañas Superiores -->
     <div class="pestanas-colecciones">
-      <button class="btn-pestana active" onclick="cambiarColeccionModal('col_1')">
+      <button id="tab-btn-col1" class="btn-pestana active" onclick="cambiarModalTab('col_1')">
         📖 Conociendo Wolfy Go
       </button>
-      <button class="btn-pestana" onclick="cambiarColeccionModal('col_2')">
+      <button id="tab-btn-col2" class="btn-pestana" onclick="cambiarModalTab('col_2')">
         🍳 Recetas Mañaneras
+      </button>
+      <button id="tab-btn-tienda" class="btn-pestana btn-pestana-tienda" onclick="cambiarModalTab('tienda')">
+        📦 Mercado & Gachapon
       </button>
     </div>
 
+    <!-- Cuerpo del Modal -->
     <div class="modal-body">
-      <!-- Panel de lista de libros (se actualizará según la pestaña elegida) -->
-      <div id="lista-libros-ui" class="panel-lista-libros"></div>
       
-      <!-- Panel con el texto del libro seleccionado -->
-      <div id="detalle-libro-ui" class="panel-detalle-libro">
-        <p class="placeholder-text">Selecciona un libro desbloqueado para leer su contenido...</p>
+      <!-- Pestañas de Libros (Colección 1 y 2) -->
+      <div id="vista-libros-modal" class="contenedor-vista-modal" style="display: flex; width: 100%;">
+        <div id="lista-libros-ui" class="panel-lista-libros"></div>
+        <div id="detalle-libro-ui" class="panel-detalle-libro">
+          <p class="placeholder-text">Selecciona un archivo para leer su contenido...</p>
+        </div>
       </div>
-      <!-- SECCIÓN DE MERCADO Y CONVERSIÓN (ID ÚNICO) -->
-<div id="contenedor-mercado-tienda">
-  <!-- JavaScript inyectará aquí los botones de conversión y el paquete básico sin fallar -->
-</div>
 
-<!-- SECCIÓN DE COLECCIONES EN EL MODAL O EN PANTALLA (ID ÚNICO) -->
-<div id="contenedor-colecciones">
-  <!-- JavaScript inyectará aquí la Colección 1 y la Colección 2 -->
-</div>
+      <!-- Pestaña de Mercado & Gachapon (Oculta por defecto) -->
+      <div id="vista-tienda-modal" class="contenedor-vista-modal" style="display: none; width: 100%;">
+        <div class="panel-tienda-interior">
+          
+          <!-- Conversión WC -> WB -->
+          <div class="tarjeta-mercado">
+            <h3>💱 Conversión de Divisas</h3>
+            <p>Tus Wolfbytes: <strong id="visor-wb-modal">0</strong> 💾</p>
+            <p><small>1 Wolfbyte (WB) = <strong>10,000 WC</strong></small></p>
+            <div class="grupo-botones-mercado">
+              <button class="btn-mercado" onclick="convertirWCAWolfbytes(1)">+1 WB (10k WC)</button>
+              <button class="btn-mercado" onclick="convertirWCAWolfbytes(10)">+10 WB (100k WC)</button>
+              <button class="btn-mercado" onclick="convertirWCAWolfbytes(50)">+50 WB (500k WC)</button>
+            </div>
+          </div>
+
+          <!-- Gachapon -->
+          <div class="tarjeta-mercado">
+            <h3>📖 Librería Gachapon</h3>
+            <p>Obtén 5 páginas (¡1 nueva garantizada para tus colecciones!).</p>
+            <button class="btn-gacha" onclick="abrirPaqueteBasico()">
+              📦 Abrir Paquete Básico (500 WB)
+            </button>
+          </div>
+
+        </div>
+      </div>
+
     </div>
+
   </div>
 </div>
       
