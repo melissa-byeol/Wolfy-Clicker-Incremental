@@ -173,24 +173,20 @@
       </div>
       <div class="panel-tienda">
   
+ <!-- PANEL DE TIENDA / MERCADO DE WOLFY -->
+<div class="panel-tienda">
+  
   <!-- Conversión de WC a WB -->
   <div class="tarjeta-mercado">
     <h3>💱 Conversión de Divisas</h3>
-    <p>1 Wolfbyte (WB) = <strong>10,000 WC</strong></p>
+    <p class="saldo-wb-visor">Tus Wolfbytes: <strong id="visor-wolfbytes">0</strong> 💾</p>
+    <p><small>1 Wolfbyte (WB) = <strong>10,000 WC</strong></small></p>
+    
     <div class="grupo-botones-mercado">
-      <button class="btn-mercado" onclick="convertirWCAWolfbytes(1)">Comprar 1 WB</button>
-      <button class="btn-mercado" onclick="convertirWCAWolfbytes(10)">Comprar 10 WB</button>
-      <button class="btn-mercado" onclick="convertirWCAWolfbytes(50)">Comprar 50 WB</button>
+      <button class="btn-mercado" onclick="convertirWCAWolfbytes(1)">+1 WB (10k WC)</button>
+      <button class="btn-mercado" onclick="convertirWCAWolfbytes(10)">+10 WB (100k WC)</button>
+      <button class="btn-mercado" onclick="convertirWCAWolfbytes(50)">+50 WB (500k WC)</button>
     </div>
-  </div>
-
-  <!-- Gachapon / Sobres de Páginas -->
-  <div class="tarjeta-mercado">
-    <h3>📖 Librería / Gachapon</h3>
-    <p>Obtén 5 páginas al azar de los primeros 6 libros.</p>
-    <button class="btn-gacha" onclick="abrirPaqueteBasico()">
-      📦 Abrir Paquete Básico (500 WB)
-    </button>
   </div>
 
 </div>
