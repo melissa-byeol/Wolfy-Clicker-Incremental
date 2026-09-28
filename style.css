@@ -516,6 +516,30 @@ body.tema-retro button:hover {
   cursor: pointer;
 }
 
+/* --- TEMA ESPECIAL WAFFLES --- */
+body.tema-waffles {
+  background-color: #2b1e16 !important;
+  color: #fff3e0 !important;
+}
+
+body.tema-waffles .panel-tienda,
+body.tema-waffles .panel-trivia,
+body.tema-waffles .tarjeta-mercado {
+  background-color: #3e2723 !important;
+  border-color: #ffb74d !important;
+  box-shadow: 0 0 15px rgba(255, 183, 77, 0.2);
+}
+
+body.tema-waffles button {
+  background-color: #f57c00 !important;
+  color: #ffffff !important;
+  border: 1px solid #ffe0b2 !important;
+}
+
+body.tema-waffles button:hover {
+  background-color: #ff9800 !important;
+}
+
 /* --- ESTILOS DEL MODAL DE LIBROS Y LORE --- */
 .btn-info-top {
   background-color: #2a9d8f;
