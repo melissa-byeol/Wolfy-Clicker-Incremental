@@ -651,6 +651,62 @@ function cerrarModalLibros() {
   if (modal) modal.style.display = "none";
 }
 
+// --- RENDERIZADO DEL MENÚ DE COLECCIONES ---
+
+function renderizarMenuColecciones() {
+  let contenedor = document.getElementById("contenedor-colecciones");
+  if (!contenedor) return;
+
+  // Lista de todas las colecciones
+  let colecciones = [
+    coleccionConociendoWolfyGo,  // Colección 1
+    coleccionRecetasMananeras     // Colección 2
+  ];
+
+  let htmlFinal = "";
+
+  colecciones.forEach(coleccion => {
+    let estadoColeccion = coleccion.completada ? "🎉 ¡COMPLETADA!" : "EN PROGRESO";
+    
+    let librosHTML = coleccion.libros.map(libro => {
+      let porcentaje = Math.floor((libro.paginasObtenidas / libro.paginasTotales) * 100);
+      let estadoLibro = libro.completado ? "✅ Completado" : `${libro.paginasObtenidas} / ${libro.paginasTotales} págs.`;
+      
+      return `
+        <div class="tarjeta-libro rareza-${libro.rareza.toLowerCase()}">
+          <div class="header-libro">
+            <strong>${libro.nombre}</strong>
+            <span class="badge-rareza">${libro.rareza}</span>
+          </div>
+          
+          <div class="barra-progreso-contenedor">
+            <div class="barra-progreso-relleno" style="width: ${porcentaje}%;"></div>
+          </div>
+          
+          <div class="info-libro">
+            <small>${estadoLibro}</small>
+            <small class="recompensa-wb">+${libro.rewardWolfbytes} WB</small>
+          </div>
+        </div>
+      `;
+    }).join("");
+
+    htmlFinal += `
+      <div class="seccion-coleccion">
+        <div class="header-coleccion">
+          <h2>${coleccion.nombre}</h2>
+          <span class="estado-coleccion">${estadoColeccion}</span>
+        </div>
+        <div class="grid-libros">
+          ${librosHTML}
+        </div>
+      </div>
+    `;
+  });
+
+  contenedor.innerHTML = htmlFinal;
+}
+
 function renderizarListaLibrosUI() {
   let listaContainer = document.getElementById("lista-libros-ui");
   if (!listaContainer) return;
