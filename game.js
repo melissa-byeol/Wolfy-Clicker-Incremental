@@ -467,40 +467,57 @@ var paginasRepetidas = 0;
 function abrirPaqueteBasico() {
   let costo = 500;
   if (wolfbytes < costo) {
-    alert(`❌ Necesitas ${costo} Wolfbytes. Tienes: ${wolfbytes} WB.`);
+    console.warn(`[GACHA] Wolfbytes insuficientes. Tienes: ${wolfbytes} / Requeridos: ${costo}`);
     return;
   }
 
   wolfbytes -= costo;
   let resumen = [];
 
+  // Obtener únicamente los primeros 6 libros
+  let primeros6Libros = coleccionConociendoWolfyGo.libros.slice(0, 6);
+
   for (let i = 0; i < 5; i++) {
-    // 1. Determinar rareza
-    let rand = Math.random() * 100;
-    let rareza = rand < 10 ? "Épico" : (rand < 40 ? "Raro" : "Común");
+    let esGarantizadaNueva = (i === 0); // La primera carta (slot 0) tiene la regla de ser nueva
+    let libroSeleccionado = null;
 
-    // 2. Filtrar libros de esa rareza dentro de los primeros 6 libros
-    let candidatos = coleccionConociendoWolfyGo.libros.slice(0, 6).filter(l => l.rareza === rareza);
-    if (candidatos.length === 0) candidatos = coleccionConociendoWolfyGo.libros.slice(0, 6);
+    // Filtrar libros que aún tengan páginas FALTANTES
+    let librosConPaginasFaltantes = primeros6Libros.filter(l => l.paginasObtenidas < l.paginasTotales);
 
-    let libro = candidatos[Math.floor(Math.random() * candidatos.length)];
+    // SI estamos en el slot garantizado Y aún quedan páginas por descubrir:
+    if (esGarantizadaNueva && librosConPaginasFaltantes.length > 0) {
+      // Elegimos un libro al azar que TENGA páginas pendientes
+      libroSeleccionado = librosConPaginasFaltantes[Math.floor(Math.random() * librosConPaginasFaltantes.length)];
+    } else {
+      // Para las otras 4 cartas (o si ya completó todo), usamos la probabilidad de rareza habitual
+      let rand = Math.random() * 100;
+      let rareza = rand < 10 ? "Épico" : (rand < 40 ? "Raro" : "Común");
 
-    // 3. Procesar página
-    if (libro.paginasObtenidas < libro.paginasTotales) {
-      libro.paginasObtenidas++;
-      resumen.push(`✨ ${libro.nombre} (${libro.rareza})`);
-      if (libro.paginasObtenidas >= libro.paginasTotales) {
-        libro.completado = true;
-        wolfbytes += libro.rewardWolfbytes;
-        resumen.push(`  🎉 ¡LIBRO COMPLETADO! +${libro.rewardWolfbytes} WB`);
+      let candidatos = primeros6Libros.filter(l => l.rareza === rareza);
+      if (candidatos.length === 0) candidatos = primeros6Libros;
+
+      libroSeleccionado = candidatos[Math.floor(Math.random() * candidatos.length)];
+    }
+
+    // --- PROCESAR LA PÁGINA OBTENIDA ---
+    if (libroSeleccionado.paginasObtenidas < libroSeleccionado.paginasTotales) {
+      libroSeleccionado.paginasObtenidas++;
+      let etiquetaNueva = esGarantizadaNueva ? "🌟 ¡NUEVA GARANTIZADA!" : "✨ NUEVA";
+      resumen.push(`${etiquetaNueva} -> ${libroSeleccionado.nombre} (${libroSeleccionado.rareza})`);
+
+      if (libroSeleccionado.paginasObtenidas >= libroSeleccionado.paginasTotales) {
+        libroSeleccionado.completado = true;
+        wolfbytes += libroSeleccionado.rewardWolfbytes;
+        resumen.push(`   🎉 ¡LIBRO COMPLETADO! +${libroSeleccionado.rewardWolfbytes} WB`);
       }
     } else {
+      // Si ya estaba lleno este libro en particular, cuenta como repetida
       paginasRepetidas++;
-      resumen.push(`🔄 ${libro.nombre} (REPETIDA)`);
+      resumen.push(`🔄 ${libroSeleccionado.nombre} (REPETIDA)`);
     }
   }
 
-  // 4. Bono de reciclaje por 100 repetidas
+  // --- REGLA DE RECICLAJE (BONO POR 100 REPETIDAS) ---
   let bonoTxt = "";
   if (paginasRepetidas >= 100) {
     paginasRepetidas -= 100;
@@ -508,11 +525,12 @@ function abrirPaqueteBasico() {
     bonoTxt = "\n\n♻️ ¡ACUMULASTE 100 REPETIDAS! Recibes +2,000 Wolfbytes 💾";
   }
 
+  // Registrar en consola para no molestar con alertas continuas
+  console.log(`[GACHA] Paquete Abierto:\n` + resumen.join("\n"));
+
   if (typeof verificarColeccionCompleta === "function") verificarColeccionCompleta();
   if (typeof guardarJuego === "function") guardarJuego();
   if (typeof render === "function") render();
-
-  alert(`📦 PAQUETE BÁSICO (5 PÁGINAS)\n\n` + resumen.join("\n") + `\n\nAcumulado Repetidas: ${paginasRepetidas}/100` + bonoTxt);
 }
 
 function convertirWCAWolfbytes(cantidadWB) {
