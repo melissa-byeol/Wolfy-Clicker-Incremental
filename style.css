@@ -541,6 +541,7 @@ body.tema-waffles button:hover {
 }
 
 /* --- ESTILOS DEL MODAL DE LIBROS Y LORE --- */
+/* --- BOTÓN DE APERTURA --- */
 .btn-info-top {
   background-color: #2a9d8f;
   color: #ffffff;
@@ -549,91 +550,167 @@ body.tema-waffles button:hover {
   border-radius: 6px;
   cursor: pointer;
   font-weight: bold;
+  transition: transform 0.1s, background-color 0.2s;
 }
 
+.btn-info-top:hover {
+  background-color: #264653;
+  transform: scale(1.03);
+}
+
+/* --- ESTRUCTURA DEL MODAL --- */
 .modal-overlay {
   position: fixed;
   top: 0; left: 0; width: 100%; height: 100%;
-  background: rgba(0, 0, 0, 0.7);
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(4px);
   display: flex; align-items: center; justify-content: center;
   z-index: 9999;
 }
 
 .modal-contenido {
-  background: #ffffff;
-  color: #222222;
+  background: #1a1a2e; /* Tema oscuro consistente con el juego */
+  color: #edf2f4;
+  border: 2px solid #0f3460;
   border-radius: 12px;
-  width: 90%; max-width: 700px;
-  max-height: 80vh;
+  width: 90%; max-width: 750px;
+  max-height: 85vh;
   display: flex; flex-direction: column;
   overflow: hidden;
-  box-shadow: 0px 8px 24px rgba(0,0,0,0.3);
+  box-shadow: 0px 8px 24px rgba(0, 0, 0, 0.6);
 }
 
 .modal-header {
   padding: 15px 20px;
-  background: #2a9d8f;
-  color: white;
+  background: #0f1123;
+  color: #00fff5;
+  border-bottom: 2px solid #0f3460;
   display: flex; justify-content: space-between; align-items: center;
+}
+
+.modal-header h2 {
+  margin: 0;
+  font-size: 18px;
 }
 
 .btn-cerrar {
   background: transparent;
   border: none;
-  color: white;
-  font-size: 18px;
+  color: #e94560;
+  font-size: 20px;
+  font-weight: bold;
   cursor: pointer;
+  transition: color 0.2s;
 }
 
+.btn-cerrar:hover {
+  color: #ff2e63;
+}
+
+/* --- PESTAÑAS DE COLECCIONES --- */
+.pestanas-colecciones {
+  display: flex;
+  gap: 8px;
+  padding: 10px 15px;
+  background-color: #0f1123;
+  border-bottom: 1px solid #16213e;
+}
+
+.btn-pestana {
+  background-color: #1a1a2e;
+  color: #a0a0a0;
+  border: 1px solid #2b2d42;
+  padding: 8px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 13px;
+  transition: all 0.2s ease;
+}
+
+.btn-pestana.active, .btn-pestana:hover {
+  background-color: #0f3460;
+  color: #00fff5;
+  border-color: #00fff5;
+  box-shadow: 0 0 8px rgba(0, 255, 245, 0.3);
+}
+
+/* --- CUERPO DEL MODAL (PANEL DOBLE) --- */
 .modal-body {
   display: flex;
-  height: 400px;
+  height: 420px;
 }
 
 .panel-lista-libros {
-  width: 40%;
-  border-right: 1px solid #ddd;
+  width: 42%;
+  border-right: 1px solid #16213e;
   overflow-y: auto;
-  padding: 10px;
+  padding: 12px;
+  background: #16213e;
 }
 
 .panel-detalle-libro {
-  width: 60%;
+  width: 58%;
   padding: 20px;
   overflow-y: auto;
+  background: #1a1a2e;
 }
 
+/* --- ITEMS DE LA LISTA DE LIBROS --- */
 .item-libro-btn {
-  padding: 10px;
+  padding: 10px 12px;
   margin-bottom: 8px;
   border-radius: 6px;
-  background: #f0f0f0;
+  background: #0f1123;
+  color: #a0a0a0;
+  border: 1px solid #2b2d42;
   cursor: pointer;
   display: flex; justify-content: space-between; align-items: center;
+  transition: all 0.15s ease-in-out;
+}
+
+.item-libro-btn:hover {
+  border-color: #00fff5;
+  color: #ffffff;
 }
 
 .item-libro-btn.completado {
-  background: #e8f5e9;
-  border-left: 4px solid #2e7d32;
+  background: #0f3460;
+  color: #ffffff;
+  border-left: 4px solid #00fff5;
+}
+
+/* --- DETALLE Y LORE --- */
+.placeholder-text {
+  color: #8d99ae;
+  font-style: italic;
+  text-align: center;
+  margin-top: 50px;
 }
 
 .lore-texto {
   line-height: 1.6;
   font-size: 14px;
   font-style: italic;
-  color: #333;
+  color: #edf2f4;
+  background: #0f1123;
+  padding: 15px;
+  border-radius: 8px;
+  border: 1px dashed #2b2d42;
 }
 
+/* --- RAREZAS --- */
 .badge-rareza {
-  font-size: 11px;
+  font-size: 10px;
   padding: 2px 6px;
   border-radius: 4px;
   color: white;
+  font-weight: bold;
 }
-.rareza-épico { background-color: #9c27b0; }
+
+.rareza-épico { background-color: #e94560; }
 .rareza-raro { background-color: #2196f3; }
 .rareza-común { background-color: #4caf50; }
-
 /* --- ESTILOS DE GAMER WOLFY --- */
 .panel-trivia {
   text-align: center;
