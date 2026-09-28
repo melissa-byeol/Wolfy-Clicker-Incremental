@@ -467,7 +467,7 @@ var paginasRepetidas = 0;
 function abrirPaqueteBasico() {
   let costo = 500;
   if (wolfbytes < costo) {
-    console.log(`❌ Necesitas ${costo} Wolfbytes. Tienes: ${wolfbytes} WB.`);
+    alert(`❌ Necesitas ${costo} Wolfbytes. Tienes: ${wolfbytes} WB.`);
     return;
   }
 
@@ -526,7 +526,7 @@ function convertirWCAWolfbytes(cantidadWB) {
     else if (typeof inventario !== "undefined") inventario[0] -= costoTotal;
 
     wolfbytes += cantidadWB;
-    alert(`✅ Conversión exitosa: -${costoTotal.toLocaleString()} WC ➔ +${cantidadWB} Wolfbyte(s) 💾.`);
+    console.log(`✅ Conversión exitosa: -${costoTotal.toLocaleString()} WC ➔ +${cantidadWB} Wolfbyte(s) 💾.`);
   } else {
     alert(`❌ Te faltan ${(costoTotal - saldoWC).toLocaleString()} WC para esta conversión.`);
   }
