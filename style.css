@@ -17,7 +17,7 @@ body {
 /* --- ESTRUCTURA GRID 3 COLUMNAS --- */
 .game-container {
   display: grid;
-  grid-template-columns: 320px 1fr 340px;
+  grid-template-columns: minmax(280px, 320px) 1fr minmax(300px, 340px);
   grid-template-rows: 90px calc(100vh - 90px);
   height: 100vh;
   width: 100vw;
@@ -52,11 +52,18 @@ body {
   transition: color 0.15s ease, background-color 0.15s ease, transform 0.1s ease;
 }
 
+#sub-contador {
+  font-size: 0.85rem;
+  color: #666666;
+  margin-top: 2px;
+}
+
 .contenedor-wolfilletes {
   display: inline-flex;
   align-items: center;
   gap: 8px;
   font-weight: bold;
+  margin-top: 4px;
 }
 
 .btn-convertir {
@@ -86,18 +93,18 @@ body {
 
 /* Efectos de parpadeo */
 .flash-ganar {
-  color: #d4a000 !important; /* Amarillo / Dorado */
+  color: #d4a000 !important;
   background-color: #fffde6;
   transform: scale(1.02);
 }
 
 .flash-perder {
-  color: #e63946 !important; /* Rojo */
+  color: #e63946 !important;
   background-color: #ffe6e6;
   transform: scale(0.98);
 }
 
-/* Flotante de ganancia/pérdida (+0.1 / -50) */
+/* Flotante de ganancia/pérdida */
 .dinero-flotante {
   position: absolute;
   top: 65px;
@@ -121,7 +128,7 @@ body {
   transition: background-color 0.4s ease, border-color 0.4s ease;
 }
 
-.mitad-superior-mejoras, 
+.mitad-superior-mejoras,
 .mitad-inferior-infinitas {
   flex: 1;
   padding: 12px;
@@ -273,16 +280,16 @@ button:disabled {
   transition: all 0.2s ease;
 }
 
-.logro.completado { 
-  background-color: #e8f5e9; 
-  border: 1px solid #c8e6c9; 
-  color: #2e7d32; 
+.logro.completado {
+  background-color: #e8f5e9;
+  border: 1px solid #c8e6c9;
+  color: #2e7d32;
 }
 
-.logro.bloqueado { 
-  background-color: #f5f5f5; 
-  border: 1px solid #e0e0e0; 
-  color: #9e9e9e; 
+.logro.bloqueado {
+  background-color: #f5f5f5;
+  border: 1px solid #e0e0e0;
+  color: #9e9e9e;
 }
 
 /* --- CHATS DEL STREAMER Y MODERACIÓN --- */
@@ -297,6 +304,22 @@ button:disabled {
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.03);
   position: relative;
   transition: all 0.3s ease;
+}
+
+.chat-stream.vip {
+  background-color: #2a9d8f !important;
+  color: #ffffff !important;
+}
+
+.chat-stream.hater {
+  background-color: #e63946 !important;
+  color: #ffffff !important;
+}
+
+.chat-stream.arcoiris {
+  color: #ffffff !important;
+  text-shadow: 1px 1px 3px #000;
+  cursor: pointer;
 }
 
 .chat-acciones {
@@ -319,7 +342,6 @@ button:disabled {
   background: #222222;
 }
 
-/* Estado desactivado cuando recibe "Like" o interactúas */
 .chat-stream.desactivado {
   background-color: #cfd8dc !important;
   color: #78909c !important;
@@ -327,7 +349,7 @@ button:disabled {
   pointer-events: none;
 }
 
-/* --- MINIJUEGO DE RITMO (4 CARRILES: A, S, D, F) --- */
+/* --- MINIJUEGO DE RITMO --- */
 .pista-ritmo {
   position: relative;
   width: 100%;
@@ -336,7 +358,7 @@ button:disabled {
   border-radius: 8px;
   overflow: hidden;
   border: 2px solid #333;
-  display: flex; /* Divide el contenedor en 4 columnas */
+  display: flex;
 }
 
 .carril {
@@ -344,6 +366,7 @@ button:disabled {
   position: relative;
   border-right: 1px dashed #333344;
   height: 100%;
+  cursor: pointer;
 }
 
 .carril:last-child {
@@ -359,6 +382,7 @@ button:disabled {
   font-weight: bold;
   font-size: 0.8rem;
   z-index: 5;
+  pointer-events: none;
 }
 
 .linea-target {
@@ -383,10 +407,10 @@ button:disabled {
   border-radius: 6px;
   box-shadow: 0 0 6px #ff007f;
   z-index: 3;
+  pointer-events: none;
 }
 
-
-/* --- EVENTOS QTE: GALLETA Y HUESO DE ORO --- */
+/* --- EVENTOS QTE --- */
 #galleta-crocante {
   animation: pulsoFlotante 1.2s infinite alternate ease-in-out;
 }
@@ -416,13 +440,12 @@ button:disabled {
   100% { transform: scale(1); filter: brightness(1); }
 }
 
-/* --- TEMAS COMPATIBLES (TIENDA DE FONDOS) --- */
 /* --- TEMAS DE COLOR --- */
 body.tema-default {
   background-color: #ffffff !important;
 }
 
-body.tema-verde, 
+body.tema-verde,
 body.tema-verde .panel-izquierdo,
 body.tema-verde .panel-derecho,
 body.tema-verde .panel-centro,
@@ -437,7 +460,7 @@ body.tema-verde button {
   border-color: #81c784;
 }
 
-body.tema-amarillo, 
+body.tema-amarillo,
 body.tema-amarillo .panel-izquierdo,
 body.tema-amarillo .panel-derecho,
 body.tema-amarillo .panel-centro,
@@ -452,17 +475,16 @@ body.tema-amarillo button {
   border-color: #ffee58;
 }
 
-/* Estilos para el Tema Azul Fresco */
 body.tema-azul {
   background-color: #e0f7fa !important;
   color: #006064;
 }
 
-body.tema-azul .panel, 
-body.tema-azul .card,
-body.tema-azul .tienda-item {
-  background-color: #b2ebf2;
-  border-color: #00838f;
+body.tema-azul .panel-izquierdo,
+body.tema-azul .panel-derecho,
+body.tema-azul .panel-centro,
+body.tema-azul .header-top {
+  background-color: #b2ebf2 !important;
   color: #004d40;
 }
 
@@ -476,9 +498,6 @@ body.tema-azul button:hover {
   background-color: #4dd0e1;
 }
 
-/* Importar fuente retro pixelada */
-@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
-
 /* --- TEMA RETRO PIXEL --- */
 body.tema-retro {
   font-family: 'Press Start 2P', cursive, monospace !important;
@@ -487,29 +506,34 @@ body.tema-retro {
   image-rendering: pixelated;
 }
 
-/* Paneles, Botones y Tarjetas en Modo Retro */
+body.tema-retro .header-top,
+body.tema-retro .panel-izquierdo,
+body.tema-retro .panel-derecho,
+body.tema-retro .panel-centro,
+body.tema-retro .seccion-bonos-juegos {
+  background-color: #0f380f !important;
+  color: #9bbc0f !important;
+  border-color: #8bac0f !important;
+}
+
 body.tema-retro button,
-body.tema-retro .panel,
-body.tema-retro .card,
 body.tema-retro .modal-contenido {
   background-color: #306230 !important;
   color: #9bbc0f !important;
   border: 4px solid #8bac0f !important;
   box-shadow: none !important;
-  border-radius: 0px !important; /* Bordes totalmente cuadrados estilo retro */
+  border-radius: 0px !important;
 }
 
-/* Encabezados y títulos en el Tema Retro */
-body.tema-retro h1, 
-body.tema-retro h2, 
-body.tema-retro h3, 
+body.tema-retro h1,
+body.tema-retro h2,
+body.tema-retro h3,
 body.tema-retro .modal-header {
   background-color: #0f380f !important;
   color: #9bbc0f !important;
   border-bottom: 2px solid #8bac0f !important;
 }
 
-/* Efecto Hover en Botones Retro */
 body.tema-retro button:hover {
   background-color: #8bac0f !important;
   color: #0f380f !important;
@@ -522,8 +546,16 @@ body.tema-waffles {
   color: #fff3e0 !important;
 }
 
-body.tema-waffles .panel-tienda,
-body.tema-waffles .panel-trivia,
+body.tema-waffles .header-top,
+body.tema-waffles .panel-izquierdo,
+body.tema-waffles .panel-derecho,
+body.tema-waffles .panel-centro,
+body.tema-waffles .seccion-bonos-juegos {
+  background-color: #3e2723 !important;
+  color: #fff3e0 !important;
+  border-color: #ffb74d !important;
+}
+
 body.tema-waffles .tarjeta-mercado {
   background-color: #3e2723 !important;
   border-color: #ffb74d !important;
@@ -540,8 +572,7 @@ body.tema-waffles button:hover {
   background-color: #ff9800 !important;
 }
 
-/* --- ESTILOS DEL MODAL DE LIBROS Y LORE --- */
-/* --- BOTÓN DE APERTURA --- */
+/* --- MODAL DE LIBROS Y LORE --- */
 .btn-info-top {
   background-color: #2a9d8f;
   color: #ffffff;
@@ -551,6 +582,7 @@ body.tema-waffles button:hover {
   cursor: pointer;
   font-weight: bold;
   transition: transform 0.1s, background-color 0.2s;
+  margin-bottom: 4px;
 }
 
 .btn-info-top:hover {
@@ -558,24 +590,30 @@ body.tema-waffles button:hover {
   transform: scale(1.03);
 }
 
-/* --- ESTRUCTURA DEL MODAL --- */
 .modal-overlay {
   position: fixed;
-  top: 0; left: 0; width: 100%; height: 100%;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
   background: rgba(0, 0, 0, 0.85);
   backdrop-filter: blur(4px);
-  display: flex; align-items: center; justify-content: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   z-index: 9999;
 }
 
 .modal-contenido {
-  background: #1a1a2e; /* Tema oscuro consistente con el juego */
+  background: #1a1a2e;
   color: #edf2f4;
   border: 2px solid #0f3460;
   border-radius: 12px;
-  width: 90%; max-width: 750px;
+  width: 90%;
+  max-width: 750px;
   max-height: 85vh;
-  display: flex; flex-direction: column;
+  display: flex;
+  flex-direction: column;
   overflow: hidden;
   box-shadow: 0px 8px 24px rgba(0, 0, 0, 0.6);
 }
@@ -585,7 +623,9 @@ body.tema-waffles button:hover {
   background: #0f1123;
   color: #00fff5;
   border-bottom: 2px solid #0f3460;
-  display: flex; justify-content: space-between; align-items: center;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .modal-header h2 {
@@ -607,13 +647,13 @@ body.tema-waffles button:hover {
   color: #ff2e63;
 }
 
-/* --- PESTAÑAS DE COLECCIONES --- */
 .pestanas-colecciones {
   display: flex;
   gap: 8px;
   padding: 10px 15px;
   background-color: #0f1123;
   border-bottom: 1px solid #16213e;
+  flex-wrap: wrap;
 }
 
 .btn-pestana {
@@ -628,17 +668,21 @@ body.tema-waffles button:hover {
   transition: all 0.2s ease;
 }
 
-.btn-pestana.active, .btn-pestana:hover {
+.btn-pestana.active,
+.btn-pestana:hover {
   background-color: #0f3460;
   color: #00fff5;
   border-color: #00fff5;
   box-shadow: 0 0 8px rgba(0, 255, 245, 0.3);
 }
 
-/* --- CUERPO DEL MODAL (PANEL DOBLE) --- */
 .modal-body {
   display: flex;
   height: 420px;
+}
+
+.contenedor-vista-modal {
+  width: 100%;
 }
 
 .panel-lista-libros {
@@ -656,7 +700,6 @@ body.tema-waffles button:hover {
   background: #1a1a2e;
 }
 
-/* --- ITEMS DE LA LISTA DE LIBROS --- */
 .item-libro-btn {
   padding: 10px 12px;
   margin-bottom: 8px;
@@ -665,7 +708,10 @@ body.tema-waffles button:hover {
   color: #a0a0a0;
   border: 1px solid #2b2d42;
   cursor: pointer;
-  display: flex; justify-content: space-between; align-items: center;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
   transition: all 0.15s ease-in-out;
 }
 
@@ -680,7 +726,14 @@ body.tema-waffles button:hover {
   border-left: 4px solid #00fff5;
 }
 
-/* --- DETALLE Y LORE --- */
+.item-libro-btn span {
+  flex: 1;
+}
+
+.item-libro-btn small {
+  white-space: nowrap;
+}
+
 .placeholder-text {
   color: #8d99ae;
   font-style: italic;
@@ -699,19 +752,80 @@ body.tema-waffles button:hover {
   border: 1px dashed #2b2d42;
 }
 
-/* --- RAREZAS --- */
+.bloqueado-info,
+.libro-contenido {
+  background: #0f1123;
+  border: 1px solid #2b2d42;
+  border-radius: 8px;
+  padding: 15px;
+}
+
+.reward-info {
+  margin-top: 10px;
+  color: #00fff5;
+  font-weight: bold;
+}
+
 .badge-rareza {
   font-size: 10px;
   padding: 2px 6px;
   border-radius: 4px;
   color: white;
   font-weight: bold;
+  white-space: nowrap;
 }
 
-.rareza-épico { background-color: #e94560; }
+.rareza-epico { background-color: #e94560; }
 .rareza-raro { background-color: #2196f3; }
-.rareza-común { background-color: #4caf50; }
-/* --- ESTILOS DE GAMER WOLFY --- */
+.rareza-comun { background-color: #4caf50; }
+
+/* --- MERCADO / GACHA --- */
+.panel-tienda-interior {
+  width: 100%;
+  padding: 15px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.tarjeta-mercado {
+  background: #16213e;
+  border: 1px solid #0f3460;
+  border-radius: 10px;
+  padding: 14px;
+}
+
+.tarjeta-mercado h3 {
+  margin-top: 0;
+  color: #00fff5;
+}
+
+.grupo-botones-mercado {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.btn-mercado,
+.btn-gacha {
+  background: #0f3460;
+  color: #ffffff;
+  border: 1px solid #00fff5;
+  border-radius: 8px;
+  padding: 8px 12px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.btn-mercado:hover,
+.btn-gacha:hover {
+  background: #00fff5;
+  color: #0f1123;
+}
+
+/* --- GAMER WOLFY --- */
 .panel-trivia {
   text-align: center;
   padding: 20px;
@@ -763,11 +877,11 @@ body.tema-waffles button:hover {
   border-radius: 8px;
   cursor: pointer;
 }
+
 .btn-gamer-wolfy:hover {
   background-color: #ff2e63;
 }
 
-/* Estilos para el minijuego de reflejos */
 #cuadrado-reflejos {
   width: 220px;
   height: 220px;
@@ -780,21 +894,19 @@ body.tema-waffles button:hover {
   border-radius: 12px;
   cursor: pointer;
   user-select: none;
-  transition: background-color 0.1s transform 0.05s;
+  transition: background-color 0.1s, transform 0.05s;
 }
 
 #cuadrado-reflejos:active {
   transform: scale(0.96);
 }
 
-/* Estado 1: Espera */
 .cuadrado-espera {
   background-color: #2b2d42;
   color: #edf2f4;
   border: 4px dashed #8d99ae;
 }
 
-/* Estado 2: ROJO REACTIVO */
 .cuadrado-rojo {
   background-color: #d90429 !important;
   color: #ffffff !important;
@@ -806,4 +918,47 @@ body.tema-waffles button:hover {
 @keyframes pulsoRojo {
   from { transform: scale(1); }
   to { transform: scale(1.04); }
+}
+
+/* --- RESPONSIVE BÁSICO --- */
+@media (max-width: 980px) {
+  body {
+    overflow: auto;
+  }
+
+  .game-container {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto;
+    height: auto;
+    min-height: 100vh;
+  }
+
+  .header-top,
+  .panel-izquierdo,
+  .panel-centro,
+  .panel-derecho {
+    width: 100%;
+    border: none;
+    border-top: 2px solid #eeeeee;
+  }
+
+  .panel-centro {
+    min-height: 320px;
+  }
+
+  .modal-body {
+    height: 70vh;
+    flex-direction: column;
+  }
+
+  .panel-lista-libros,
+  .panel-detalle-libro {
+    width: 100%;
+  }
+
+  .panel-lista-libros {
+    border-right: none;
+    border-bottom: 1px solid #16213e;
+    max-height: 180px;
+  }
 }
