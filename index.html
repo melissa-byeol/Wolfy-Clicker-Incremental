@@ -3,24 +3,30 @@
 <head>
   <meta charset="UTF-8">
   <title>Wolfy Clicker Incremental</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+
   <link rel="stylesheet" href="style.css">
   <script src="game.js" defer></script>
-  <link rel="icon" type="image/ico" href="favicon.ico">
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
 </head>
 <body>
 
   <div class="game-container">
     <!-- 1. HEADER: CONTADOR CENTRADO -->
     <header class="header-top">
-        <!-- Agrega este botón en tu barra de menú superior -->
-<button class="btn-info-top" onclick="abrirModalLibros()" title="Ver Libros y Lore">ℹ️ Libros & Lore</button>
+      <button class="btn-info-top" onclick="abrirModalLibros()" title="Ver Libros y Lore">ℹ️ Libros & Lore</button>
+
       <div id="contador-box">
         <div id="contador">0.0 Wolfichas</div>
-        <!-- Ejemplo de interfaz para Wolfilletes -->
-<div class="contenedor-wolfilletes">
-  <span>💵 Wolfilletes: <strong id="lbl-wolfilletes">0</strong></span>
-  <button onclick="comprarWolfilletes()" class="btn-convertir" title="Comprar Wolfilletes con Wolfichas">+</button>
-</div>
+        <div id="sub-contador">0.0 WC/s</div>
+
+        <div class="contenedor-wolfilletes">
+          <span>💵 Wolfilletes: <strong id="lbl-wolfilletes">0</strong></span>
+          <button onclick="comprarWolfilletes()" class="btn-convertir" title="Comprar Wolfilletes con Wolfichas">+</button>
+        </div>
       </div>
     </header>
 
@@ -29,7 +35,7 @@
       <!-- MITAD SUPERIOR: ÚNICAS / LIMITADAS -->
       <div class="mitad-superior-mejoras">
         <div class="titulo-seccion">Mejoras Únicas</div>
-        
+
         <div class="tienda-grupo">
           <h4>Clicks</h4>
           <button id="btn-0" onclick="comprar(0);">Heavy Click</button>
@@ -63,10 +69,10 @@
         <button id="btn-fondo-0" onclick="comprarFondo(0);">Default (x1.0) - Gratis</button>
         <button id="btn-fondo-1" onclick="comprarFondo(1);">Calma Verdosa (x1.2) - 💵 10</button>
         <button id="btn-fondo-2" onclick="comprarFondo(2);">Amarillo Energético (x1.5) - 💵 25</button>
-        <button id="btn-fondo-3" onclick="comprarFondo(3)">🎨 Azul Fresco (x2.0) — 💵 70</button>
+        <button id="btn-fondo-3" onclick="comprarFondo(3);">🎨 Azul Fresco (x2.0) — 💵 70</button>
         <button id="btn-toggle-retro" onclick="alternarTemaRetro()">
-  👾 Alternar Tema Retro (x2.5 WC)
-</button>
+          👾 Alternar Tema Retro (x2.5 WC)
+        </button>
       </div>
 
       <!-- MITAD INFERIOR: REPETIBLES INFINITAS -->
@@ -81,9 +87,10 @@
           <button id="btn-20" onclick="comprar(20);">Streamer Wolfy</button>
           <button id="btn-22" onclick="comprar(22);">Taxist Wolfy</button>
           <button id="btn-25" onclick="comprar(25);">Idol Wolfy</button>
+
           <button class="btn-gamer-wolfy" onclick="activarGamerWolfy()">
-  🎮 Desafío Gamer Wolfy (100,000 WC)
-</button>
+            🎮 Desafío Gamer Wolfy (100,000 WC)
+          </button>
         </div>
       </div>
     </aside>
@@ -96,9 +103,9 @@
     <!-- 4. DERECHA: STREAMER / IDOL & DESAFÍOS -->
     <aside class="panel-derecho">
       <div class="controles-navegacion">
-        <button class="flecha-btn" onclick="cambiarVistaDerecha(-1)">◀</button>
+        <button class="flecha-btn" onclick="cambiarVistaDerecha(-1)" aria-label="Vista anterior">◀</button>
         <span id="titulo-vista-derecha" style="font-weight:bold; font-size: 0.9rem;">Chat Streamer Wolfy</span>
-        <button class="flecha-btn" onclick="cambiarVistaDerecha(1)">▶</button>
+        <button class="flecha-btn" onclick="cambiarVistaDerecha(1)" aria-label="Vista siguiente">▶</button>
       </div>
 
       <div class="vista-dinamica">
@@ -107,41 +114,43 @@
           <div id="comentarios-chat"></div>
         </div>
 
-<!-- VISTA 2: RITMO IDOL WOLFY (4 CARRILES) -->
-<div id="vista-idol-ritmo" style="display: none;">
-  <div class="ritmo-container">
-    <h3>🎤 Idol Wolfy: Stage</h3>
-    <div class="selector-cancion">
-      <label for="cancion-select">Canción de prueba:</label>
-      <select id="cancion-select" onchange="seleccionarCancion(this.value)">
-        <option value="swim">"Swim" - BTS</option>
-        <option value="bed">"Bed" - AND2BLE</option>
-      </select>
-    </div>
+        <!-- VISTA 2: RITMO IDOL WOLFY (4 CARRILES) -->
+        <div id="vista-idol-ritmo" style="display: none;">
+          <div class="ritmo-container">
+            <h3>🎤 Idol Wolfy: Stage</h3>
 
-    <audio id="audio-player" style="width: 100%; margin: 8px 0;"></audio>
+            <div class="selector-cancion">
+              <label for="cancion-select">Canción de prueba:</label>
+              <select id="cancion-select" onchange="seleccionarCancion(this.value)">
+                <option value="swim">"Swim" - BTS</option>
+                <option value="bed">"Bed" - AND2BLE</option>
+              </select>
+            </div>
 
-    <!-- Pista dividida en 4 carriles -->
-    <div id="pista-ritmo" class="pista-ritmo">
-      <div class="linea-target"></div>
-      
-      <div class="carril" id="carril-0"><span class="tecla-label">A</span></div>
-      <div class="carril" id="carril-1"><span class="tecla-label">S</span></div>
-      <div class="carril" id="carril-2"><span class="tecla-label">D</span></div>
-      <div class="carril" id="carril-3"><span class="tecla-label">F</span></div>
-    </div>
+            <audio id="audio-player" style="width: 100%; margin: 8px 0;"></audio>
 
-    <!-- CONTROLES DEL MINIJUEGO DE RITMO -->
-<div class="controles-ritmo" style="margin-top: 10px; display: flex; gap: 8px; justify-content: center;">
-  <button id="btn-play-ritmo" onclick="iniciarCancionRitmo();">▶ Iniciar</button>
-  <button id="btn-pause-ritmo" onclick="pausarCancionRitmo();">⏸️ Pausa</button>
-  <button id="btn-continue-ritmo" onclick="continuarCancionRitmo();">▶️ Continuar</button>
-  <button id="btn-reset-ritmo" onclick="reiniciarCancionRitmo();">🔄 Reset</button>
-</div>
-    <div id="feedback-ritmo" style="text-align: center; margin-top: 5px; font-weight: bold;">Puntaje: 0</div>
-  </div>
-</div>
+            <!-- Pista dividida en 4 carriles -->
+            <div id="pista-ritmo" class="pista-ritmo">
+              <div class="linea-target"></div>
 
+              <div class="carril" id="carril-0"><span class="tecla-label">A</span></div>
+              <div class="carril" id="carril-1"><span class="tecla-label">S</span></div>
+              <div class="carril" id="carril-2"><span class="tecla-label">D</span></div>
+              <div class="carril" id="carril-3"><span class="tecla-label">F</span></div>
+            </div>
+
+            <!-- CONTROLES DEL MINIJUEGO DE RITMO -->
+            <div class="controles-ritmo" style="margin-top: 10px; display: flex; gap: 8px; justify-content: center;">
+              <button id="btn-play-ritmo" onclick="iniciarCancionRitmo();">▶ Iniciar</button>
+              <button id="btn-pause-ritmo" onclick="pausarCancionRitmo();">⏸️ Pausa</button>
+              <button id="btn-continue-ritmo" onclick="continuarCancionRitmo();">▶️ Continuar</button>
+              <button id="btn-reset-ritmo" onclick="reiniciarCancionRitmo();">🔄 Reset</button>
+            </div>
+
+            <div id="feedback-ritmo" style="text-align: center; margin-top: 5px; font-weight: bold;">Puntaje: 0</div>
+          </div>
+        </div>
+      </div>
 
       <!-- ABAJO DERECHA: DESAFÍOS Y LOGROS -->
       <div class="seccion-bonos-juegos">
@@ -157,76 +166,72 @@
   <img id="galleta-crocante" src="imagenes-wolfy/plain_cookie.png" onclick="clickGalletita();" style="display:none; position:absolute; cursor:pointer; width:75px; z-index: 9999;" alt="Galleta Crocante">
   <div id="qte-info" style="display:none; position:absolute; z-index: 10000; font-weight: bold; color: #fff; text-shadow: 2px 2px 4px #000; pointer-events: none; text-align: center;"></div>
 
-  <!-- Ventana Modal para la lectura de Lore y Colecciones -->
-<!-- MODAL INTEGRADO DE COLECCIONES Y MERCADO -->
-<div id="modal-libros" class="modal-overlay" style="display: none;">
-  <div class="modal-contenido">
-    
-    <!-- Encabezado -->
-    <div class="modal-header">
-      <h2>📚 Archivos, Colecciones & Mercado</h2>
-      <button class="btn-cerrar" onclick="cerrarModalLibros()">✖</button>
-    </div>
-    
-    <!-- Pestañas Superiores -->
-    <div class="pestanas-colecciones">
-      <button id="tab-btn-col1" class="btn-pestana active" onclick="cambiarModalTab('col_1')">
-        📖 Conociendo Wolfy Go
-      </button>
-      <button id="tab-btn-col2" class="btn-pestana" onclick="cambiarModalTab('col_2')">
-        🍳 Recetas Mañaneras
-      </button>
-      <button id="tab-btn-tienda" class="btn-pestana btn-pestana-tienda" onclick="cambiarModalTab('tienda')">
-        📦 Mercado & Gachapon
-      </button>
-    </div>
+  <!-- MODAL INTEGRADO DE COLECCIONES Y MERCADO -->
+  <div id="modal-libros" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modal-libros-titulo" style="display: none;">
+    <div class="modal-contenido">
 
-    <!-- Cuerpo del Modal -->
-    <div class="modal-body">
-      
-      <!-- Pestañas de Libros (Colección 1 y 2) -->
-      <div id="vista-libros-modal" class="contenedor-vista-modal" style="display: flex; width: 100%;">
-        <div id="lista-libros-ui" class="panel-lista-libros"></div>
-        <div id="detalle-libro-ui" class="panel-detalle-libro">
-          <p class="placeholder-text">Selecciona un archivo para leer su contenido...</p>
-        </div>
+      <!-- Encabezado -->
+      <div class="modal-header">
+        <h2 id="modal-libros-titulo">📚 Archivos, Colecciones & Mercado</h2>
+        <button class="btn-cerrar" onclick="cerrarModalLibros()" aria-label="Cerrar">✖</button>
       </div>
 
-      <!-- Pestaña de Mercado & Gachapon (Oculta por defecto) -->
-      <div id="vista-tienda-modal" class="contenedor-vista-modal" style="display: none; width: 100%;">
-        <div class="panel-tienda-interior">
-          
-          <!-- Conversión WC -> WB -->
-          <div class="tarjeta-mercado">
-            <h3>💱 Conversión de Divisas</h3>
-            <p>Tus Wolfbytes: <strong id="visor-wb-modal">0</strong> 💾</p>
-            <p><small>1 Wolfbyte (WB) = <strong>10,000 WC</strong></small></p>
-            <div class="grupo-botones-mercado">
-              <button class="btn-mercado" onclick="convertirWCAWolfbytes(1)">+1 WB (10k WC)</button>
-              <button class="btn-mercado" onclick="convertirWCAWolfbytes(10)">+10 WB (100k WC)</button>
-              <button class="btn-mercado" onclick="convertirWCAWolfbytes(50)">+50 WB (500k WC)</button>
+      <!-- Pestañas Superiores -->
+      <div class="pestanas-colecciones">
+        <button id="tab-btn-col1" class="btn-pestana active" onclick="cambiarModalTab('col_1')">
+          📖 Conociendo Wolfy Go
+        </button>
+        <button id="tab-btn-col2" class="btn-pestana" onclick="cambiarModalTab('col_2')">
+          🍳 Recetas Mañaneras
+        </button>
+        <button id="tab-btn-tienda" class="btn-pestana btn-pestana-tienda" onclick="cambiarModalTab('tienda')">
+          📦 Mercado & Gachapon
+        </button>
+      </div>
+
+      <!-- Cuerpo del Modal -->
+      <div class="modal-body">
+
+        <!-- Pestañas de Libros -->
+        <div id="vista-libros-modal" class="contenedor-vista-modal" style="display: flex; width: 100%;">
+          <div id="lista-libros-ui" class="panel-lista-libros"></div>
+          <div id="detalle-libro-ui" class="panel-detalle-libro">
+            <p class="placeholder-text">Selecciona un archivo para leer su contenido...</p>
+          </div>
+        </div>
+
+        <!-- Pestaña de Mercado & Gachapon -->
+        <div id="vista-tienda-modal" class="contenedor-vista-modal" style="display: none; width: 100%;">
+          <div class="panel-tienda-interior">
+
+            <!-- Conversión WC -> WB -->
+            <div class="tarjeta-mercado">
+              <h3>💱 Conversión de Divisas</h3>
+              <p>Tus Wolfbytes: <strong id="visor-wb-modal">0</strong> 💾</p>
+              <p><small>1 Wolfbyte (WB) = <strong>10,000 WC</strong></small></p>
+              <div class="grupo-botones-mercado">
+                <button class="btn-mercado" onclick="convertirWCAWolfbytes(1)">+1 WB (10k WC)</button>
+                <button class="btn-mercado" onclick="convertirWCAWolfbytes(10)">+10 WB (100k WC)</button>
+                <button class="btn-mercado" onclick="convertirWCAWolfbytes(50)">+50 WB (500k WC)</button>
+              </div>
             </div>
-          </div>
 
-          <!-- Gachapon -->
-          <div class="tarjeta-mercado">
-            <h3>📖 Librería Gachapon</h3>
-            <p>Obtén 5 páginas (¡1 nueva garantizada para tus colecciones!).</p>
-            <button class="btn-gacha" onclick="abrirPaqueteBasico()">
-              📦 Abrir Paquete Básico (500 WB)
-            </button>
-          </div>
+            <!-- Gachapon -->
+            <div class="tarjeta-mercado">
+              <h3>📖 Librería Gachapon</h3>
+              <p>Obtén 5 páginas (¡1 nueva garantizada para tus colecciones!).</p>
+              <button class="btn-gacha" onclick="abrirPaqueteBasico()">
+                📦 Abrir Paquete Básico (500 WB)
+              </button>
+            </div>
 
+          </div>
         </div>
+
       </div>
 
     </div>
-
   </div>
-</div>
-      
-  
- <!-- PANEL DE TIENDA / MERCADO DE WOLFY -->
 
 </body>
 </html>
