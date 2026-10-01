@@ -1,81 +1,170 @@
-// --- VARIABLES GLOBALES Y SISTEMA BASE ---
-var wolfichas = 0;
-var wolfichasAnteriores = 0;
-var wolfichasPorClic = 1;
-var multiplicadorGalleta = 1;
-var duracionBuffGalleta = 0;
-var wolfilletes = 0;
+// ===== UTILIDADES =====
+const $ = (id) => document.getElementById(id);
+const $$ = (sel) => document.querySelectorAll(sel);
 
-// Sistema de Fondos y Colores (Actualización 2.0)
-var fondoEquipado = 0;
-var multiplicadorFondo = 1.0; 
-var fondosComprados = [true, false, false, false]; // Default, Calma Verdosa, Amarillo Energético
+function num(value, def = 0) {
+  const n = Number(value);
+  return Number.isFinite(n) ? n : def;
+}
+
+function formatNum(n) {
+  return Math.floor(num(n)).toLocaleString();
+}
+
+function normalizarRareza(rareza) {
+  return String(rareza || "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z]/g, "");
+}
+
+function rellenarArray(guardado, defecto, tipo = "number") {
+  const arr = Array.isArray(guardado) ? guardado.slice(0, defecto.length) : [];
+
+  for (let i = 0; i < defecto.length; i++) {
+    if (arr[i] === undefined || arr[i] === null) {
+      arr[i] = defecto[i];
+    }
+
+    if (tipo === "number") {
+      arr[i] = num(arr[i], defecto[i]);
+    } else if (tipo === "boolean") {
+      arr[i] = Boolean(arr[i]);
+    }
+  }
+
+  return arr;
+}
+
+// ===== ESTADO BASE =====
+let wolfichas = 0;
+let wolfichasAnteriores = 0;
+let wolfichasPorClic = 1;
+
+let multiplicadorGalleta = 1;
+let duracionBuffGalleta = 0;
+let timerBuffGalleta = null;
+
+let wolfilletes = 0;
+let wolfbytes = 0;
+
+let fondoEquipado = 0;
+let multiplicadorFondo = 1.0;
+
+const fondosCompradosDefecto = [true, false, false, false];
+let fondosComprados = fondosCompradosDefecto.slice();
 
 const catalogoFondos = [
-  { nombre: "Default", multiplicador: 1.0, costo: 0, color: "#ffffff", colorBoton: "#ffffff", colorTexto: "#222222" },
-  { nombre: "Calma Verdosa", multiplicador: 1.2, costo: 10, color: "#e8f5e9", colorBoton: "#a5d6a7", colorTexto: "#1b5e20" },
-  { nombre: "Amarillo Energético", multiplicador: 1.5, costo: 25, color: "#fffde7", colorBoton: "#fff59d", colorTexto: "#f57f17" },
-  { nombre: "Azul Fresco", multiplicador: 2.0, costo: 70, color: "#e0f7fa", colorBoton: "#80deea", colorTexto: "#006064" }
+  { nombre: "Default", multiplicador: 1.0, costo: 0 },
+  { nombre: "Calma Verdosa", multiplicador: 1.2, costo: 10 },
+  { nombre: "Amarillo Energético", multiplicador: 1.5, costo: 25 },
+  { nombre: "Azul Fresco", multiplicador: 2.0, costo: 70 }
 ];
 
-// Buffs de Hueso
-var multiplicadorHueso = 1;
-var tiempoBuffHueso = 0;
-var esHuesoNatural = false;
+let multiplicadorHueso = 1;
+let tiempoBuffHueso = 0;
+let esHuesoNatural = false;
 
-// QTE de la Galleta
-var clicksActuales = 0;
-var clicksRequeridos = 0;
-var tiempoLimiteQTE = 0;
-var timerQTE = null;
-var timerLoopGalleta = null;
+let clicksActuales = 0;
+let clicksRequeridos = 0;
+let tiempoLimiteQTE = 0;
+let timerQTE = null;
+let timerLoopGalleta = null;
 let galletaActiva = false;
 let mejoraGalleta = { comprado: false };
-var ultimoTiempoClick = 0;
-var esSpeedrunner = true;
+let ultimoTiempoClick = 0;
+let esSpeedrunner = true;
 
-// Configuración de Elementos e Inventario
-var esMejoraUnica = [true, true, true, false, true, false, false, true, false, true, true, true, false, false, false, true, false, true, true, true, false, true, false, true, true, false];
-var inventario      = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
-var wolfichasProduce = [0, 0, 0, 0.1, 0, 0, 1, 0, 5, 0, 0, 0, 0, 0, 0, 0, 50, 0, 0, 0, 200, 0, 500, 0, 0, 1500]; 
-
-var precioBase      = [50, 750, 5500, 10, 500, 200, 150, 500, 800, 2000, 3000, 2500, 2000, 5000, 10000, 15000, 30000, 40000, 65000, 9999, 120000, 150000, 250000, 350000, 500000, 750000];
-var precioProducto  = [50, 750, 5500, 10, 500, 200, 150, 500, 800, 2000, 3000, 2500, 2000, 5000, 10000, 15000, 30000, 40000, 65000, 9999, 120000, 150000, 250000, 350000, 500000, 750000];
-
-var probCrit = 0;
-var probSuperCrit = 0;
-var tiempoHorno = 10; 
-var gananciaUltimaHorneada = 0; 
-var wolfichasPorSegundo = 0;
-var vistaActual = 0; // 0: Streamer Chat, 1: Idol Ritmo
-
-// --- SISTEMA LOGROS COMPLETO ---
-var logros = [
-  { id: "badge-1", titulo: "Primer Ahorro", descripcion: "Ten 100 Wolfichas Ahorradas", condicion: function() { return wolfichas >= 100; }, completado: false },
-  { id: "badge-2", titulo: "Alcancía Llena", descripcion: "Ten 500 Wolfichas Ahorradas", condicion: function() { return wolfichas >= 500; }, completado: false },
-  { id: "badge-3", titulo: "Woof!!", descripcion: "Contrata 1 Clicker Wolfy", condicion: function() { return inventario[3] >= 1; }, completado: false },
-  { id: "badge-4", titulo: "Familia Creciente", descripcion: "Contrata 10 Clicker Wolfy", condicion: function() { return inventario[3] >= 10; }, completado: false },
-  { id: "badge-5", titulo: "Anillo Peludo", descripcion: "Contrata 50 Clicker Wolfy", condicion: function() { return inventario[3] >= 50; }, completado: false },
-  { id: "badge-6", titulo: "Colonia Lupina", descripcion: "Contrata 250 Clicker Wolfies", condicion: function() { return inventario[3] >= 250; }, completado: false },
-  { id: "badge-7", titulo: "Pelurno", descripcion: "¡Alcanza la disparatada cifra de 1,000 Clicker Wolfies!", condicion: function() { return inventario[3] >= 1000; }, completado: false },
-  { id: "badge-8", titulo: "Organización Creciente", descripcion: "Alcanza una producción de 10 WC/s", condicion: function() { return wolfichasPorSegundo >= 10; }, completado: false },
-  { id: "badge-9", titulo: "Fuerza Lupina", descripcion: "Alcanza una producción de 100 WC/s", condicion: function() { return wolfichasPorSegundo >= 100; }, completado: false },
-  { id: "badge-10", titulo: "¿Empresario o Domador? ¿Qué Tal Ambos?", descripcion: "¡Alcanza la colosal cifra de 1,000 WC/s!", condicion: function() { return wolfichasPorSegundo >= 1000; }, completado: false },
-  { id: "badge-11", titulo: "Recolector Casual", descripcion: "Contrata 1 Farmer Wolfy", condicion: function() { return (inventario[6] || 0) >= 1; }, completado: false },
-  { id: "badge-12", titulo: "Hacer Crecer un Jardín", descripcion: "Contrata 10 Farmer Wolfies", condicion: function() { return (inventario[6] || 0) >= 10; }, completado: false },
-  { id: "badge-13", titulo: "Farmeando Wolfichas... Literalmente", descripcion: "Contrata 100 Farmer Wolfies", condicion: function() { return (inventario[6] || 0) >= 100; }, completado: false },
-  { id: "badge-14", titulo: "Trabajo Duro", descripcion: "Contrata 1 Miner Wolfy", condicion: function() { return (inventario[8] || 0) >= 1; }, completado: false },
-  { id: "badge-15", titulo: "Mine Pero Sin Craft", descripcion: "Contrata 5 Miner Wolfies", condicion: function() { return (inventario[8] || 0) >= 5; }, completado: false },
-  { id: "badge-16", titulo: "¡¿Y los Diamantes?!", descripcion: "Contrata 25 Miner Wolfies", condicion: function() { return (inventario[8] || 0) >= 25; }, completado: false },
-  { id: "badge-17", titulo: "Pastelería Lupina", descripcion: "Pastelería a lo lupino, todo amasado a patita... ejem, disculpa. Contrata 1 Baker Wolfy.", condicion: function() { return (inventario[12] || 0) >= 1; }, completado: false },
-  { id: "badge-18", titulo: "Mito Confirmado", descripcion: "Encuentra y atrapa un Huesito de Oro de forma natural", condicion: function() { return false; }, completado: false },
-  { id: "badge-19", titulo: "Olor Creciente A Papel", descripcion: "Será comestible?, quien sabe. Contrata 1 Worker Wolfy y sube tus stonks", condicion: function() { return (inventario[16] || 0) >= 1; }, completado: false },
-  { id: "badge-20", titulo: "Comegalletas Speedrunner", descripcion: "Haz todos los clics de la galleta con un intervalo inferior a 0.7s por clic", condicion: function() { return false; }, completado: false },
-  { id: "badge-21", titulo: "Comida Tramposa", descripcion: "¡¡QUÉ CERCA!! Cómete una galleta con menos de 2s sobrantes", condicion: function() { return false; }, completado: false }
+const nombresMejoras = [
+  "Heavy Click",
+  "Stronger Click",
+  "Super Click",
+  "Clicker Wolfy",
+  "Precise Hits",
+  "Sharp Paws",
+  "Farmer Wolfy",
+  "Mejor Calidad de Hoz",
+  "Miner Wolfy",
+  "Picos Reforzados",
+  "Cooperación Pata-mano",
+  "Picos y Palas [Dúo]",
+  "Baker Wolfy",
+  "Patas Rápidas",
+  "Galletas A Remate",
+  "Mineral Comestible",
+  "Worker Wolfy",
+  "Furpuccino Express",
+  "Asiento Cómodo",
+  "Galletitas Crocantes",
+  "Streamer Wolfy",
+  "Galletitas Con Chocolate",
+  "Taxist Wolfy",
+  "Motor Potenciado",
+  "Galletitas de Vainilla",
+  "Idol Wolfy"
 ];
 
-// --- SISTEMA RITMO IDOL WOLFY ---
-var mapaCanciones = {
+const esMejoraUnica = [
+  true, true, true, false, true, true, false, true, false, true,
+  true, true, false, false, false, true, false, true, true, true,
+  false, true, false, true, true, false
+];
+
+const inventarioDefecto = new Array(26).fill(0);
+let inventario = inventarioDefecto.slice();
+
+const wolfichasProduceDefecto = [
+  0, 0, 0, 0.1, 0, 0, 1, 0, 5, 0,
+  0, 0, 0, 0, 0, 0, 50, 0, 0, 0,
+  200, 0, 500, 0, 0, 1500
+];
+let wolfichasProduce = wolfichasProduceDefecto.slice();
+
+const precioBase = [
+  50, 750, 5500, 10, 500, 200, 150, 500, 800, 2000,
+  3000, 2500, 2000, 5000, 10000, 15000, 30000, 40000, 65000, 9999,
+  120000, 150000, 250000, 350000, 500000, 750000
+];
+
+const precioProductoDefecto = precioBase.slice();
+let precioProducto = precioProductoDefecto.slice();
+
+let probCrit = 0;
+let probSuperCrit = 0;
+let wolfichasPorSegundo = 0;
+let vistaActual = 0; // 0: Streamer Chat, 1: Idol Ritmo
+
+let productorSecuestrado = false;
+let penalizacionWCS = 0;
+
+// ===== LOGROS =====
+const logros = [
+  { id: "badge-1", titulo: "Primer Ahorro", descripcion: "Ten 100 Wolfichas Ahorradas", condicion: () => wolfichas >= 100, completado: false },
+  { id: "badge-2", titulo: "Alcancía Llena", descripcion: "Ten 500 Wolfichas Ahorradas", condicion: () => wolfichas >= 500, completado: false },
+  { id: "badge-3", titulo: "Woof!!", descripcion: "Contrata 1 Clicker Wolfy", condicion: () => (inventario[3] || 0) >= 1, completado: false },
+  { id: "badge-4", titulo: "Familia Creciente", descripcion: "Contrata 10 Clicker Wolfy", condicion: () => (inventario[3] || 0) >= 10, completado: false },
+  { id: "badge-5", titulo: "Anillo Peludo", descripcion: "Contrata 50 Clicker Wolfy", condicion: () => (inventario[3] || 0) >= 50, completado: false },
+  { id: "badge-6", titulo: "Colonia Lupina", descripcion: "Contrata 250 Clicker Wolfies", condicion: () => (inventario[3] || 0) >= 250, completado: false },
+  { id: "badge-7", titulo: "Pelurno", descripcion: "¡Alcanza la disparatada cifra de 1,000 Clicker Wolfies!", condicion: () => (inventario[3] || 0) >= 1000, completado: false },
+  { id: "badge-8", titulo: "Organización Creciente", descripcion: "Alcanza una producción de 10 WC/s", condicion: () => wolfichasPorSegundo >= 10, completado: false },
+  { id: "badge-9", titulo: "Fuerza Lupina", descripcion: "Alcanza una producción de 100 WC/s", condicion: () => wolfichasPorSegundo >= 100, completado: false },
+  { id: "badge-10", titulo: "¿Empresario o Domador? ¿Qué Tal Ambos?", descripcion: "¡Alcanza la colosal cifra de 1,000 WC/s!", condicion: () => wolfichasPorSegundo >= 1000, completado: false },
+  { id: "badge-11", titulo: "Recolector Casual", descripcion: "Contrata 1 Farmer Wolfy", condicion: () => (inventario[6] || 0) >= 1, completado: false },
+  { id: "badge-12", titulo: "Hacer Crecer un Jardín", descripcion: "Contrata 10 Farmer Wolfies", condicion: () => (inventario[6] || 0) >= 10, completado: false },
+  { id: "badge-13", titulo: "Farmeando Wolfichas... Literalmente", descripcion: "Contrata 100 Farmer Wolfies", condicion: () => (inventario[6] || 0) >= 100, completado: false },
+  { id: "badge-14", titulo: "Trabajo Duro", descripcion: "Contrata 1 Miner Wolfy", condicion: () => (inventario[8] || 0) >= 1, completado: false },
+  { id: "badge-15", titulo: "Mine Pero Sin Craft", descripcion: "Contrata 5 Miner Wolfies", condicion: () => (inventario[8] || 0) >= 5, completado: false },
+  { id: "badge-16", titulo: "¡¿Y los Diamantes?!", descripcion: "Contrata 25 Miner Wolfies", condicion: () => (inventario[8] || 0) >= 25, completado: false },
+  { id: "badge-17", titulo: "Pastelería Lupina", descripcion: "Contrata 1 Baker Wolfy.", condicion: () => (inventario[12] || 0) >= 1, completado: false },
+  { id: "badge-18", titulo: "Mito Confirmado", descripcion: "Encuentra y atrapa un Huesito de Oro de forma natural", condicion: () => false, completado: false },
+  { id: "badge-19", titulo: "Olor Creciente A Papel", descripcion: "Contrata 1 Worker Wolfy y sube tus stonks", condicion: () => (inventario[16] || 0) >= 1, completado: false },
+  { id: "badge-20", titulo: "Comegalletas Speedrunner", descripcion: "Haz todos los clics de la galleta con un intervalo inferior a 0.7s por clic", condicion: () => false, completado: false },
+  { id: "badge-21", titulo: "Comida Tramposa", descripcion: "¡¡QUÉ CERCA!! Cómete una galleta con menos de 2s sobrantes", condicion: () => false, completado: false }
+];
+
+// ===== RITMO IDOL WOLFY =====
+const mapaCanciones = {
   swim: {
     archivo: "musica/swim (alternative rock ver).mp3",
     mapaNotas: [
@@ -102,31 +191,41 @@ var mapaCanciones = {
       { tiempo: 5.0, carril: 0 }, { tiempo: 6.2, carril: 1 },
       { tiempo: 7.5, carril: 2 }, { tiempo: 9.0, carril: 3 }
     ]
+  },
+  gam3bo1: {
+    archivo: "musica/gam3_bo1.mp3",
+    mapaNotas: [
+      { tiempo: 0.5, carril: 0 }, { tiempo: 1.0, carril: 1 },
+      { tiempo: 1.5, carril: 2 }, { tiempo: 2.0, carril: 3 },
+      { tiempo: 2.5, carril: 0 }, { tiempo: 3.0, carril: 2 },
+      { tiempo: 3.5, carril: 1 }, { tiempo: 4.0, carril: 3 },
+      { tiempo: 4.5, carril: 0 }, { tiempo: 5.0, carril: 1 },
+      { tiempo: 5.5, carril: 2 }, { tiempo: 6.0, carril: 3 }
+    ]
   }
 };
 
-var cancionSeleccionada = "swim";
-var notasActivas = [];
-var puntajeRitmo = 0;
-var loopRitmoFrame = null;
-var tiempoJuegoRitmo = -3.0;
-var juegoPausado = true;
-var juegoIniciado = false;
-var ultimoTimestamp = 0;
-var audioDisponible = false;
+let cancionSeleccionada = "swim";
+let notasActivas = [];
+let puntajeRitmo = 0;
+let loopRitmoFrame = null;
+let tiempoJuegoRitmo = -3.0;
+let tiempoFinRitmo = 0;
+let juegoPausado = true;
+let juegoIniciado = false;
+let ultimoTimestamp = 0;
+let audioDisponible = false;
 
 const teclasCarriles = {
-  'a': 0, 'A': 0,
-  's': 1, 'S': 1,
-  'd': 2, 'D': 2,
-  'f': 3, 'F': 3
+  "a": 0, "A": 0,
+  "s": 1, "S": 1,
+  "d": 2, "D": 2,
+  "f": 3, "F": 3
 };
 
-// --- VARIABLES GLOBALES ---
-var wolfbytes = 0;
-
-// Definición de la primera colección
-var coleccionConociendoWolfyGo = {
+// ===== COLECCIONES =====
+const coleccionConociendoWolfyGo = {
+  id: "col_1",
   nombre: "Conociendo Wolfy Go",
   completada: false,
   libros: [
@@ -193,10 +292,8 @@ var coleccionConociendoWolfyGo = {
   ]
 };
 
-// --- COLECCIÓN 2: RECETAS MAÑANERAS DELICIOSAS ---
-
-var coleccionRecetasMananeras = {
-  id: "col_recetas_mananeras",
+const coleccionRecetasMananeras = {
+  id: "col_2",
   nombre: "Colección 2: Recetas Mañaneras Deliciosas",
   rewardTema: "Waffles",
   completada: false,
@@ -208,7 +305,8 @@ var coleccionRecetasMananeras = {
       paginasTotales: 5,
       paginasObtenidas: 0,
       rewardWolfbytes: 100,
-      completado: false
+      completado: false,
+      lore: "El desayuno clásico de los lobitos madrugadores. Crujiente, salado y perfectamente equilibrado."
     },
     {
       id: "receta_2",
@@ -217,7 +315,8 @@ var coleccionRecetasMananeras = {
       paginasTotales: 5,
       paginasObtenidas: 0,
       rewardWolfbytes: 100,
-      completado: false
+      completado: false,
+      lore: "Queso derretido, jamón dorado y pan crujiente. Una obra maestra sencilla pero poderosa."
     },
     {
       id: "receta_3",
@@ -226,7 +325,8 @@ var coleccionRecetasMananeras = {
       paginasTotales: 8,
       paginasObtenidas: 0,
       rewardWolfbytes: 350,
-      completado: false
+      completado: false,
+      lore: "Pequeño, intenso y capaz de despertar hasta al Clicker Wolfy más dormilón."
     },
     {
       id: "receta_4",
@@ -235,7 +335,8 @@ var coleccionRecetasMananeras = {
       paginasTotales: 8,
       paginasObtenidas: 0,
       rewardWolfbytes: 350,
-      completado: false
+      completado: false,
+      lore: "La mezcla perfecta entre dulzura y acidez. Wolfy los considera tesoro nacional."
     },
     {
       id: "receta_5",
@@ -244,7 +345,8 @@ var coleccionRecetasMananeras = {
       paginasTotales: 12,
       paginasObtenidas: 0,
       rewardWolfbytes: 1000,
-      completado: false
+      completado: false,
+      lore: "Suaves, dorados y cubiertos de manjar. Se dice que brillan con luz propia al amanecer."
     },
     {
       id: "receta_6",
@@ -253,69 +355,209 @@ var coleccionRecetasMananeras = {
       paginasTotales: 12,
       paginasObtenidas: 0,
       rewardWolfbytes: 1000,
-      completado: false
+      completado: false,
+      lore: "La receta legendaria que desbloquea el tema especial Waffles. Crujientes por fuera, suaves por dentro."
     }
   ]
 };
 
-// Función para verificar si la colección de Recetas fue completada
+let temaRetroDesbloqueado = false;
+let temaRetroEquipado = false;
+
+let temaWafflesDesbloqueado = false;
+let temaWafflesEquipado = false;
+
+let coleccionModalActual = "col_1";
+let cancionGameBoyDesbloqueada = false;
+let paginasRepetidas = 0;
+
+// ===== EASTER EGG FLAGS =====
+let helloworldUsado = false;
+let thekitchenisopenUsado = false;
+let funnyfurrainUsado = false;
+let intothemoonUsado = false;
+let archivesrevealedUsado = false;
+let freewolfycoinsplsUsado = false;
+let streamtimeUsado = false;
+
+// ===== TEMAS VISUALES =====
+function actualizarMultiplicadorFondo() {
+  if (temaRetroEquipado) {
+    multiplicadorFondo = 2.5;
+  } else if (temaWafflesEquipado) {
+    multiplicadorFondo = 3.0;
+  } else {
+    multiplicadorFondo = catalogoFondos[fondoEquipado]?.multiplicador || 1.0;
+  }
+}
+
+function aplicarClasesTema() {
+  document.body.classList.remove(
+    "tema-default",
+    "tema-verde",
+    "tema-amarillo",
+    "tema-azul",
+    "tema-retro",
+    "tema-waffles"
+  );
+
+  if (temaRetroEquipado) {
+    temaWafflesEquipado = false;
+    document.body.classList.add("tema-retro");
+  } else if (temaWafflesEquipado) {
+    document.body.classList.add("tema-waffles");
+  } else {
+    const clases = ["tema-default", "tema-verde", "tema-amarillo", "tema-azul"];
+    document.body.classList.add(clases[fondoEquipado] || "tema-default");
+  }
+
+  document.body.style.backgroundColor = "";
+  actualizarMultiplicadorFondo();
+}
+
+function comprarFondo(indexFondo) {
+  const fondo = catalogoFondos[indexFondo];
+  if (!fondo) return;
+
+  if (fondosComprados[indexFondo]) {
+    fondoEquipado = indexFondo;
+    aplicarClasesTema();
+    alert(`🎨 Fondo "${fondo.nombre}" equipado.`);
+  } else if (wolfilletes >= fondo.costo) {
+    wolfilletes -= fondo.costo;
+    fondosComprados[indexFondo] = true;
+    fondoEquipado = indexFondo;
+    aplicarClasesTema();
+    alert(`🎉 ¡Fondo "${fondo.nombre}" comprado!`);
+  } else {
+    alert(`No tienes suficientes Wolfilletes. Necesitas 💵 ${fondo.costo}.`);
+  }
+
+  guardarJuego();
+  render();
+}
+
+function alternarTemaRetro() {
+  if (!temaRetroDesbloqueado) {
+    alert("🔒 Debes completar la colección 'Conociendo Wolfy Go' para desbloquear el Tema Retro.");
+    return;
+  }
+
+  if (temaRetroEquipado) {
+    temaRetroEquipado = false;
+    if (temaWafflesDesbloqueado) {
+      temaWafflesEquipado = true;
+    }
+    alert("🎨 Has vuelto al tema visual activo.");
+  } else {
+    temaRetroEquipado = true;
+    temaWafflesEquipado = false;
+    alert("🎮 ¡Tema 'Retro Pixel' activado! Multiplicador x2.5 WC aplicado.");
+  }
+
+  aplicarClasesTema();
+  guardarJuego();
+  render();
+}
+
+function desbloquearTemaWaffles() {
+  temaWafflesDesbloqueado = true;
+
+  if (!temaRetroEquipado) {
+    temaWafflesEquipado = true;
+    aplicarClasesTema();
+  }
+
+  console.log("🥞 ¡COLECCIÓN 2 COMPLETADA! Desbloqueaste el Tema Especial 'Waffles'.");
+}
+
 function verificarColeccionRecetas() {
   if (coleccionRecetasMananeras.completada) return;
 
-  let todosCompletados = coleccionRecetasMananeras.libros.every(libro => libro.completado);
+  const todosCompletados = coleccionRecetasMananeras.libros.every(
+    libro => libro.completado || libro.paginasObtenidas >= libro.paginasTotales
+  );
 
   if (todosCompletados) {
     coleccionRecetasMananeras.completada = true;
     desbloquearTemaWaffles();
-    
-    console.log("🥞 ¡COLECCIÓN 2 COMPLETADA! Desbloqueaste el Tema Especial 'Waffles'.");
+    alert("🥞 ¡Has completado la colección Recetas Mañaneras! Tema Waffles desbloqueado.");
   }
 }
 
-// Aplicar estilos del Tema Visual Waffles
-function desbloquearTemaWaffles() {
-  document.body.classList.add("tema-waffles");
+function verificarColeccionCompleta() {
+  const todosCompletados = coleccionConociendoWolfyGo.libros.every(
+    libro => libro.completado || libro.paginasObtenidas >= libro.paginasTotales
+  );
+
+  if (todosCompletados && !coleccionConociendoWolfyGo.completada) {
+    coleccionConociendoWolfyGo.completada = true;
+    temaRetroDesbloqueado = true;
+    temaRetroEquipado = true;
+    temaWafflesEquipado = false;
+    aplicarClasesTema();
+
+    alert(`🎉 ¡COLECCIÓN COMPLETA: ${coleccionConociendoWolfyGo.nombre}!\n\nHas desbloqueado el Tema Especial 'Retro' (x2.5 WC) con estilo PixelArt 👾.`);
+  }
 }
 
-var temaRetroDesbloqueado = false;
-var temaRetroEquipado = false;
+// ===== MODAL LIBROS / COLECCIONES =====
+function obtenerColeccionModal(idColeccion) {
+  if (idColeccion === "col_1") return coleccionConociendoWolfyGo;
+  if (idColeccion === "col_2") return coleccionRecetasMananeras;
+  return null;
+}
 
-var coleccionModalActual = "col_1";
+function cambiarModalTab(tab) {
+  const vistaLibros = $("vista-libros-modal");
+  const vistaTienda = $("vista-tienda-modal");
 
-function cambiarColeccionModal(idColeccion) {
-  coleccionModalActual = idColeccion;
+  const btnCol1 = $("tab-btn-col1");
+  const btnCol2 = $("tab-btn-col2");
+  const btnTienda = $("tab-btn-tienda");
 
-  // Actualizar estilos visuales de las pestañas
-  let botones = document.querySelectorAll(".pestanas-colecciones .btn-pestana");
-  botones.forEach((btn, idx) => {
-    if ((idColeccion === "col_1" && idx === 0) || (idColeccion === "col_2" && idx === 1)) {
-      btn.classList.add("active");
-    } else {
-      btn.classList.remove("active");
-    }
+  if (!vistaLibros || !vistaTienda) return;
+
+  [btnCol1, btnCol2, btnTienda].forEach(btn => {
+    if (btn) btn.classList.remove("active");
   });
 
-  // Renderizar los libros correspondientes
-  renderizarListaLibrosModal();
+  if (tab === "tienda") {
+    vistaLibros.style.display = "none";
+    vistaTienda.style.display = "flex";
+    if (btnTienda) btnTienda.classList.add("active");
+
+    const visorWB = $("visor-wb-modal");
+    if (visorWB) visorWB.innerText = formatNum(wolfbytes);
+  } else {
+    vistaLibros.style.display = "flex";
+    vistaTienda.style.display = "none";
+
+    if (tab === "col_1" && btnCol1) btnCol1.classList.add("active");
+    if (tab === "col_2" && btnCol2) btnCol2.classList.add("active");
+
+    coleccionModalActual = tab;
+    renderizarListaLibrosModal();
+  }
 }
 
 function renderizarListaLibrosModal() {
-  let listaUI = document.getElementById("lista-libros-ui");
+  const listaUI = $("lista-libros-ui");
   if (!listaUI) return;
 
-  // Elegir la fuente de datos
-  let coleccion = (coleccionModalActual === "col_1") 
-    ? coleccionConociendoWolfyGo 
-    : coleccionRecetasMananeras;
+  const coleccion = obtenerColeccionModal(coleccionModalActual);
+  if (!coleccion) return;
 
-  let htmlLibros = coleccion.libros.map((libro, idx) => {
-    let completado = libro.paginasObtenidas >= libro.paginasTotales;
-    let estadoIcono = completado ? "📖" : "🔒";
-    let claseEstado = completado ? "libro-desbloqueado" : "libro-bloqueado";
+  const htmlLibros = coleccion.libros.map((libro, idx) => {
+    const completado = libro.completado || libro.paginasObtenidas >= libro.paginasTotales;
+    const estadoIcono = completado ? "📖" : "🔒";
+    const claseEstado = completado ? "completado" : "";
+    const rarezaClase = normalizarRareza(libro.rareza);
 
     return `
-      <div class="item-lista-libro ${claseEstado}" onclick="verDetalleLibro('${coleccionModalActual}', ${idx})">
+      <div class="item-libro-btn ${claseEstado}" onclick="verDetalleLibro('${coleccionModalActual}', ${idx})">
         <span>${estadoIcono} ${libro.nombre}</span>
+        <span class="badge-rareza rareza-${rarezaClase}">${libro.rareza}</span>
         <small>${libro.paginasObtenidas}/${libro.paginasTotales}</small>
       </div>
     `;
@@ -324,14 +566,176 @@ function renderizarListaLibrosModal() {
   listaUI.innerHTML = htmlLibros;
 }
 
-// ==========================================
-// --- EDIFICIO / MINIJUEGO: GAMER WOLFY ---
-// ==========================================
+function verDetalleLibro(coleccionId, idx) {
+  const coleccion = obtenerColeccionModal(coleccionId);
+  const detalleContainer = $("detalle-libro-ui");
 
-var costoGamerWolfy = 100000;
+  if (!coleccion || !detalleContainer) return;
 
-// Catálogo de Trivias Tramposas de Gamer Wolfy
-var triviasGamerWolfy = [
+  const libro = coleccion.libros[idx];
+  if (!libro) return;
+
+  const completado = libro.completado || libro.paginasObtenidas >= libro.paginasTotales;
+  const rarezaClase = normalizarRareza(libro.rareza);
+
+  if (!completado) {
+    detalleContainer.innerHTML = `
+      <div class="bloqueado-info">
+        <h3>🔒 ${libro.nombre} <span class="badge-rareza rareza-${rarezaClase}">${libro.rareza}</span></h3>
+        <p>Recolecta las <strong>${libro.paginasTotales} páginas</strong> de este libro para desbloquear su lore.</p>
+        <p>Progreso actual: <strong>${libro.paginasObtenidas} / ${libro.paginasTotales}</strong> páginas.</p>
+        <p><small>Recompensa al completar: +${formatNum(libro.rewardWolfbytes)} Wolfbytes 💾</small></p>
+      </div>
+    `;
+  } else {
+    const loreTexto = libro.lore || "Lore pendiente de escritura. Wolfy todavía está investigando esta entrada... 🐺";
+    const textoFormateado = String(loreTexto).replace(/\n/g, "<br>");
+
+    detalleContainer.innerHTML = `
+      <div class="libro-contenido">
+        <h3>📖 ${libro.nombre} <span class="badge-rareza rareza-${rarezaClase}">${libro.rareza}</span></h3>
+        <hr>
+        <p class="lore-texto">${textoFormateado}</p>
+        <hr>
+        <div class="reward-info">
+          💾 Recompensa entregada: <strong>+${formatNum(libro.rewardWolfbytes)} Wolfbytes</strong>
+        </div>
+      </div>
+    `;
+  }
+}
+
+function abrirModalLibros() {
+  const modal = $("modal-libros");
+  if (!modal) return;
+
+  modal.style.display = "flex";
+  cambiarModalTab(coleccionModalActual || "col_1");
+}
+
+function cerrarModalLibros() {
+  const modal = $("modal-libros");
+  if (modal) modal.style.display = "none";
+}
+
+function agregarPaginaLibro(idLibro) {
+  const colecciones = [coleccionConociendoWolfyGo, coleccionRecetasMananeras];
+
+  for (const coleccion of colecciones) {
+    const libro = coleccion.libros.find(l => l.id === idLibro);
+    if (!libro) continue;
+
+    if (!libro.completado && libro.paginasObtenidas < libro.paginasTotales) {
+      libro.paginasObtenidas++;
+
+      if (libro.paginasObtenidas >= libro.paginasTotales) {
+        libro.paginasObtenidas = libro.paginasTotales;
+        libro.completado = true;
+        wolfbytes += libro.rewardWolfbytes;
+        alert(`📖 ¡Libro completado: ${libro.nombre}!\nRecompensa: +${formatNum(libro.rewardWolfbytes)} Wolfbytes 💾`);
+        verificarColeccionCompleta();
+        verificarColeccionRecetas();
+      }
+    }
+
+    break;
+  }
+
+  guardarJuego();
+  render();
+}
+
+// ===== GACHAPON / MERCADO =====
+function abrirPaqueteBasico() {
+  const costo = 500;
+
+  if (wolfbytes < costo) {
+    alert(`❌ Necesitas ${formatNum(costo)} Wolfbytes para abrir un paquete. Tienes: ${formatNum(wolfbytes)} 💾`);
+    return;
+  }
+
+  wolfbytes -= costo;
+
+  const resumen = [];
+  const todosLibros = [
+    ...coleccionConociendoWolfyGo.libros.map(libro => ({ libro, coleccion: coleccionConociendoWolfyGo })),
+    ...coleccionRecetasMananeras.libros.map(libro => ({ libro, coleccion: coleccionRecetasMananeras }))
+  ];
+
+  for (let i = 0; i < 5; i++) {
+    const esGarantizadaNueva = i === 0;
+    const librosConPaginasFaltantes = todosLibros.filter(x => x.libro.paginasObtenidas < x.libro.paginasTotales);
+
+    let elegido = null;
+
+    if (esGarantizadaNueva && librosConPaginasFaltantes.length > 0) {
+      elegido = librosConPaginasFaltantes[Math.floor(Math.random() * librosConPaginasFaltantes.length)];
+    } else {
+      const rand = Math.random() * 100;
+      const rarezaObjetivo = rand < 10 ? "epico" : (rand < 40 ? "raro" : "comun");
+
+      let candidatos = (librosConPaginasFaltantes.length > 0 ? librosConPaginasFaltantes : todosLibros)
+        .filter(x => normalizarRareza(x.libro.rareza) === rarezaObjetivo);
+
+      if (candidatos.length === 0) candidatos = todosLibros;
+
+      elegido = candidatos[Math.floor(Math.random() * candidatos.length)];
+    }
+
+    const libro = elegido.libro;
+
+    if (libro.paginasObtenidas < libro.paginasTotales) {
+      libro.paginasObtenidas++;
+      const etiquetaNueva = esGarantizadaNueva ? "🌟 ¡NUEVA GARANTIZADA!" : "✨ NUEVA";
+      resumen.push(`${etiquetaNueva} -> ${libro.nombre} (${libro.rareza})`);
+
+      if (libro.paginasObtenidas >= libro.paginasTotales) {
+        libro.paginasObtenidas = libro.paginasTotales;
+        libro.completado = true;
+        wolfbytes += libro.rewardWolfbytes;
+        resumen.push(`   🎉 ¡LIBRO COMPLETADO! +${formatNum(libro.rewardWolfbytes)} WB`);
+      }
+    } else {
+      paginasRepetidas++;
+      resumen.push(`🔄 ${libro.nombre} (REPETIDA)`);
+    }
+  }
+
+  let bonoTxt = "";
+  if (paginasRepetidas >= 100) {
+    paginasRepetidas -= 100;
+    wolfbytes += 2000;
+    bonoTxt = `\n\n♻️ ¡ACUMULASTE 100 REPETIDAS! Recibes +2,000 Wolfbytes 💾`;
+  }
+
+  console.log(`[GACHA] Paquete Abierto:\n${resumen.join("\n")}${bonoTxt}`);
+
+  verificarColeccionCompleta();
+  verificarColeccionRecetas();
+  guardarJuego();
+  render();
+}
+
+function convertirWCAWolfbytes(cantidadWB) {
+  const costoPorWB = 10000;
+  const costoTotal = cantidadWB * costoPorWB;
+
+  if (wolfichas >= costoTotal) {
+    wolfichas -= costoTotal;
+    wolfbytes += cantidadWB;
+    console.log(`✅ Conversión exitosa: -${formatNum(costoTotal)} WC ➔ +${cantidadWB} Wolfbyte(s) 💾.`);
+  } else {
+    alert(`❌ Te faltan ${formatNum(costoTotal - wolfichas)} WC para esta conversión.`);
+  }
+
+  guardarJuego();
+  render();
+}
+
+// ===== GAMER WOLFY =====
+const costoGamerWolfy = 100000;
+
+const triviasGamerWolfy = [
   {
     pregunta: "I Forgot The Question...",
     correcta: "Woof Woof",
@@ -341,7 +745,7 @@ var triviasGamerWolfy = [
     pregunta: "Pick The Riight Answer",
     correcta: "The Riight Answer",
     incorrectas: ["The Right Answer", "Idk What You Mean, Bro"],
-    esTrampaLetra: true // Activa la opción especial con letra dinámica
+    esTrampaLetra: true
   },
   {
     pregunta: "How many stars are on the sky?",
@@ -355,23 +759,15 @@ var triviasGamerWolfy = [
   }
 ];
 
-// --- ACTIVADOR GENERAL DE GAMER WOLFY (50% QUIZ / 50% DRAW OF FLAW) ---
-
 function activarGamerWolfy() {
-  // Verificar si tiene saldo suficiente (100,000 WC)
-  let saldoActual = typeof wolfichas !== "undefined" ? wolfichas : (typeof inventario !== "undefined" ? inventario[0] : 0);
-
-  if (saldoActual < costoGamerWolfy) {
-    alert(`❌ Necesitas ${costoGamerWolfy.toLocaleString()} WC para activar el desafío de Gamer Wolfy.`);
+  if (wolfichas < costoGamerWolfy) {
+    alert(`❌ Necesitas ${formatNum(costoGamerWolfy)} WC para activar el desafío de Gamer Wolfy.`);
     return;
   }
 
-  // Cobrar los 100,000 WC antes de elegir el minijuego
-  if (typeof wolfichas !== "undefined") wolfichas -= costoGamerWolfy;
-  else if (typeof inventario !== "undefined") inventario[0] -= costoGamerWolfy;
+  wolfichas -= costoGamerWolfy;
 
-  // Sorteo 50% / 50%
-  let minijuegoElegido = Math.random() < 0.5 ? "QUIZ" : "DRAW_OF_FLAW";
+  const minijuegoElegido = Math.random() < 0.5 ? "QUIZ" : "DRAW_OF_FLAW";
 
   if (minijuegoElegido === "QUIZ") {
     lanzarQuizGamerWolfy();
@@ -379,36 +775,25 @@ function activarGamerWolfy() {
     lanzarDrawOfFlaw();
   }
 
-  if (typeof guardarJuego === "function") guardarJuego();
-  if (typeof render === "function") render();
+  guardarJuego();
+  render();
 }
 
-// --- SISTEMA CORREGIDO Y BLINDADO DE QUIZ ---
-
 function lanzarQuizGamerWolfy() {
-  // Elegir pregunta al azar del catálogo
-  let trivia = triviasGamerWolfy[Math.floor(Math.random() * triviasGamerWolfy.length)];
+  const trivia = triviasGamerWolfy[Math.floor(Math.random() * triviasGamerWolfy.length)];
   let opciones = [];
 
   if (trivia.esTrampaLetra) {
-    // Si es la pregunta trampa, armamos exactamente 4 opciones
-    let letras = ["A", "B", "C", "D"];
-    let falsas = [...trivia.incorrectas]; // 2 opciones incorrectas base
-    opciones = [trivia.correcta, ...falsas];
-    opciones.sort(() => Math.random() - 0.5); // Mezclar las primeras 3
+    opciones = [trivia.correcta, ...trivia.incorrectas];
+    opciones.sort(() => Math.random() - 0.5);
 
-    // Encontrar en qué posición (0 a 2) quedó la respuesta correcta
-    let idxCorrecto = opciones.indexOf(trivia.correcta);
-    
-    // Elegimos una letra de las opciones que NO sea la correcta para el engaño
-    let letrasDisponibles = letras.slice(0, 3).filter((_, idx) => idx !== idxCorrecto);
-    let letraFalsa = letrasDisponibles[Math.floor(Math.random() * letrasDisponibles.length)];
+    const letras = ["A", "B", "C"];
+    const idxCorrecto = opciones.indexOf(trivia.correcta);
+    const letrasFalsas = letras.filter((_, idx) => idx !== idxCorrecto);
+    const letraTrampa = letrasFalsas[Math.floor(Math.random() * letrasFalsas.length)];
 
-    // Insertar la 4ta opción tramposa
-    opciones.push(`It's Not Letter ${letraFalsa}`);
-    opciones.sort(() => Math.random() - 0.5); // Mezcla final de las 4 opciones
+    opciones.push(`It's Not Letter ${letraTrampa}`);
   } else {
-    // Pregunta normal: 1 correcta + 3 incorrectas
     opciones = [trivia.correcta, ...trivia.incorrectas];
     opciones.sort(() => Math.random() - 0.5);
   }
@@ -417,14 +802,12 @@ function lanzarQuizGamerWolfy() {
 }
 
 function lanzarModalTrivia(pregunta, opciones, respuestaCorrecta) {
-  let letras = ["A", "B", "C", "D"];
+  const letras = ["A", "B", "C", "D"];
 
-  let botonesHTML = opciones.map((opcion, idx) => {
-    let letra = letras[idx];
-    
-    // Sanitizar comillas para evitar fallos de sintaxis en el HTML onclick
-    let opcionLimpia = opcion.replace(/'/g, "\\'").replace(/"/g, "&quot;");
-    let correctaLimpia = respuestaCorrecta.replace(/'/g, "\\'").replace(/"/g, "&quot;");
+  const botonesHTML = opciones.map((opcion, idx) => {
+    const letra = letras[idx] || "?";
+    const opcionLimpia = String(opcion).replace(/'/g, "\\'").replace(/"/g, "&quot;");
+    const correctaLimpia = String(respuestaCorrecta).replace(/'/g, "\\'").replace(/"/g, "&quot;");
 
     return `
       <button class="btn-opcion-trivia" onclick="evaluarRespuestaTrivia('${opcionLimpia}', '${correctaLimpia}')">
@@ -433,7 +816,7 @@ function lanzarModalTrivia(pregunta, opciones, respuestaCorrecta) {
     `;
   }).join("");
 
-  let modalHTML = `
+  const modalHTML = `
     <div id="modal-gamer-wolfy" class="modal-overlay">
       <div class="modal-contenido panel-trivia">
         <h2>🎮 Gamer Wolfy Challenge</h2>
@@ -445,41 +828,42 @@ function lanzarModalTrivia(pregunta, opciones, respuestaCorrecta) {
     </div>
   `;
 
-  // Remover modal previo si quedó alguno abierto
-  let modalPrevio = document.getElementById("modal-gamer-wolfy");
+  const modalPrevio = $("modal-gamer-wolfy");
   if (modalPrevio) modalPrevio.remove();
 
-  document.body.insertAdjacentHTML('beforeend', modalHTML);
+  document.body.insertAdjacentHTML("beforeend", modalHTML);
 }
 
 function evaluarRespuestaTrivia(opcionSeleccionada, respuestaCorrecta) {
-  let modal = document.getElementById("modal-gamer-wolfy");
+  const modal = $("modal-gamer-wolfy");
   if (modal) modal.remove();
 
-  // Comparar respuestas ignorando discrepancias de comillas escapadas
-  let seleccion = opcionSeleccionada.replace(/\\'/g, "'");
-  let objetivo = respuestaCorrecta.replace(/\\'/g, "'");
+  const seleccion = String(opcionSeleccionada).replace(/\\'/g, "'");
+  const objetivo = String(respuestaCorrecta).replace(/\\'/g, "'");
 
   if (seleccion === objetivo) {
     darPremioAlAzarGamerWolfy();
   } else {
     alert("❌ ¡Respuesta incorrecta! Gamer Wolfy rompió el mando. ¡Inténtalo de nuevo!");
+    guardarJuego();
+    render();
   }
 }
 
-
-// --- MINIJUEGO B: DRAW OF FLAW (REFLEJOS EN ROJO) ---
-var tiempoInicioRojo = 0;
-var timerEspera = null;
-var timerLimite = null;
+let tiempoInicioRojo = 0;
+let timerEspera = null;
+let timerLimite = null;
 
 function lanzarDrawOfFlaw() {
-  let modalHTML = `
+  clearTimeout(timerEspera);
+  clearTimeout(timerLimite);
+
+  const modalHTML = `
     <div id="modal-reflejos" class="modal-overlay">
       <div class="modal-contenido panel-trivia">
         <h2>⚡ Gamer Wolfy: Draw Of Flaw</h2>
         <p>Haz clic en el cuadrado EN CUANTO SE PONGA ROJO.<br><small>¡Tienes menos de 2 segundos!</small></p>
-        
+
         <div id="cuadrado-reflejos" class="cuadrado-espera" onclick="procesarClicReflejo()">
           PREPÁRATE...
         </div>
@@ -487,12 +871,12 @@ function lanzarDrawOfFlaw() {
     </div>
   `;
 
-  document.body.insertAdjacentHTML('beforeend', modalHTML);
+  document.body.insertAdjacentHTML("beforeend", modalHTML);
 
-  let tiempoEspera = 1500 + Math.random() * 2500;
+  const tiempoEspera = 1500 + Math.random() * 2500;
 
   timerEspera = setTimeout(() => {
-    let cuadrado = document.getElementById("cuadrado-reflejos");
+    const cuadrado = $("cuadrado-reflejos");
     if (cuadrado) {
       cuadrado.className = "cuadrado-rojo";
       cuadrado.innerText = "¡¡¡DRAW!!!";
@@ -506,7 +890,7 @@ function lanzarDrawOfFlaw() {
 }
 
 function procesarClicReflejo() {
-  let cuadrado = document.getElementById("cuadrado-reflejos");
+  const cuadrado = $("cuadrado-reflejos");
   if (!cuadrado) return;
 
   if (cuadrado.classList.contains("cuadrado-espera")) {
@@ -514,13 +898,13 @@ function procesarClicReflejo() {
     finalizarMinijuegoReflejos(false, "❌ ¡Disparaste/clicaste antes de tiempo!");
   } else if (cuadrado.classList.contains("cuadrado-rojo")) {
     clearTimeout(timerLimite);
-    let msReaccion = Date.now() - tiempoInicioRojo;
+    const msReaccion = Date.now() - tiempoInicioRojo;
     finalizarMinijuegoReflejos(true, `⚡ ¡Draw impecable! Tiempo de reacción: ${msReaccion} ms.`);
   }
 }
 
 function finalizarMinijuegoReflejos(exito, mensaje) {
-  let modal = document.getElementById("modal-reflejos");
+  const modal = $("modal-reflejos");
   if (modal) modal.remove();
 
   if (exito) {
@@ -528,553 +912,343 @@ function finalizarMinijuegoReflejos(exito, mensaje) {
     darPremioAlAzarGamerWolfy();
   } else {
     alert(mensaje + "\n¡Gamer Wolfy te ganó esta ronda!");
-  }
-
-  if (typeof guardarJuego === "function") guardarJuego();
-  if (typeof render === "function") render();
-}
-
-// --- SISTEMA DE PREMIOS REVISED PARA GAMER WOLFY ---
-
-var cancionGameBoyDesbloqueada = false;
-
-function darPremioAlAzarGamerWolfy() {
-  let rand = Math.random() * 100; // Número entre 0 y 100
-  let baseWC = 100000; // Siempre recupera sus 100k WC
-  let mensaje = "";
-
-  if (rand < 50) {
-    // 50% Probabilidad: 100k WC + (1,000 a 899,999 WC extra)
-    let wcBonus = 1000 + Math.floor(Math.random() * 899000);
-    let totalWC = baseWC + wcBonus;
-
-    if (typeof wolfichas !== "undefined") wolfichas += totalWC;
-    else if (typeof inventario !== "undefined") inventario[0] += totalWC;
-
-    mensaje = `🎉 ¡CORRECTO!\nRecuperas tus 100,000 WC y ganas +${wcBonus.toLocaleString()} WC extra.\n(Total ganado: ${totalWC.toLocaleString()} WC)`;
-
-  } else if (rand < 80) {
-    // 30% Probabilidad: 100k WC + (10 a 50 Wolfilletes)
-    let wolfilletesGanados = 10 + Math.floor(Math.random() * 41);
-
-    if (typeof wolfichas !== "undefined") wolfichas += baseWC;
-    else if (typeof inventario !== "undefined") inventario[0] += baseWC;
-
-    if (typeof wolfilletes !== "undefined") wolfilletes += wolfilletesGanados;
-
-    mensaje = `💵 ¡CORRECTO!\nRecuperas tus 100,000 WC y ganas +${wolfilletesGanados} Wolfilletes.`;
-
-  } else if (rand < 95) {
-    // 15% Probabilidad: 100k WC + (100 a 10,000 Wolfbytes)
-    let wbGanados = 100 + Math.floor(Math.random() * 9901);
-
-    if (typeof wolfichas !== "undefined") wolfichas += baseWC;
-    else if (typeof inventario !== "undefined") inventario[0] += baseWC;
-
-    if (typeof wolfbytes !== "undefined") wolfbytes += wbGanados;
-
-    mensaje = `💾 ¡CORRECTO!\nRecuperas tus 100,000 WC y ganas +${wbGanados.toLocaleString()} Wolfbytes.`;
-
-  } else {
-    // 5% Probabilidad (MÁS RARO): 100k WC + Canción Especial "GAM3 BO1"
-    if (typeof wolfichas !== "undefined") wolfichas += baseWC;
-    else if (typeof inventario !== "undefined") inventario[0] += baseWC;
-
-    cancionGameBoyDesbloqueada = true;
-
-    mensaje = `👑 ¡JACKPOT LEGENDARIO!\nRecuperas tus 100,000 WC y has desbloqueado la Canción Especial: 🎵 "GAM3 BO1" para la Gramola / Reproductor.`;
-  }
-
-  alert(mensaje);
-  if (typeof guardarJuego === "function") guardarJuego();
-  if (typeof render === "function") render();
-}
-
-var paginasRepetidas = 0;
-
-function abrirPaqueteBasico() {
-  let costo = 500;
-  if (wolfbytes < costo) {
-    console.warn(`[GACHA] Wolfbytes insuficientes. Tienes: ${wolfbytes} / Requeridos: ${costo}`);
-    return;
-  }
-
-  wolfbytes -= costo;
-  let resumen = [];
-
-  // Obtener únicamente los primeros 6 libros
-  let primeros6Libros = coleccionConociendoWolfyGo.libros.slice(0, 6);
-
-  for (let i = 0; i < 5; i++) {
-    let esGarantizadaNueva = (i === 0); // La primera carta (slot 0) tiene la regla de ser nueva
-    let libroSeleccionado = null;
-
-    // Filtrar libros que aún tengan páginas FALTANTES
-    let librosConPaginasFaltantes = primeros6Libros.filter(l => l.paginasObtenidas < l.paginasTotales);
-
-    // SI estamos en el slot garantizado Y aún quedan páginas por descubrir:
-    if (esGarantizadaNueva && librosConPaginasFaltantes.length > 0) {
-      // Elegimos un libro al azar que TENGA páginas pendientes
-      libroSeleccionado = librosConPaginasFaltantes[Math.floor(Math.random() * librosConPaginasFaltantes.length)];
-    } else {
-      // Para las otras 4 cartas (o si ya completó todo), usamos la probabilidad de rareza habitual
-      let rand = Math.random() * 100;
-      let rareza = rand < 10 ? "Épico" : (rand < 40 ? "Raro" : "Común");
-
-      let candidatos = primeros6Libros.filter(l => l.rareza === rareza);
-      if (candidatos.length === 0) candidatos = primeros6Libros;
-
-      libroSeleccionado = candidatos[Math.floor(Math.random() * candidatos.length)];
-    }
-
-    // --- PROCESAR LA PÁGINA OBTENIDA ---
-    if (libroSeleccionado.paginasObtenidas < libroSeleccionado.paginasTotales) {
-      libroSeleccionado.paginasObtenidas++;
-      let etiquetaNueva = esGarantizadaNueva ? "🌟 ¡NUEVA GARANTIZADA!" : "✨ NUEVA";
-      resumen.push(`${etiquetaNueva} -> ${libroSeleccionado.nombre} (${libroSeleccionado.rareza})`);
-
-      if (libroSeleccionado.paginasObtenidas >= libroSeleccionado.paginasTotales) {
-        libroSeleccionado.completado = true;
-        wolfbytes += libroSeleccionado.rewardWolfbytes;
-        resumen.push(`   🎉 ¡LIBRO COMPLETADO! +${libroSeleccionado.rewardWolfbytes} WB`);
-      }
-    } else {
-      // Si ya estaba lleno este libro en particular, cuenta como repetida
-      paginasRepetidas++;
-      resumen.push(`🔄 ${libroSeleccionado.nombre} (REPETIDA)`);
-    }
-  }
-
-  // --- REGLA DE RECICLAJE (BONO POR 100 REPETIDAS) ---
-  let bonoTxt = "";
-  if (paginasRepetidas >= 100) {
-    paginasRepetidas -= 100;
-    wolfbytes += 2000;
-    bonoTxt = "\n\n♻️ ¡ACUMULASTE 100 REPETIDAS! Recibes +2,000 Wolfbytes 💾";
-  }
-
-  // Registrar en consola para no molestar con alertas continuas
-  console.log(`[GACHA] Paquete Abierto:\n` + resumen.join("\n"));
-
-  if (typeof verificarColeccionCompleta === "function") verificarColeccionCompleta();
-  if (typeof guardarJuego === "function") guardarJuego();
-  if (typeof render === "function") render();
-}
-
-function convertirWCAWolfbytes(cantidadWB) {
-  let costoPorWB = 10000;
-  let costoTotal = cantidadWB * costoPorWB;
-
-  let saldoWC = typeof wolfichas !== "undefined" ? wolfichas : (typeof inventario !== "undefined" ? inventario[0] : 0);
-
-  if (saldoWC >= costoTotal) {
-    if (typeof wolfichas !== "undefined") wolfichas -= costoTotal;
-    else if (typeof inventario !== "undefined") inventario[0] -= costoTotal;
-
-    wolfbytes += cantidadWB;
-    console.log(`✅ Conversión exitosa: -${costoTotal.toLocaleString()} WC ➔ +${cantidadWB} Wolfbyte(s) 💾.`);
-  } else {
-    alert(`❌ Te faltan ${(costoTotal - saldoWC).toLocaleString()} WC para esta conversión.`);
-  }
-
-  if (typeof guardarJuego === "function") guardarJuego();
-  if (typeof render === "function") render();
-}
-
-// --- FUNCIONES DE APERTURA DE MODAL ---
-function abrirModalLibros() {
-  let modal = document.getElementById("modal-libros");
-  if (modal) {
-    modal.style.display = "flex";
-    renderizarListaLibrosUI();
-  }
-}
-
-function cerrarModalLibros() {
-  let modal = document.getElementById("modal-libros");
-  if (modal) modal.style.display = "none";
-}
-
-// --- RENDERIZADO DEL MENÚ DE COLECCIONES ---
-
-function verDetalleLibro(idLibro) {
-  let libro = coleccionConociendoWolfyGo.libros.find(l => l.id === idLibro);
-  let detalleContainer = document.getElementById("detalle-libro-ui");
-  if (!libro || !detalleContainer) return;
-
-  if (!libro.completado) {
-    detalleContainer.innerHTML = `
-      <div class="bloqueado-info">
-        <h3>🔒 ${libro.nombre} (${libro.rareza})</h3>
-        <p>Recolecta las <strong>${libro.paginasTotales} páginas</strong> de este libro para desbloquear su lore.</p>
-        <p>Progreso actual: <strong>${libro.paginasObtenidas} / ${libro.paginasTotales}</strong> páginas.</p>
-      </div>
-    `;
-  } else {
-    let textoFormateado = libro.lore.replace(/\n/g, "<br>");
-    detalleContainer.innerHTML = `
-      <div class="libro-contenido">
-        <h3>📖 ${libro.nombre} <span class="badge-rareza rareza-${libro.rareza.toLowerCase()}">${libro.rareza}</span></h3>
-        <hr>
-        <p class="lore-texto">${textoFormateado}</p>
-        <hr>
-        <div class="reward-info">💾 Recompensa entregada: <strong>+${libro.rewardWolfbytes} Wolfbytes</strong></div>
-      </div>
-    `;
-  }
-}
-
-// --- FUNCIÓN PARA AGREGAR PÁGINAS Y ENTREGAR RECOMPENSAS ---
-function agregarPaginaLibro(idLibro) {
-  let libro = coleccionConociendoWolfyGo.libros.find(l => l.id === idLibro);
-  if (libro && !libro.completado) {
-    libro.paginasObtenidas++;
-
-    if (libro.paginasObtenidas >= libro.paginasTotales) {
-      libro.paginasObtenidas = libro.paginasTotales;
-      libro.completado = true;
-      
-      wolfbytes += libro.rewardWolfbytes;
-      alert(`📖 ¡Libro completado: ${libro.nombre}!\nRecompensa: +${libro.rewardWolfbytes} Wolfbytes 💾`);
-      
-      verificarColeccionCompleta();
-    }
-  }
-  if (typeof guardarJuego === "function") guardarJuego();
-  if (typeof render === "function") render();
-}
-
-function alternarTemaRetro() {
-  if (!temaRetroDesbloqueado) {
-    alert("🔒 Debes completar la colección 'Conociendo Wolfy Go' para desbloquear el Tema Retro.");
-    return;
-  }
-
-  temaRetroEquipado = !temaRetroEquipado;
-
-  if (temaRetroEquipado) {
-    // Aplicar la clase Retro y fijar el multiplicador
-    document.body.classList.add("tema-retro");
-    multiplicadorFondo = 2.5; 
-    alert("🎮 ¡Tema 'Retro Pixel' activado! Multiplicador x2.5 WC aplicado.");
-  } else {
-    // Remover la clase Retro y volver al multiplicador base o anterior
-    document.body.classList.remove("tema-retro");
-    multiplicadorFondo = 1.0; 
-    alert("🎨 Has vuelto al tema por defecto.");
-  }
-
-  if (typeof guardarJuego === "function") guardarJuego();
-  if (typeof render === "function") render();
-}
-
-function verificarColeccionCompleta() {
-  let todosCompletados = coleccionConociendoWolfyGo.libros.every(l => l.completado);
-
-  if (todosCompletados && !coleccionConociendoWolfyGo.completada) {
-    coleccionConociendoWolfyGo.completada = true;
-    temaRetroDesbloqueado = true;
-    
-    // Activa automáticamente el tema al ganar
-    alternarTemaRetro();
-
-    alert(`🎉 ¡COLECCIÓN COMPLETA: ${coleccionConociendoWolfyGo.nombre}!\n\nHas desbloqueado el Tema Especial 'Retro' (x2.5 WC) con estilo PixelArt 👾.`);
-  }
-}
-
-// --- FUNCIONES INTERACTIVAS Y UI ---
-function clic() {
-  let bonoCooperacion = 0;
-  if (inventario[10] > 0) {
-    bonoCooperacion = inventario[3] * 0.1;
-  }
-  wolfichas += (wolfichasPorClic + bonoCooperacion) * multiplicadorFondo;
-  guardarJuego();
-}
-
-function comprar(objeto) {
-  if (esMejoraUnica[objeto] && inventario[objeto] > 0) return;
-
-  if (wolfichas >= precioProducto[objeto]) {
-    wolfichas -= precioProducto[objeto];
-    inventario[objeto]++;
-
-    if (objeto <= 2) wolfichasPorClic *= 2;
-    if (objeto === 4) probCrit = 15;
-    if (objeto === 5) wolfichasProduce[3] += 0.1;
-    if (objeto === 7) wolfichasProduce[6] *= 2;
-    if (objeto === 9) wolfichasProduce[8] *= 2;
-    if (objeto === 17) wolfichasProduce[16] *= 2;
-    if (objeto === 18) wolfichasProduce[16] *= 2;
-
-    if (objeto === 19) {
-      mejoraGalleta.comprado = true;
-      if (typeof iniciarLoopGalletas === "function") iniciarLoopGalletas();
-      if (typeof aparecerGalletitaCrocante === "function") aparecerGalletitaCrocante();
-    }
-
-    if (objeto === 20 && inventario[20] === 1) {
-      iniciarChatStreamer();
-    }
-
-    if (objeto === 24) {
-      wolfichasProduce[22] *= 2;
-    }
-
-    if (!esMejoraUnica[objeto]) {
-      precioProducto[objeto] = precioBase[objeto] * (1 + 0.15 * inventario[objeto]);
-    }
-
-    if (objeto === 13 && (inventario[13] || 0) >= 16) {
-      alert("¡Tus patitas ya no pueden amasar más rápido! (Mínimo de 2s alcanzado)");
-    }
-
     guardarJuego();
     render();
   }
 }
 
-// --- LÓGICA DE JUEGO DE RITMO ---
-function seleccionarCancion(clave) {
-  cancionSeleccionada = clave;
-  let audio = document.getElementById("audio-player");
-  if (audio) {
-    audio.src = mapaCanciones[clave].archivo;
+function darPremioAlAzarGamerWolfy() {
+  const rand = Math.random() * 100;
+  const baseWC = 100000;
+  let mensaje = "";
+
+  if (rand < 50) {
+    const wcBonus = 1000 + Math.floor(Math.random() * 899000);
+    const totalWC = baseWC + wcBonus;
+    wolfichas += totalWC;
+
+    mensaje = `🎉 ¡CORRECTO!\nRecuperas tus 100,000 WC y ganas +${formatNum(wcBonus)} WC extra.\n(Total ganado: ${formatNum(totalWC)} WC)`;
+  } else if (rand < 80) {
+    const wolfilletesGanados = 10 + Math.floor(Math.random() * 41);
+    wolfichas += baseWC;
+    wolfilletes += wolfilletesGanados;
+
+    mensaje = `💵 ¡CORRECTO!\nRecuperas tus 100,000 WC y ganas +${wolfilletesGanados} Wolfilletes.`;
+  } else if (rand < 95) {
+    const wbGanados = 100 + Math.floor(Math.random() * 9901);
+    wolfichas += baseWC;
+    wolfbytes += wbGanados;
+
+    mensaje = `💾 ¡CORRECTO!\nRecuperas tus 100,000 WC y ganas +${formatNum(wbGanados)} Wolfbytes.`;
+  } else {
+    wolfichas += baseWC;
+    cancionGameBoyDesbloqueada = true;
+    actualizarSelectorCanciones();
+
+    mensaje = `👑 ¡JACKPOT LEGENDARIO!\nRecuperas tus 100,000 WC y has desbloqueado la Canción Especial: 🎵 "GAM3 BO1" para la Gramola / Reproductor.`;
   }
+
+  alert(mensaje);
+  guardarJuego();
+  render();
 }
 
-function iniciarCancionRitmo() {
-  if ((inventario[25] || 0) <= 0) {
-    alert("🎤 ¡Necesitas contratar al menos 1 Idol Wolfy en la tienda para jugar!");
+// ===== TIENDA / COMPRAS =====
+function comprar(objeto) {
+  if (objeto < 0 || objeto >= 26) return;
+
+  if (esMejoraUnica[objeto] && inventario[objeto] > 0) return;
+
+  if (objeto === 13 && inventario[13] >= 16) {
+    alert("¡Tus patitas ya no pueden amasar más rápido! (Mínimo de 2s alcanzado)");
     return;
   }
 
-  let audio = document.getElementById("audio-player");
-  document.querySelectorAll('.nota-ritmo').forEach(n => n.remove());
+  const costo = precioProducto[objeto];
+  if (wolfichas < costo) return;
 
-  audioDisponible = false;
-  if (audio) {
-    audio.pause();
-    audio.src = mapaCanciones[cancionSeleccionada].archivo;
-    audio.currentTime = 0;
+  wolfichas -= costo;
+  inventario[objeto]++;
 
-    audio.oncanplaythrough = function() {
-      audioDisponible = true;
-    };
-    audio.onerror = function() {
-      audioDisponible = false;
-      console.warn("⚠️ No se pudo cargar el audio MP3. El juego correrá en modo silencioso.");
-    };
-    audio.load();
-  }
+  switch (objeto) {
+    case 0:
+    case 1:
+    case 2:
+      wolfichasPorClic *= 2;
+      break;
 
-  notasActivas = mapaCanciones[cancionSeleccionada].mapaNotas.map(nota => ({
-    tiempo: nota.tiempo,
-    carril: nota.carril,
-    impactado: false,
-    elementoHTML: null
-  }));
+    case 4:
+      probCrit = 15;
+      break;
 
-  puntajeRitmo = 0;
-  tiempoJuegoRitmo = -3.0;
-  juegoPausado = false;
-  juegoIniciado = true;
-  ultimoTimestamp = performance.now();
+    case 5:
+      wolfichasProduce[3] *= 1.5;
+      break;
 
-  if (loopRitmoFrame) cancelAnimationFrame(loopRitmoFrame);
-  actualizarBucleRitmo();
-}
+    case 7:
+      wolfichasProduce[6] *= 2;
+      break;
 
-function actualizarBucleRitmo() {
-  if (juegoPausado || !juegoIniciado) return;
+    case 9:
+      wolfichasProduce[8] *= 2;
+      break;
 
-  let ahora = performance.now();
-  let delta = (ahora - ultimoTimestamp) / 1000;
-  ultimoTimestamp = ahora;
+    case 11:
+      wolfichasProduce[6] *= 1.25;
+      wolfichasProduce[8] *= 1.25;
+      break;
 
-  let audio = document.getElementById("audio-player");
+    case 17:
+      wolfichasProduce[16] *= 2;
+      break;
 
-  if (tiempoJuegoRitmo < 0) {
-    tiempoJuegoRitmo += delta;
-    actualizarFeedbackRitmo(`⏳ Preparado... ${Math.abs(tiempoJuegoRitmo).toFixed(1)}s`);
+    case 18:
+      wolfichasProduce[16] *= 2;
+      break;
 
-    if (tiempoJuegoRitmo >= 0) {
-      tiempoJuegoRitmo = 0;
-      if (audio && audioDisponible) {
-        audio.currentTime = 0;
-        audio.play().catch(e => {
-          console.warn("Autoplay bloqueado por el navegador.");
-          audioDisponible = false;
-        });
+    case 19:
+      mejoraGalleta.comprado = true;
+      iniciarLoopGalletas();
+      break;
+
+    case 20:
+      if (inventario[20] === 1) {
+        iniciarChatStreamer();
       }
-    }
-  } else {
-    if (audio && audioDisponible && !audio.paused && !audio.ended) {
-      tiempoJuegoRitmo = audio.currentTime;
-    } else {
-      tiempoJuegoRitmo += delta;
-    }
-    actualizarFeedbackRitmo("🎶 ¡A JUGAR!");
+      break;
+
+    case 23:
+      wolfichasProduce[22] *= 1.5;
+      break;
+
+    case 24:
+      wolfichasProduce[22] *= 2;
+      break;
   }
 
-  notasActivas.forEach(nota => {
-    let diferencia = nota.tiempo - tiempoJuegoRitmo;
-
-    if (diferencia <= 1.5 && diferencia >= -0.3 && !nota.impactado) {
-      if (!nota.elementoHTML) {
-        let carrilElem = document.getElementById(`carril-${nota.carril}`);
-        if (carrilElem) {
-          let el = document.createElement("div");
-          el.className = "nota-ritmo";
-          carrilElem.appendChild(el);
-          nota.elementoHTML = el;
-        }
-      }
-
-      let porcentajePos = (1 - (diferencia / 1.5)) * 160;
-      if (nota.elementoHTML) {
-        nota.elementoHTML.style.top = porcentajePos + "px";
-      }
-    } else if (diferencia < -0.3 && nota.elementoHTML) {
-      nota.elementoHTML.remove();
-      nota.elementoHTML = null;
-    }
-  });
-
-  loopRitmoFrame = requestAnimationFrame(actualizarBucleRitmo);
-}
-
-function pausarCancionRitmo() {
-  if (juegoPausado || !juegoIniciado) return;
-  juegoPausado = true;
-  let audio = document.getElementById("audio-player");
-  if (audio && !audio.paused) audio.pause();
-  if (loopRitmoFrame) cancelAnimationFrame(loopRitmoFrame);
-  actualizarFeedbackRitmo("Juego en Pausa ⏸️");
-}
-
-function continuarCancionRitmo() {
-  if (!juegoPausado || !juegoIniciado) return;
-  juegoPausado = false;
-  ultimoTimestamp = performance.now();
-  let audio = document.getElementById("audio-player");
-  if (tiempoJuegoRitmo >= 0 && audio && audioDisponible && audio.paused) {
-    audio.play().catch(e => console.warn("Error al reanudar audio"));
-  }
-  if (loopRitmoFrame) cancelAnimationFrame(loopRitmoFrame);
-  actualizarBucleRitmo();
-}
-
-function reiniciarCancionRitmo() {
-  juegoPausado = true;
-  juegoIniciado = false;
-  let audio = document.getElementById("audio-player");
-  if (audio) {
-    audio.pause();
-    audio.currentTime = 0;
-  }
-  if (loopRitmoFrame) cancelAnimationFrame(loopRitmoFrame);
-  tiempoJuegoRitmo = -3.0;
-  document.querySelectorAll('.nota-ritmo').forEach(n => n.remove());
-
-  notasActivas = mapaCanciones[cancionSeleccionada].mapaNotas.map(nota => ({
-    tiempo: nota.tiempo,
-    carril: nota.carril,
-    impactado: false,
-    elementoHTML: null
-  }));
-
-  puntajeRitmo = 0;
-  actualizarFeedbackRitmo("Canción reiniciada 🔄. Haz clic en Iniciar.");
-}
-
-function presionarCarril(carril) {
-  let audio = document.getElementById("audio-player");
-  if (!audio || audio.paused) return;
-
-  let tActual = audio.currentTime;
-  let acierto = false;
-
-  notasActivas.forEach(nota => {
-    if (!nota.impactado && nota.carril === carril) {
-      let diff = Math.abs(nota.tiempo - tActual);
-      if (diff <= 0.35) {
-        nota.impactado = true;
-        acierto = true;
-
-        let bonoWC = 1000 * (inventario[25] || 1);
-        wolfichas += bonoWC;
-        puntajeRitmo += 100;
-
-        if (nota.elementoHTML) {
-          nota.elementoHTML.remove();
-          nota.elementoHTML = null;
-        }
-
-        actualizarFeedbackRitmo(`¡HIT! +${bonoWC} WC 🎵`);
-      }
-    }
-  });
-
-  if (!acierto) {
-    actualizarFeedbackRitmo("¡MISS!");
-  }
-}
-
-function actualizarFeedbackRitmo(msg) {
-  let fb = document.getElementById("feedback-ritmo");
-  if (fb) fb.innerText = `${msg} | Puntaje: ${puntajeRitmo}`;
-}
-
-// --- FONDOS Y TEMAS ---
-function aplicarTemaVisual(indexFondo) {
-  document.body.classList.remove('tema-default', 'tema-verde', 'tema-amarillo', 'tema-azul');
-  
-  if (indexFondo === 1) document.body.classList.add('tema-verde');
-  else if (indexFondo === 2) document.body.classList.add('tema-amarillo');
-  else if (indexFondo === 3) document.body.classList.add('tema-azul');
-  else document.body.classList.add('tema-default');
-
-  if (catalogoFondos[indexFondo]) {
-    document.body.style.backgroundColor = catalogoFondos[indexFondo].color;
-  }
-}
-
-function comprarFondo(indexFondo) {
-  let fondo = catalogoFondos[indexFondo];
-  if (!fondo) return;
-
-  if (fondosComprados[indexFondo]) {
-    fondoEquipado = indexFondo;
-    multiplicadorFondo = fondo.multiplicador;
-    aplicarTemaVisual(indexFondo);
-    alert(`🎨 Fondo "${fondo.nombre}" equipado.`);
-  } else if (wolfilletes >= fondo.costo) {
-    wolfilletes -= fondo.costo;
-    fondosComprados[indexFondo] = true;
-    fondoEquipado = indexFondo;
-    multiplicadorFondo = fondo.multiplicador;
-    aplicarTemaVisual(indexFondo);
-    alert(`🎉 ¡Fondo "${fondo.nombre}" comprado!`);
-  } else {
-    alert(`No tienes suficientes Wolfilletes. Necesitas 💵 ${fondo.costo}.`);
+  if (!esMejoraUnica[objeto]) {
+    precioProducto[objeto] = precioBase[objeto] * (1 + 0.15 * inventario[objeto]);
   }
 
   guardarJuego();
   render();
 }
 
+function actualizarTiendaUI() {
+  for (let i = 0; i < 26; i++) {
+    const btn = $(`btn-${i}`);
+    if (!btn) continue;
+
+    const nombre = nombresMejoras[i] || `Mejora ${i}`;
+    const costo = Math.ceil(precioProducto[i] || 0);
+    const cantidad = inventario[i] || 0;
+
+    if (esMejoraUnica[i]) {
+      if (cantidad > 0) {
+        btn.textContent = `${nombre} ✔`;
+        btn.disabled = true;
+      } else {
+        btn.textContent = `${nombre} - ${formatNum(costo)} WC`;
+        btn.disabled = wolfichas < costo;
+      }
+    } else {
+      btn.textContent = `${nombre} x${cantidad} - ${formatNum(costo)} WC`;
+      btn.disabled = wolfichas < costo || (i === 13 && cantidad >= 16);
+    }
+  }
+
+  for (let i = 0; i < catalogoFondos.length; i++) {
+    const btn = $(`btn-fondo-${i}`);
+    if (!btn) continue;
+
+    const fondo = catalogoFondos[i];
+    const comprado = fondosComprados[i];
+
+    if (comprado && fondoEquipado === i && !temaRetroEquipado && !temaWafflesEquipado) {
+      btn.textContent = `✔ ${fondo.nombre} (x${fondo.multiplicador})`;
+      btn.disabled = false;
+    } else if (comprado) {
+      btn.textContent = `${fondo.nombre} (x${fondo.multiplicador}) - Equipar`;
+      btn.disabled = false;
+    } else {
+      btn.textContent = `${fondo.nombre} (x${fondo.multiplicador}) - 💵 ${fondo.costo}`;
+      btn.disabled = wolfilletes < fondo.costo;
+    }
+  }
+
+  const btnRetro = $("btn-toggle-retro");
+  if (btnRetro) {
+    if (!temaRetroDesbloqueado) {
+      btnRetro.textContent = "👾 Tema Retro Bloqueado";
+      btnRetro.disabled = true;
+    } else if (temaRetroEquipado) {
+      btnRetro.textContent = "👾 Retro Equipado (x2.5 WC)";
+      btnRetro.disabled = false;
+    } else {
+      btnRetro.textContent = "👾 Activar Tema Retro (x2.5 WC)";
+      btnRetro.disabled = false;
+    }
+  }
+
+  const btnGamer = document.querySelector(".btn-gamer-wolfy");
+  if (btnGamer) {
+    btnGamer.disabled = wolfichas < costoGamerWolfy;
+  }
+}
+
+// ===== ECONOMÍA / CLIC / PRODUCCIÓN =====
 function girarRuleta() {
-  let dado = Math.random() * 100;
+  const dado = Math.random() * 100;
   if (dado < probSuperCrit) return 10;
-  if (dado < probCrit)      return 2;
+  if (dado < probCrit) return 2;
   return 1;
 }
 
-// --- QTE GALLETA CROCANTE ---
+function clic() {
+  let base = wolfichasPorClic;
+
+  if ((inventario[10] || 0) > 0) {
+    base += (inventario[3] || 0) * 0.1;
+  }
+
+  let ganancia = base * multiplicadorFondo * multiplicadorGalleta * multiplicadorHueso;
+  const multiplo = girarRuleta();
+
+  if (multiplo > 1) {
+    ganancia *= multiplo;
+  }
+
+  wolfichas += ganancia;
+
+  const etiqueta = multiplo > 1 ? `¡CRÍTICO x${multiplo}! +${ganancia.toFixed(1)}` : null;
+  mostrarCantidadFlotante(ganancia, true, etiqueta);
+}
+
+function aplicarBuffGalleta(segundos, multiplicador) {
+  if (timerBuffGalleta) {
+    clearInterval(timerBuffGalleta);
+    timerBuffGalleta = null;
+  }
+
+  duracionBuffGalleta = Math.max(0, Math.floor(segundos));
+  multiplicadorGalleta = Math.max(1, num(multiplicador, 1));
+
+  if (duracionBuffGalleta <= 0) {
+    multiplicadorGalleta = 1;
+    return;
+  }
+
+  timerBuffGalleta = setInterval(() => {
+    duracionBuffGalleta--;
+
+    if (duracionBuffGalleta <= 0) {
+      multiplicadorGalleta = 1;
+      duracionBuffGalleta = 0;
+      clearInterval(timerBuffGalleta);
+      timerBuffGalleta = null;
+    }
+  }, 1000);
+}
+
+function producir() {
+  if (isNaN(wolfichas)) {
+    console.error("⚠️ Se detectó corrupción en tiempo real (NaN). Activando protocolo de rescate...");
+    ejecutarAutoreparacion();
+    return;
+  }
+
+  multiplicadorHueso = tiempoBuffHueso > 0 ? 7 : 1;
+
+  const totalClickers = (inventario[3] || 0) * (wolfichasProduce[3] || 0);
+  const totalFarmers = (inventario[6] || 0) * (wolfichasProduce[6] || 0);
+  const totalMiners = (inventario[8] || 0) * (wolfichasProduce[8] || 0);
+  const totalWorkers = (inventario[16] || 0) * (wolfichasProduce[16] || 0);
+  const totalStreamers = (inventario[20] || 0) * (wolfichasProduce[20] || 0);
+  const totalTaxists = (inventario[22] || 0) * (wolfichasProduce[22] || 0);
+  const totalIdols = (inventario[25] || 0) * (wolfichasProduce[25] || 0);
+
+  const cantBakers = inventario[12] || 0;
+  let produccionBakers = 0;
+
+  if (cantBakers > 0) {
+    const comprasPatas = inventario[13] || 0;
+    const tiempoCiclo = Math.max(2, 10 - (comprasPatas * 0.5));
+
+    const galletasPorCiclo = 5 + (inventario[14] || 0);
+    const bonoMineros = ((inventario[15] || 0) > 0)
+      ? (1 + ((inventario[8] || 0) * 0.10))
+      : 1;
+
+    const valorGalleta = 10 * bonoMineros;
+    produccionBakers = (cantBakers * galletasPorCiclo * valorGalleta) / tiempoCiclo;
+  }
+
+  const produccionBase =
+    totalClickers +
+    totalFarmers +
+    totalMiners +
+    totalWorkers +
+    totalStreamers +
+    totalTaxists +
+    totalIdols +
+    produccionBakers;
+
+  let produccionTotal =
+    produccionBase *
+    multiplicadorGalleta *
+    multiplicadorHueso *
+    multiplicadorFondo;
+
+  if (productorSecuestrado) {
+    produccionTotal *= 0.95;
+  }
+
+  produccionTotal = Math.max(0, produccionTotal - penalizacionWCS);
+
+  wolfichasPorSegundo = produccionTotal;
+  wolfichas += wolfichasPorSegundo;
+
+  if (tiempoBuffHueso > 0) {
+    tiempoBuffHueso--;
+  }
+}
+
+function comprarWolfilletes() {
+  const PRECIO_WOLFILLETE = 100000;
+
+  const cantidadInput = prompt(
+    "¿Cuántos Wolfilletes deseas comprar?\nPrecio: 100,000 Wolfichas por 1 Wolfillete",
+    "1"
+  );
+
+  if (cantidadInput === null) return;
+
+  const cantidad = parseInt(cantidadInput, 10);
+
+  if (isNaN(cantidad) || cantidad <= 0) {
+    alert("⚠️ Por favor ingresa un número entero válido mayor a 0.");
+    return;
+  }
+
+  const costoTotal = cantidad * PRECIO_WOLFILLETE;
+
+  if (wolfichas >= costoTotal) {
+    wolfichas -= costoTotal;
+    wolfilletes += cantidad;
+
+    alert(`🎉 ¡Intercambio exitoso!\nGastaste ${formatNum(costoTotal)} Wolfichas y obtuviste 💵 ${cantidad} Wolfillete(s).`);
+    guardarJuego();
+    render();
+  } else {
+    alert(`❌ No tienes suficientes Wolfichas.\nNecesitas ${formatNum(costoTotal)} WC (te faltan ${formatNum(costoTotal - wolfichas)} WC).`);
+  }
+}
+
+// ===== QTE GALLETA =====
 function iniciarLoopGalletas() {
   if (timerLoopGalleta) clearInterval(timerLoopGalleta);
-  timerLoopGalleta = setInterval(function() {
+
+  timerLoopGalleta = setInterval(() => {
     if (mejoraGalleta.comprado && !galletaActiva && Math.random() < 0.20) {
       aparecerGalletitaCrocante();
     }
@@ -1091,11 +1265,11 @@ function aparecerGalletitaCrocante() {
   clicksRequeridos = Math.floor(Math.random() * 5) + 3;
   tiempoLimiteQTE = Math.floor(Math.random() * 9) + 7;
 
-  let cookieElement = document.getElementById("galleta-crocante");
-  let qteInfo = document.getElementById("qte-info");
+  const cookieElement = $("galleta-crocante");
+  const qteInfo = $("qte-info");
 
-  let topPos = Math.floor(Math.random() * 60 + 15);
-  let leftPos = Math.floor(Math.random() * 60 + 15);
+  const topPos = Math.floor(Math.random() * 60 + 15);
+  const leftPos = Math.floor(Math.random() * 60 + 15);
 
   if (cookieElement) {
     cookieElement.style.top = topPos + "%";
@@ -1114,8 +1288,8 @@ function aparecerGalletitaCrocante() {
     tiempoLimiteQTE -= 0.1;
 
     if (qteInfo) {
-      let faltantes = clicksRequeridos - clicksActuales;
-      let tiempoMostrar = Math.max(0, tiempoLimiteQTE).toFixed(1);
+      const faltantes = clicksRequeridos - clicksActuales;
+      const tiempoMostrar = Math.max(0, tiempoLimiteQTE).toFixed(1);
       qteInfo.innerHTML = `🍪 Faltan: ${faltantes}<br>⏱️ ${tiempoMostrar}s`;
     }
 
@@ -1128,53 +1302,45 @@ function aparecerGalletitaCrocante() {
 function clickGalletita() {
   if (!galletaActiva) return;
 
-  let ahora = Date.now();
-  let tiempoEntreClicks = (ahora - ultimoTiempoClick) / 1000;
+  const ahora = Date.now();
+  const tiempoEntreClicks = (ahora - ultimoTiempoClick) / 1000;
   ultimoTiempoClick = ahora;
 
-  if (clicksActuales > 0 && tiempoEntreClicks > 0.7) {
+  if (tiempoEntreClicks > 0.7) {
     esSpeedrunner = false;
   }
 
   clicksActuales++;
-  let qteInfo = document.getElementById("qte-info");
 
+  const qteInfo = $("qte-info");
   if (qteInfo) {
-    let faltantes = clicksRequeridos - clicksActuales;
-    let tiempoMostrar = Math.max(0, tiempoLimiteQTE).toFixed(1);
+    const faltantes = clicksRequeridos - clicksActuales;
+    const tiempoMostrar = Math.max(0, tiempoLimiteQTE).toFixed(1);
     qteInfo.innerHTML = `🍪 Faltan: ${faltantes}<br>⏱️ ${tiempoMostrar}s`;
   }
 
   if (clicksActuales >= clicksRequeridos) {
-    let tiempoGanado = Math.floor(tiempoLimiteQTE);
-    let tiempoRestanteExacto = tiempoLimiteQTE;
+    const tiempoGanado = Math.floor(tiempoLimiteQTE);
+    const tiempoRestanteExacto = tiempoLimiteQTE;
 
     ocultarGalleta();
 
-    duracionBuffGalleta = 10 + tiempoGanado; 
-    multiplicadorGalleta = (inventario[21] > 0) ? 2.0 : 1.5;
-
-    let timerBuff = setInterval(() => {
-      duracionBuffGalleta--;
-      if (duracionBuffGalleta <= 0) {
-        multiplicadorGalleta = 1;
-        clearInterval(timerBuff);
-      }
-    }, 1000);
+    const nuevoMultiplicador = (inventario[21] > 0) ? 2.0 : 1.5;
+    aplicarBuffGalleta(10 + tiempoGanado, nuevoMultiplicador);
 
     if (tiempoRestanteExacto < 2.0) {
-      let logroTramposo = logros.find(l => l.id === "badge-21");
+      const logroTramposo = logros.find(l => l.id === "badge-21");
       if (logroTramposo && !logroTramposo.completado) {
         logroTramposo.completado = true;
-        alert("🏆 ¡LOGRO DESBLOQUEADO!: Comida Tramposa (¡¡QUÉ CERCA!! Cómete una galleta con menos de 2s sobrantes)");
+        alert(`🏆 ¡LOGRO DESBLOQUEADO!: ${logroTramposo.titulo}\n${logroTramposo.descripcion}`);
       }
     }
 
     if (esSpeedrunner) {
-      let logroSpeedrunner = logros.find(l => l.id === "badge-20");
+      const logroSpeedrunner = logros.find(l => l.id === "badge-20");
       if (logroSpeedrunner && !logroSpeedrunner.completado) {
         logroSpeedrunner.completado = true;
-        alert("🏆 ¡LOGRO DESBLOQUEADO!: Comegalletas Speedrunner (¡Clics súper rápidos!)");
+        alert(`🏆 ¡LOGRO DESBLOQUEADO!: ${logroSpeedrunner.titulo}\n${logroSpeedrunner.descripcion}`);
       }
     }
 
@@ -1192,25 +1358,73 @@ function clickGalletita() {
 function ocultarGalleta() {
   if (timerQTE) clearInterval(timerQTE);
   galletaActiva = false;
-  
-  let cookieElement = document.getElementById("galleta-crocante");
-  let qteInfo = document.getElementById("qte-info");
+
+  const cookieElement = $("galleta-crocante");
+  const qteInfo = $("qte-info");
 
   if (cookieElement) cookieElement.style.display = "none";
   if (qteInfo) qteInfo.style.display = "none";
 }
 
-// --- CHAT DE STREAMER WOLFY ---
-var timerChatStreamer = null;
-var penalizacionWCS = 0;
-var productorSecuestrado = false;
+// ===== HUESO DE ORO =====
+function aparecerHuesoOro(esNatural = false) {
+  const hueso = $("hueso-oro");
+  if (!hueso) return;
+
+  esHuesoNatural = esNatural;
+
+  const top = Math.floor(Math.random() * (window.innerHeight - 100));
+  const left = Math.floor(Math.random() * (window.innerWidth - 100));
+
+  hueso.style.top = top + "px";
+  hueso.style.left = left + "px";
+  hueso.style.display = "block";
+
+  setTimeout(() => {
+    hueso.style.display = "none";
+  }, 10000);
+}
+
+function clickHuesoOro() {
+  const hueso = $("hueso-oro");
+  if (hueso) hueso.style.display = "none";
+
+  if (esHuesoNatural) {
+    const logroMito = logros.find(l => l.id === "badge-18");
+    if (logroMito && !logroMito.completado) {
+      logroMito.completado = true;
+      alert(`🏆 ¡LOGRO DESBLOQUEADO!: ${logroMito.titulo}\n${logroMito.descripcion}`);
+    }
+  }
+
+  const tipoBono = Math.random() < 0.5;
+
+  if (tipoBono) {
+    const minWC = (wolfichas < 100) ? 20 : Math.floor(wolfichas * 0.5);
+    const maxWC = (wolfichas < 100) ? 50 : Math.floor(wolfichas * 1.2);
+    const premio = Math.floor(Math.random() * (maxWC - minWC + 1)) + minWC;
+
+    wolfichas += premio;
+    alert(`¡Huesito de Oro! Has recibido +${formatNum(premio)} Wolfichas.`);
+  } else {
+    tiempoBuffHueso = 15;
+    multiplicadorHueso = 7;
+    alert("🦴 ¡Hueso de Oro! Multiplicador x7 activo por 15 segundos.");
+  }
+
+  guardarJuego();
+  render();
+}
+
+// ===== CHAT STREAMER =====
+let timerChatStreamer = null;
 
 function iniciarChatStreamer() {
   if (timerChatStreamer) clearInterval(timerChatStreamer);
-  
+
   timerChatStreamer = setInterval(() => {
     if ((inventario[20] || 0) > 0) {
-      let dado = Math.random();
+      const dado = Math.random();
       if (dado < 0.05) {
         generarComentarioEspecial();
       } else if (dado < 0.40) {
@@ -1220,9 +1434,18 @@ function iniciarChatStreamer() {
   }, 20000);
 }
 
-var comentariosPositivos = [
+function limitarChat(maxMensajes = 50) {
+  const contenedorChat = $("comentarios-chat");
+  if (!contenedorChat) return;
+
+  while (contenedorChat.children.length > maxMensajes) {
+    contenedorChat.removeChild(contenedorChat.firstElementChild);
+  }
+}
+
+const comentariosPositivos = [
   "¿Cómo se llama el juego? ¡¡Me encanta!!",
-  "¡Wolfy Go Studio nunca dececciona! 🔥",
+  "¡Wolfy Go Studio nunca decepciona! 🔥",
   "¡Esas mecánicas están 10/10!",
   "¡DONACIÓN EN CAMINO! 🪙✨",
   "¡Juegazo supremo!",
@@ -1231,7 +1454,7 @@ var comentariosPositivos = [
   "Cookie clicker? Mejor Wolfy Clicker Incremental"
 ];
 
-var comentariosNegativos = [
+const comentariosNegativos = [
   "Qué aburrido, grrrrr 😡",
   "Meh, prefiero jugar a perseguir la pelota 🥎",
   "Mucho lag en la transmisión 🔌",
@@ -1243,11 +1466,11 @@ var comentariosNegativos = [
 ];
 
 function obtenerComentarioEspecial() {
-  let anioRandom = Math.floor(Math.random() * (2023 - 2006 + 1)) + 2006;
-  let anioActual = new Date().getFullYear();
-  let wolfichasTexto = Math.floor(wolfichas).toLocaleString();
+  const anioRandom = Math.floor(Math.random() * (2023 - 2006 + 1)) + 2006;
+  const anioActual = new Date().getFullYear();
+  const wolfichasTexto = formatNum(wolfichas);
 
-  let comentariosEspeciales = [
+  const comentariosEspeciales = [
     `¡No he visto algo tan bueno desde ${anioRandom}!`,
     `#ElMejorJuegoDe${anioActual}`,
     "¿Alguien lo conoce? Porque amo sus accesorios y el orden de todo ✨",
@@ -1260,20 +1483,18 @@ function obtenerComentarioEspecial() {
 }
 
 function generarComentarioChat() {
-  let esNegativo = Math.random() < 0.30;
-  let texto = esNegativo 
+  const esNegativo = Math.random() < 0.30;
+  const texto = esNegativo
     ? comentariosNegativos[Math.floor(Math.random() * comentariosNegativos.length)]
     : comentariosPositivos[Math.floor(Math.random() * comentariosPositivos.length)];
 
-  let contenedorChat = document.getElementById("comentarios-chat");
+  const contenedorChat = $("comentarios-chat");
   if (!contenedorChat) return;
 
-  let chatBox = document.createElement("div");
+  const chatBox = document.createElement("div");
   chatBox.className = esNegativo ? "chat-stream hater" : "chat-stream vip";
-  chatBox.style.backgroundColor = esNegativo ? "#e63946" : "#2a9d8f";
-  chatBox.style.color = "#ffffff";
 
-  let tiempoInicio = Date.now();
+  const tiempoInicio = Date.now();
   let ignoradoEvaluado = false;
 
   if (!esNegativo) {
@@ -1285,11 +1506,11 @@ function generarComentarioChat() {
       </div>
     `;
 
-    let btnLike = chatBox.querySelector(".btn-like");
-    let btnDislike = chatBox.querySelector(".btn-dislike");
+    const btnLike = chatBox.querySelector(".btn-like");
+    const btnDislike = chatBox.querySelector(".btn-dislike");
 
-    btnLike.onclick = function() {
-      let premio = Math.floor(Math.random() * (1000 - 200 + 1)) + 200;
+    btnLike.onclick = function () {
+      const premio = Math.floor(Math.random() * (1000 - 200 + 1)) + 200;
       wolfichas += premio;
       chatBox.querySelector(".ico-like").innerText = "❤️";
       chatBox.classList.add("desactivado");
@@ -1297,15 +1518,14 @@ function generarComentarioChat() {
       render();
     };
 
-    btnDislike.onclick = function() {
-      let castigo = Math.floor(Math.random() * (500 - 200 + 1)) + 200;
+    btnDislike.onclick = function () {
+      const castigo = Math.floor(Math.random() * (500 - 200 + 1)) + 200;
       wolfichas = Math.max(0, wolfichas - castigo);
       chatBox.querySelector(".ico-like").innerText = "💔";
       chatBox.classList.add("desactivado");
       guardarJuego();
       render();
     };
-
   } else {
     chatBox.innerHTML = `
       <div>🤬 <strong>Hater:</strong> "${texto}"</div>
@@ -1316,16 +1536,18 @@ function generarComentarioChat() {
       </div>
     `;
 
-    let btnBorrar = chatBox.querySelector(".btn-borrar");
-    let btnDislike = chatBox.querySelector(".btn-dislike");
-    let btnLike = chatBox.querySelector(".btn-like");
+    const btnBorrar = chatBox.querySelector(".btn-borrar");
+    const btnDislike = chatBox.querySelector(".btn-dislike");
+    const btnLike = chatBox.querySelector(".btn-like");
 
-    btnBorrar.onclick = function() {
-      let duracion = (Date.now() - tiempoInicio) / 1000;
+    btnBorrar.onclick = function () {
+      const duracion = (Date.now() - tiempoInicio) / 1000;
 
       if (duracion <= 2.0) {
         chatBox.classList.add("efecto-exito");
-        setTimeout(() => { if (contenedorChat.contains(chatBox)) contenedorChat.removeChild(chatBox); }, 400);
+        setTimeout(() => {
+          if (contenedorChat.contains(chatBox)) contenedorChat.removeChild(chatBox);
+        }, 400);
       } else {
         if (contenedorChat.contains(chatBox)) contenedorChat.removeChild(chatBox);
       }
@@ -1339,29 +1561,30 @@ function generarComentarioChat() {
       render();
     };
 
-    btnDislike.onclick = function() {
+    btnDislike.onclick = function () {
       chatBox.classList.add("desactivado");
-      chatBox.querySelector(".chat-acciones").innerHTML = "<small>💔 Neutralizado</small>";
+      const acciones = chatBox.querySelector(".chat-acciones");
+      if (acciones) acciones.innerHTML = "<small>💔 Neutralizado</small>";
     };
 
-    btnLike.onclick = function() {
+    btnLike.onclick = function () {
       if (!productorSecuestrado) {
         productorSecuestrado = true;
-        let robo = Math.floor(wolfichas * 0.10);
+        const robo = Math.floor(wolfichas * 0.10);
         wolfichas -= robo;
-        alert(`🚨 ¡ERROR DE MODERACIÓN! Le diste Like a un Hater.\n¡Se han robado a tu Productor y un 10% de tus ahorros (${robo.toLocaleString()} WC)! Modéralo (🗑️) para rescatar a tu productor.`);
+        alert(`🚨 ¡ERROR DE MODERACIÓN! Le diste Like a un Hater.\n¡Se han robado a tu Productor y un 10% de tus ahorros (${formatNum(robo)} WC)! Modéralo (🗑️) para rescatar a tu productor.`);
       }
       chatBox.classList.add("desactivado");
       guardarJuego();
       render();
     };
 
-    let timerPenalty = setInterval(() => {
+    const timerPenalty = setInterval(() => {
       if (!ignoradoEvaluado && contenedorChat.contains(chatBox) && !chatBox.classList.contains("desactivado")) {
-        let transcurrido = (Date.now() - tiempoInicio) / 1000;
+        const transcurrido = (Date.now() - tiempoInicio) / 1000;
         if (transcurrido > 2.0) {
           ignoradoEvaluado = true;
-          penalizacionWCS += 5; 
+          penalizacionWCS += 5;
           chatBox.style.border = "2px solid #ff0000";
         }
       } else if (!contenedorChat.contains(chatBox) || chatBox.classList.contains("desactivado")) {
@@ -1371,39 +1594,40 @@ function generarComentarioChat() {
   }
 
   contenedorChat.appendChild(chatBox);
+  limitarChat(50);
 }
 
 function generarComentarioEspecial() {
-  let texto = obtenerComentarioEspecial();
-  let contenedorChat = document.getElementById("comentarios-chat");
+  const texto = obtenerComentarioEspecial();
+  const contenedorChat = $("comentarios-chat");
   if (!contenedorChat) return;
 
-  let chatBox = document.createElement("div");
+  const chatBox = document.createElement("div");
   chatBox.className = "chat-stream arcoiris";
   chatBox.innerHTML = `🌟 <strong>SUPER FANÁTICO:</strong> "${texto}"`;
-  
+
   chatBox.style.background = "linear-gradient(45deg, #ff0000, #ff7300, #fffb00, #48ff00, #00ffd5, #002bfd, #7a00ff, #ff00c8)";
   chatBox.style.backgroundSize = "400% 400%";
   chatBox.style.color = "#ffffff";
   chatBox.style.textShadow = "1px 1px 3px #000";
 
-  let tiempoAparicion = Date.now();
+  const tiempoAparicion = Date.now();
 
-  chatBox.onclick = function() {
-    let tiempoReaccion = (Date.now() - tiempoAparicion) / 1000;
-    
+  chatBox.onclick = function () {
+    const tiempoReaccion = (Date.now() - tiempoAparicion) / 1000;
+
     if (contenedorChat.contains(chatBox)) {
       contenedorChat.removeChild(chatBox);
     }
 
-    let premioBase = Math.floor(Math.random() * (15000 - 5000 + 1)) + 5000;
+    const premioBase = Math.floor(Math.random() * (15000 - 5000 + 1)) + 5000;
     wolfichas += premioBase;
 
     if (tiempoReaccion <= 5.0) {
       wolfilletes += 10;
-      alert(`⚡ ¡REFLEJOS DE ACERO! Reaccionaste en ${tiempoReaccion.toFixed(1)}s.\nPremio: +${premioBase.toLocaleString()} WC y 💵 +10 Wolfilletes.`);
+      alert(`⚡ ¡REFLEJOS DE ACERO! Reaccionaste en ${tiempoReaccion.toFixed(1)}s.\nPremio: +${formatNum(premioBase)} WC y 💵 +10 Wolfilletes.`);
     } else {
-      alert(`🎉 ¡Súper Donación reclamada! +${premioBase.toLocaleString()} Wolfichas.`);
+      alert(`🎉 ¡Súper Donación reclamada! +${formatNum(premioBase)} Wolfichas.`);
     }
 
     guardarJuego();
@@ -1411,17 +1635,337 @@ function generarComentarioEspecial() {
   };
 
   contenedorChat.appendChild(chatBox);
+  limitarChat(50);
 }
 
-// --- NAVEGACIÓN Y RENDER ---
+// ===== RITMO =====
+function actualizarSelectorCanciones() {
+  const select = $("cancion-select");
+  if (!select) return;
+
+  if (cancionGameBoyDesbloqueada && !select.querySelector('option[value="gam3bo1"]')) {
+    const option = document.createElement("option");
+    option.value = "gam3bo1";
+    option.textContent = '"GAM3 BO1" - Desbloqueada';
+    select.appendChild(option);
+  }
+}
+
+function seleccionarCancion(clave) {
+  if (!mapaCanciones[clave]) return;
+
+  cancionSeleccionada = clave;
+  const audio = $("audio-player");
+  if (audio) {
+    audio.src = mapaCanciones[clave].archivo;
+  }
+
+  if (juegoIniciado) {
+    reiniciarCancionRitmo();
+  }
+}
+
+function iniciarCancionRitmo() {
+  if ((inventario[25] || 0) <= 0) {
+    alert("🎤 ¡Necesitas contratar al menos 1 Idol Wolfy en la tienda para jugar!");
+    return;
+  }
+
+  const audio = $("audio-player");
+  document.querySelectorAll(".nota-ritmo").forEach(n => n.remove());
+
+  audioDisponible = false;
+
+  if (audio) {
+    audio.pause();
+    audio.src = mapaCanciones[cancionSeleccionada].archivo;
+    audio.currentTime = 0;
+
+    audio.oncanplaythrough = function () {
+      audioDisponible = true;
+    };
+
+    audio.onerror = function () {
+      audioDisponible = false;
+      console.warn("⚠️ No se pudo cargar el audio MP3. El juego correrá en modo silencioso.");
+    };
+
+    audio.onended = function () {
+      finalizarCancionRitmo();
+    };
+
+    audio.load();
+  }
+
+  notasActivas = mapaCanciones[cancionSeleccionada].mapaNotas.map(nota => ({
+    tiempo: nota.tiempo,
+    carril: nota.carril,
+    impactado: false,
+    elementoHTML: null
+  }));
+
+  const ultimaNota = notasActivas.reduce((max, n) => Math.max(max, n.tiempo), 0);
+  tiempoFinRitmo = ultimaNota + 2.0;
+
+  puntajeRitmo = 0;
+  tiempoJuegoRitmo = -3.0;
+  juegoPausado = false;
+  juegoIniciado = true;
+  ultimoTimestamp = performance.now();
+
+  if (loopRitmoFrame) cancelAnimationFrame(loopRitmoFrame);
+  actualizarBucleRitmo();
+}
+
+function actualizarBucleRitmo() {
+  if (juegoPausado || !juegoIniciado) return;
+
+  const ahora = performance.now();
+  const delta = (ahora - ultimoTimestamp) / 1000;
+  ultimoTimestamp = ahora;
+
+  const audio = $("audio-player");
+
+  if (tiempoJuegoRitmo < 0) {
+    tiempoJuegoRitmo += delta;
+    actualizarFeedbackRitmo(`⏳ Preparado... ${Math.abs(tiempoJuegoRitmo).toFixed(1)}s`);
+
+    if (tiempoJuegoRitmo >= 0) {
+      tiempoJuegoRitmo = 0;
+      if (audio && audioDisponible) {
+        audio.currentTime = 0;
+        audio.play().catch(() => {
+          console.warn("Autoplay bloqueado por el navegador.");
+          audioDisponible = false;
+        });
+      }
+    }
+  } else {
+    if (audio && audioDisponible && !audio.paused && !audio.ended) {
+      tiempoJuegoRitmo = audio.currentTime;
+    } else {
+      tiempoJuegoRitmo += delta;
+    }
+
+    actualizarFeedbackRitmo("🎶 ¡A JUGAR!");
+  }
+
+  if (tiempoJuegoRitmo >= tiempoFinRitmo) {
+    finalizarCancionRitmo();
+    return;
+  }
+
+  notasActivas.forEach(nota => {
+    const diferencia = nota.tiempo - tiempoJuegoRitmo;
+
+    if (diferencia <= 1.5 && diferencia >= -0.3 && !nota.impactado) {
+      if (!nota.elementoHTML) {
+        const carrilElem = $(`carril-${nota.carril}`);
+        if (carrilElem) {
+          const el = document.createElement("div");
+          el.className = "nota-ritmo";
+          carrilElem.appendChild(el);
+          nota.elementoHTML = el;
+        }
+      }
+
+      const porcentajePos = (1 - (diferencia / 1.5)) * 160;
+      if (nota.elementoHTML) {
+        nota.elementoHTML.style.top = porcentajePos + "px";
+      }
+    } else if (diferencia < -0.3 && nota.elementoHTML) {
+      nota.elementoHTML.remove();
+      nota.elementoHTML = null;
+    }
+  });
+
+  loopRitmoFrame = requestAnimationFrame(actualizarBucleRitmo);
+}
+
+function pausarCancionRitmo() {
+  if (juegoPausado || !juegoIniciado) return;
+
+  juegoPausado = true;
+  const audio = $("audio-player");
+  if (audio && !audio.paused) audio.pause();
+
+  if (loopRitmoFrame) cancelAnimationFrame(loopRitmoFrame);
+  actualizarFeedbackRitmo("Juego en Pausa ⏸️");
+}
+
+function continuarCancionRitmo() {
+  if (!juegoPausado || !juegoIniciado) return;
+
+  juegoPausado = false;
+  ultimoTimestamp = performance.now();
+
+  const audio = $("audio-player");
+  if (tiempoJuegoRitmo >= 0 && audio && audioDisponible && audio.paused) {
+    audio.play().catch(() => console.warn("Error al reanudar audio"));
+  }
+
+  if (loopRitmoFrame) cancelAnimationFrame(loopRitmoFrame);
+  actualizarBucleRitmo();
+}
+
+function reiniciarCancionRitmo() {
+  juegoPausado = true;
+  juegoIniciado = false;
+
+  const audio = $("audio-player");
+  if (audio) {
+    audio.pause();
+    audio.currentTime = 0;
+  }
+
+  if (loopRitmoFrame) cancelAnimationFrame(loopRitmoFrame);
+
+  tiempoJuegoRitmo = -3.0;
+  document.querySelectorAll(".nota-ritmo").forEach(n => n.remove());
+
+  notasActivas = mapaCanciones[cancionSeleccionada].mapaNotas.map(nota => ({
+    tiempo: nota.tiempo,
+    carril: nota.carril,
+    impactado: false,
+    elementoHTML: null
+  }));
+
+  const ultimaNota = notasActivas.reduce((max, n) => Math.max(max, n.tiempo), 0);
+  tiempoFinRitmo = ultimaNota + 2.0;
+
+  puntajeRitmo = 0;
+  actualizarFeedbackRitmo("Canción reiniciada 🔄. Haz clic en Iniciar.");
+}
+
+function finalizarCancionRitmo() {
+  if (!juegoIniciado) return;
+
+  juegoPausado = true;
+  juegoIniciado = false;
+
+  if (loopRitmoFrame) {
+    cancelAnimationFrame(loopRitmoFrame);
+    loopRitmoFrame = null;
+  }
+
+  const audio = $("audio-player");
+  if (audio) {
+    audio.pause();
+    audio.currentTime = 0;
+  }
+
+  const idols = inventario[25] || 1;
+  const premio = Math.floor(puntajeRitmo * 10 * idols);
+  wolfichas += premio;
+
+  alert(`🎤 Canción terminada.\nPuntaje: ${puntajeRitmo}\nRecompensa: +${formatNum(premio)} WC`);
+
+  guardarJuego();
+  render();
+}
+
+function presionarCarril(carril) {
+  if (!juegoIniciado || juegoPausado || vistaActual !== 1) return;
+
+  const audio = $("audio-player");
+  let tiempoActual = tiempoJuegoRitmo;
+
+  if (audioDisponible && audio && !audio.paused && !audio.ended) {
+    tiempoActual = audio.currentTime;
+  }
+
+  let notaCandidata = null;
+  let mejorDiferencia = Infinity;
+
+  notasActivas.forEach(nota => {
+    if (nota.impactado || nota.carril !== carril) return;
+
+    const diferencia = Math.abs(nota.tiempo - tiempoActual);
+
+    if (diferencia <= 0.35 && diferencia < mejorDiferencia) {
+      mejorDiferencia = diferencia;
+      notaCandidata = nota;
+    }
+  });
+
+  if (!notaCandidata) {
+    actualizarFeedbackRitmo("¡MISS!");
+    return;
+  }
+
+  notaCandidata.impactado = true;
+
+  let calidad = "GOOD";
+  let multiplicadorPuntaje = 1;
+
+  if (mejorDiferencia <= 0.10) {
+    calidad = "PERFECT";
+    multiplicadorPuntaje = 2;
+  } else if (mejorDiferencia <= 0.20) {
+    calidad = "GREAT";
+    multiplicadorPuntaje = 1.5;
+  }
+
+  const bonoWC = Math.floor(1000 * (inventario[25] || 1) * multiplicadorPuntaje);
+  const puntos = Math.floor(100 * multiplicadorPuntaje);
+
+  wolfichas += bonoWC;
+  puntajeRitmo += puntos;
+
+  if (notaCandidata.elementoHTML) {
+    notaCandidata.elementoHTML.remove();
+    notaCandidata.elementoHTML = null;
+  }
+
+  actualizarFeedbackRitmo(`${calidad}! +${formatNum(bonoWC)} WC 🎵`);
+}
+
+function actualizarFeedbackRitmo(msg) {
+  const fb = $("feedback-ritmo");
+  if (fb) fb.innerText = `${msg} | Puntaje: ${puntajeRitmo}`;
+}
+
+function inicializarEntradasRitmo() {
+  window.addEventListener("keydown", (e) => {
+    if (e.repeat) return;
+
+    const modalLibros = $("modal-libros");
+    if (modalLibros && modalLibros.style.display !== "none") return;
+    if ($("modal-gamer-wolfy")) return;
+    if ($("modal-reflejos")) return;
+
+    if (e.target && (e.target.tagName === "INPUT" || e.target.tagName === "SELECT" || e.target.tagName === "TEXTAREA")) return;
+
+    if (vistaActual !== 1 || !juegoIniciado || juegoPausado) return;
+
+    const carril = teclasCarriles[e.key];
+    if (carril !== undefined) {
+      e.preventDefault();
+      presionarCarril(carril);
+    }
+  });
+
+  $$(".carril").forEach(carrilElem => {
+    carrilElem.addEventListener("click", () => {
+      const idx = Number(String(carrilElem.id).replace("carril-", ""));
+      if (!isNaN(idx)) presionarCarril(idx);
+    });
+  });
+}
+
+// ===== NAVEGACIÓN DERECHA =====
 function cambiarVistaDerecha(direccion) {
   vistaActual += direccion;
   if (vistaActual < 0) vistaActual = 1;
   if (vistaActual > 1) vistaActual = 0;
 
-  let chatView = document.getElementById("vista-chat-streamer");
-  let idolView = document.getElementById("vista-idol-ritmo");
-  let titulo = document.getElementById("titulo-vista-derecha");
+  if (vistaActual !== 1 && juegoIniciado && !juegoPausado) {
+    pausarCancionRitmo();
+  }
+
+  const chatView = $("vista-chat-streamer");
+  const idolView = $("vista-idol-ritmo");
+  const titulo = $("titulo-vista-derecha");
 
   if (chatView && idolView && titulo) {
     if (vistaActual === 0) {
@@ -1436,42 +1980,14 @@ function cambiarVistaDerecha(direccion) {
   }
 }
 
-function actualizarContadorConEfectos(diferencia) {
-  let contadorEl = document.getElementById("contador");
-  let subContadorEl = document.getElementById("sub-contador");
-  let lblWolfilletes = document.getElementById("lbl-wolfilletes");
-
-  if (lblWolfilletes) lblWolfilletes.innerText = wolfilletes;
-
-  if (contadorEl) {
-    let limpio = Math.round(wolfichas * 10) / 10;
-    contadorEl.innerText = `${limpio.toFixed(1)} Wolfichas`;
-
-    if (Math.abs(diferencia) >= 0.1) {
-      let esGanancia = diferencia > 0;
-      let claseParpadeo = esGanancia ? "flash-ganar" : "flash-perder";
-      
-      contadorEl.classList.add(claseParpadeo);
-      mostrarCantidadFlotante(diferencia, esGanancia);
-
-      setTimeout(() => {
-        contadorEl.classList.remove("flash-ganar", "flash-perder");
-      }, 200);
-    }
-  }
-
-  if (subContadorEl) {
-    subContadorEl.innerText = `${wolfichasPorSegundo.toFixed(1)} WC/s (x${multiplicadorFondo} Color) | Wolfilletes: ${wolfilletes} 💵`;
-  }
-}
-
-function mostrarCantidadFlotante(monto, esGanancia) {
-  let header = document.querySelector(".header-top");
+// ===== UI / RENDER =====
+function mostrarCantidadFlotante(monto, esGanancia, etiqueta = null) {
+  const header = document.querySelector(".header-top");
   if (!header) return;
 
-  let flotante = document.createElement("div");
-  flotante.className = `dinero-flotante ${esGanancia ? 'ganancia' : 'perdida'}`;
-  flotante.innerText = (esGanancia ? "+" : "") + monto.toFixed(1);
+  const flotante = document.createElement("div");
+  flotante.className = `dinero-flotante ${esGanancia ? "ganancia" : "perdida"}`;
+  flotante.innerText = etiqueta || ((esGanancia ? "+" : "") + monto.toFixed(1));
 
   header.appendChild(flotante);
 
@@ -1485,217 +2001,45 @@ function mostrarCantidadFlotante(monto, esGanancia) {
   }, 650);
 }
 
-function producir() {
-  if (isNaN(wolfichas)) {
-    console.error("⚠️ Se detectó corrupción en tiempo real (NaN). Activando protocolo de rescate...");
-    ejecutarAutoreparacion();
-    return;
+function actualizarContadorPrincipal() {
+  const contadorEl = $("contador");
+  const subContadorEl = $("sub-contador");
+  const lblWolfilletes = $("lbl-wolfilletes");
+  const visorWBModal = $("visor-wb-modal");
+
+  const wcSeguro = isNaN(wolfichas) ? 0 : wolfichas;
+  const wcVisible = Math.round(wcSeguro * 10) / 10;
+
+  if (contadorEl) {
+    contadorEl.innerText = `${wcVisible.toFixed(1)} Wolfichas`;
   }
 
-  // Producción pasiva
-  let totalClickers   = (inventario[3] || 0) * wolfichasProduce[3];
-  let totalFarmers    = (inventario[6] || 0) * wolfichasProduce[6];
-  let totalMiners     = (inventario[8] || 0) * wolfichasProduce[8];
-  let totalWorkers    = (inventario[16] || 0) * wolfichasProduce[16];
-  let totalStreamers  = (inventario[20] || 0) * wolfichasProduce[20];
-  let totalTaxists    = (inventario[22] || 0) * wolfichasProduce[22];
-  let totalIdols      = (inventario[25] || 0) * wolfichasProduce[25];
-
-  let produccionPasiva = (totalClickers + totalFarmers + totalMiners + totalWorkers + totalStreamers + totalTaxists + totalIdols) * multiplicadorGalleta;
-
-  // Pastelería
-  let cantBakers = inventario[12] || 0;
-  let gananciaHornoTotal = 0;
-
-  if (cantBakers > 0) {
-    let comprasPatas = inventario[13] || 0;
-    let tiempoCicloMax = Math.max(2, 10 - (comprasPatas * 0.5));
-
-    tiempoHorno--;
-
-    if (tiempoHorno <= 0) {
-      let galletasPorCiclo = 5 + (inventario[14] || 0);
-      let cantMineros = inventario[8] || 0;
-      let bonoMineros = ((inventario[15] || 0) > 0) ? (1 + (cantMineros * 0.10)) : 1;
-      let valorGalleta = 10 * bonoMineros;
-
-      gananciaHornoTotal = cantBakers * (galletasPorCiclo * valorGalleta);
-      tiempoHorno = tiempoCicloMax; 
-    }
-  } else {
-    tiempoHorno = 10;
+  if (subContadorEl) {
+    subContadorEl.innerText = `${wolfichasPorSegundo.toFixed(1)} WC/s | Fondo x${multiplicadorFondo} | 💵 ${wolfilletes} | 💾 ${formatNum(wolfbytes)}`;
   }
 
-  // Buff de Hueso de Oro
-  if (tiempoBuffHueso > 0) {
-    multiplicadorHueso = 7;
-    tiempoBuffHueso--;
-  } else {
-    multiplicadorHueso = 1;
+  if (lblWolfilletes) {
+    lblWolfilletes.innerText = wolfilletes;
   }
 
-  let produccionBruta = (produccionPasiva + gananciaHornoTotal) * multiplicadorHueso * multiplicadorFondo;
-
-  if (productorSecuestrado) {
-    produccionBruta *= 0.95;
-  }
-
-  let comprasPatas = inventario[13] || 0;
-  let tiempoCicloMax = Math.max(2, 10 - (comprasPatas * 0.95));
-  let promedioBaker = (cantBakers > 0) ? ((5 + (inventario[14] || 0)) * 10 * cantBakers) / tiempoCicloMax : 0;
-  
-  let wcPorSegundoCalculado = (produccionPasiva + promedioBaker) * multiplicadorHueso * multiplicadorFondo;
-  if (productorSecuestrado) wcPorSegundoCalculado *= 0.95;
-
-  wolfichasPorSegundo = Math.max(0, wcPorSegundoCalculado - penalizacionWCS);
-  wolfichas += wolfichasPorSegundo;
-}
-
-// --- SISTEMA DE CONVERSIÓN DE CURRENCY ---
-function comprarWolfilletes() {
-  const PRECIO_WOLFILLETE = 100000;
-
-  // Preguntar al usuario cuántos Wolfilletes desea comprar
-  let cantidadInput = prompt("¿Cuántos Wolfilletes deseas comprar?\nPrecio: 100,000 Wolfichas por 1 Wolfillete", "1");
-
-  // Si el usuario cancela o no ingresa nada
-  if (cantidadInput === null) return;
-
-  let cantidad = parseInt(cantidadInput, 10);
-
-  // Validaciones
-  if (isNaN(cantidad) || cantidad <= 0) {
-    alert("⚠️ Por favor ingresa un número entero válido mayor a 0.");
-    return;
-  }
-
-  let costoTotal = cantidad * PRECIO_WOLFILLETE;
-
-  if (wolfichas >= costoTotal) {
-    wolfichas -= costoTotal;
-    wolfilletes += cantidad;
-
-    alert(`🎉 ¡Intercambio exitoso!\nGastaste ${costoTotal.toLocaleString()} Wolfichas y obtuviste 💵 ${cantidad} Wolfillete(s).`);
-
-    guardarJuego();
-    render();
-  } else {
-    let faltantes = costoTotal - wolfichas;
-    alert(`❌ No tienes suficientes Wolfichas.\nNecesitas ${costoTotal.toLocaleString()} WC (te faltan ${faltantes.toLocaleString()} WC).`);
+  if (visorWBModal) {
+    visorWBModal.innerText = formatNum(wolfbytes);
   }
 }
-
-// --- FUNCION RENDER GENERAL PROTEGIDA ---
-
-function render() {
-  // 1. Actualizar Contadores de Saldo (WC y WB)
-  try {
-    let saldoWC = typeof wolfichas !== "undefined" ? wolfichas : (typeof inventario !== "undefined" ? inventario[0] : 0);
-    
-    let elWC = document.getElementById("contador-wc");
-    if (elWC) elWC.innerText = saldoWC.toLocaleString();
-
-    let elWB = document.getElementById("visor-wolfbytes");
-    if (elWB) elWB.innerText = wolfbytes.toLocaleString();
-  } catch (e) {
-    console.error("Error al renderizar contadores de divisas:", e);
-  }
-
-  // 2. Renderizar Colecciones (Protegido para que no rompa el resto)
-  try {
-    renderizarMenuColecciones();
-  } catch (e) {
-    console.error("Error en renderizado de Colecciones:", e);
-  }
-
-  // 3. Re-garantizar el renderizado de la Tienda y Conversión
-  try {
-    renderizarTiendaYMercado();
-  } catch (e) {
-    console.error("Error en renderizado de la Tienda:", e);
-  }
-  actualizarBadges();
-}
-
-// --- DIBUJADO SEGURO DE COLECCIONES ---
-function renderizarMenuColecciones() {
-  let contenedor = document.getElementById("contenedor-colecciones");
-  if (!contenedor) return; // Si el elemento no está en pantalla, sale limpiamente sin romper nada
-
-  let colecciones = [
-    typeof coleccionConociendoWolfyGo !== "undefined" ? coleccionConociendoWolfyGo : null,
-    typeof coleccionRecetasMananeras !== "undefined" ? coleccionRecetasMananeras : null
-  ].filter(c => c !== null);
-
-  let htmlFinal = "";
-
-  colecciones.forEach(coleccion => {
-    let completados = coleccion.libros.filter(l => l.paginasObtenidas >= l.paginasTotales).length;
-    
-    let librosHTML = coleccion.libros.map((libro, idx) => {
-      let pct = Math.floor((libro.paginasObtenidas / libro.paginasTotales) * 100);
-      let esCompletado = libro.paginasObtenidas >= libro.paginasTotales;
-
-      return `
-        <div class="item-libro-btn ${esCompletado ? 'completado' : ''}" onclick="abrirDetalleLibro('${coleccion.id}', ${idx})">
-          <span>${esCompletado ? '📖' : '🔒'} ${libro.nombre}</span>
-          <span class="badge-rareza rareza-${libro.rareza.toLowerCase()}">${libro.rareza}</span>
-          <small>${libro.paginasObtenidas}/${libro.paginasTotales}</small>
-        </div>
-      `;
-    }).join("");
-
-    htmlFinal += `
-      <div class="seccion-coleccion" style="margin-bottom: 15px;">
-        <h3>${coleccion.nombre} (${completados}/${coleccion.libros.length})</h3>
-        <div class="lista-libros-grid">${librosHTML}</div>
-      </div>
-    `;
-  });
-
-  contenedor.innerHTML = htmlFinal;
-}
-
-// --- DIBUJADO DE MERCADO Y GACHA (Garantiza que los botones nunca se pierdan) ---
-function renderizarTiendaYMercado() {
-  let contenedorMercado = document.getElementById("contenedor-mercado-tienda");
-  if (!contenedorMercado) return;
-
-  contenedorMercado.innerHTML = `
-    <div class="panel-tienda">
-      <!-- Conversión WC a WB -->
-      <div class="tarjeta-mercado">
-        <h3>💱 Conversión de Divisas</h3>
-        <p>Tus Wolfbytes: <strong id="visor-wolfbytes">${wolfbytes.toLocaleString()}</strong> 💾</p>
-        <p><small>1 Wolfbyte (WB) = 10,000 WC</small></p>
-        <div class="grupo-botones-mercado">
-          <button class="btn-mercado" onclick="convertirWCAWolfbytes(1)">+1 WB (10k WC)</button>
-          <button class="btn-mercado" onclick="convertirWCAWolfbytes(10)">+10 WB (100k WC)</button>
-          <button class="btn-mercado" onclick="convertirWCAWolfbytes(50)">+50 WB (500k WC)</button>
-        </div>
-      </div>
-
-      <!-- Gachapon -->
-      <div class="tarjeta-mercado">
-        <h3>📖 Librería / Gachapon</h3>
-        <p>Obtén 5 páginas (¡1 nueva garantizada!).</p>
-        <button class="btn-gacha" onclick="abrirPaqueteBasico()">
-          📦 Abrir Paquete Básico (500 WB)
-        </button>
-      </div>
-    </div>
-  `;
-}
-
 
 function actualizarBadges() {
-  let badgeUI = document.getElementById("contenedor-badges");
+  const badgeUI = $("contenedor-badges");
   if (!badgeUI) return;
 
   let htmlAcumulado = "";
+
   for (let i = 0; i < logros.length; i++) {
-    let logro = logros[i];
-    if (logro.condicion()) logro.completado = true;
+    const logro = logros[i];
+
+    if (!logro.completado && logro.condicion()) {
+      logro.completado = true;
+      alert(`🏆 ¡LOGRO DESBLOQUEADO!: ${logro.titulo}\n${logro.descripcion}`);
+    }
 
     if (logro.completado) {
       htmlAcumulado += `<div class="logro completado"><strong>${logro.titulo}</strong><br><small>${logro.descripcion}</small></div>`;
@@ -1703,28 +2047,97 @@ function actualizarBadges() {
       htmlAcumulado += `<div class="logro bloqueado"><strong>Logro Bloqueado</strong><br><small>???</small></div>`;
     }
   }
+
   badgeUI.innerHTML = htmlAcumulado;
 }
 
-// --- GUARDA, CARGA Y AUTO-REPARACIÓN ---
+function render() {
+  try {
+    actualizarContadorPrincipal();
+  } catch (e) {
+    console.error("Error al actualizar contador principal:", e);
+  }
+
+  try {
+    actualizarTiendaUI();
+  } catch (e) {
+    console.error("Error al actualizar tienda:", e);
+  }
+}
+
+// ===== GUARDADO / CARGA =====
+function serializarColeccion(coleccion) {
+  if (!coleccion) return null;
+
+  return {
+    completada: !!coleccion.completada,
+    libros: coleccion.libros.map(libro => ({
+      id: libro.id,
+      paginasObtenidas: libro.paginasObtenidas || 0,
+      completado: !!(libro.completado || libro.paginasObtenidas >= libro.paginasTotales)
+    }))
+  };
+}
+
+function aplicarColeccionGuardada(data, coleccionBase) {
+  if (!data || !coleccionBase) return;
+
+  coleccionBase.completada = !!data.completada;
+
+  if (!Array.isArray(data.libros)) return;
+
+  data.libros.forEach(libroGuardado => {
+    const libroOriginal = coleccionBase.libros.find(l => l.id === libroGuardado.id);
+    if (!libroOriginal) return;
+
+    libroOriginal.paginasObtenidas = num(libroGuardado.paginasObtenidas, 0);
+
+    if (libroOriginal.paginasObtenidas >= libroOriginal.paginasTotales) {
+      libroOriginal.paginasObtenidas = libroOriginal.paginasTotales;
+      libroOriginal.completado = true;
+    } else {
+      libroOriginal.completado = false;
+    }
+  });
+}
+
 function guardarJuego() {
   if (isNaN(wolfichas)) {
     console.error("⚠️ Se detectó NaN en vivo. Restaurando valor seguro...");
     wolfichas = 0;
   }
 
-  let datos = {
-    wolfichas: wolfichas,
-    wolfichasPorClic: wolfichasPorClic,
-    inventario: inventario,
-    precioProducto: precioProducto,
-    probCrit: probCrit,
-    probSuperCrit: probSuperCrit,
-    wolfichasProduce: wolfichasProduce,
-    wolfilletes: wolfilletes,
-    fondoEquipado: fondoEquipado,
-    multiplicadorFondo: multiplicadorFondo,
-    fondosComprados: fondosComprados,
+  const datos = {
+    version: 2,
+    timestamp: Date.now(),
+
+    wolfichas,
+    wolfichasAnteriores,
+    wolfichasPorClic,
+
+    inventario,
+    precioProducto,
+    wolfichasProduce,
+
+    probCrit,
+    probSuperCrit,
+
+    wolfilletes,
+    wolfbytes,
+
+    fondoEquipado,
+    multiplicadorFondo,
+    fondosComprados,
+
+    temaRetroDesbloqueado,
+    temaRetroEquipado,
+
+    temaWafflesDesbloqueado,
+    temaWafflesEquipado,
+
+    cancionGameBoyDesbloqueada,
+    paginasRepetidas,
+
     codes: {
       helloworld: helloworldUsado,
       thekitchenisopen: thekitchenisopenUsado,
@@ -1734,9 +2147,26 @@ function guardarJuego() {
       freewolfycoinspls: freewolfycoinsplsUsado,
       streamtime: streamtimeUsado
     },
-    logrosCompletados: logros.map(l => l.completado)
+
+    logrosCompletados: logros.map(l => l.completado),
+
+    colecciones: {
+      col_1: serializarColeccion(coleccionConociendoWolfyGo),
+      col_2: serializarColeccion(coleccionRecetasMananeras)
+    },
+
+    buffs: {
+      multiplicadorGalleta,
+      duracionBuffGalleta,
+      tiempoBuffHueso
+    }
   };
-  localStorage.setItem("wolfyClickerSave", JSON.stringify(datos));
+
+  try {
+    localStorage.setItem("wolfyClickerSave", JSON.stringify(datos));
+  } catch (e) {
+    console.warn("No se pudo guardar el juego:", e);
+  }
 }
 
 function cargarJuego() {
@@ -1754,56 +2184,100 @@ function cargarJuego() {
     alert("Sorry por tu save avanzado, resulta que un Wolfy detectó una anomalía ahí y decidió borrarlo... ¡pero te dejamos compensación!");
   }
 
-  let datosGuardados = localStorage.getItem("wolfyClickerSave");
+  const datosGuardados = localStorage.getItem("wolfyClickerSave");
   if (!datosGuardados) return;
 
   try {
-    let datos = JSON.parse(datosGuardados);
+    const datos = JSON.parse(datosGuardados);
 
     if (isNaN(datos.wolfichas) || !Array.isArray(datos.inventario)) {
       console.warn("Save corrupto detectado. Reiniciando valores por defecto...");
       return;
     }
 
-    wolfichas = datos.wolfichas ?? wolfichas;
-    wolfichasPorClic = datos.wolfichasPorClic ?? wolfichasPorClic;
-    inventario = datos.inventario ?? inventario;
-    precioProducto = datos.precioProducto ?? precioProducto;
-    probCrit = datos.probCrit ?? probCrit;
-    probSuperCrit = datos.probSuperCrit ?? probSuperCrit;
-    wolfichasProduce = datos.wolfichasProduce ?? wolfichasProduce;
-    wolfilletes = datos.wolfilletes ?? wolfilletes;
-    fondoEquipado = datos.fondoEquipado ?? 0;
-    multiplicadorFondo = datos.multiplicadorFondo ?? 1.0;
-    fondosComprados = datos.fondosComprados ?? [true, false, false];
+    wolfichas = num(datos.wolfichas, 0);
+    wolfichasAnteriores = num(datos.wolfichasAnteriores, wolfichas);
+    wolfichasPorClic = num(datos.wolfichasPorClic, 1);
 
-    aplicarTemaVisual(fondoEquipado);
+    inventario = rellenarArray(datos.inventario, inventarioDefecto, "number");
+    precioProducto = rellenarArray(datos.precioProducto, precioProductoDefecto, "number");
+    wolfichasProduce = rellenarArray(datos.wolfichasProduce, wolfichasProduceDefecto, "number");
 
-    if (datos.codes) {
-      helloworldUsado = datos.codes.helloworld ?? false;
-      thekitchenisopenUsado = datos.codes.thekitchenisopen ?? false;
-      funnyfurrainUsado = datos.codes.funnyfurrain ?? false;
-      intothemoonUsado = datos.codes.intothemoon ?? false;
-      archivesrevealedUsado = datos.codes.archivesrevealed ?? false;
-      freewolfycoinsplsUsado = datos.codes.freewolfycoinspls ?? false;
-      streamtimeUsado = datos.codes.streamtime ?? false;
-    }
-
-    if (datos.logrosCompletados) {
-      for (let i = 0; i < logros.length; i++) {
-        if (datos.logrosCompletados[i]) logros[i].completado = true;
+    for (let i = 0; i < 26; i++) {
+      if (esMejoraUnica[i] && inventario[i] > 1) {
+        inventario[i] = 1;
       }
     }
+
+    probCrit = num(datos.probCrit, 0);
+    probSuperCrit = num(datos.probSuperCrit, 0);
+
+    wolfilletes = num(datos.wolfilletes, 0);
+    wolfbytes = num(datos.wolfbytes, 0);
+
+    fondoEquipado = num(datos.fondoEquipado, 0);
+    multiplicadorFondo = num(datos.multiplicadorFondo, 1.0);
+    fondosComprados = rellenarArray(datos.fondosComprados, fondosCompradosDefecto, "boolean");
+
+    temaRetroDesbloqueado = !!datos.temaRetroDesbloqueado;
+    temaRetroEquipado = !!datos.temaRetroEquipado;
+
+    temaWafflesDesbloqueado = !!datos.temaWafflesDesbloqueado;
+    temaWafflesEquipado = !!datos.temaWafflesEquipado;
+
+    if (temaRetroEquipado) {
+      temaWafflesEquipado = false;
+    }
+
+    cancionGameBoyDesbloqueada = !!datos.cancionGameBoyDesbloqueada;
+    paginasRepetidas = num(datos.paginasRepetidas, 0);
+
+    if (datos.codes) {
+      helloworldUsado = !!datos.codes.helloworld;
+      thekitchenisopenUsado = !!datos.codes.thekitchenisopen;
+      funnyfurrainUsado = !!datos.codes.funnyfurrain;
+      intothemoonUsado = !!datos.codes.intothemoon;
+      archivesrevealedUsado = !!datos.codes.archivesrevealed;
+      freewolfycoinsplsUsado = !!datos.codes.freewolfycoinspls;
+      streamtimeUsado = !!datos.codes.streamtime;
+    }
+
+    if (Array.isArray(datos.logrosCompletados)) {
+      for (let i = 0; i < logros.length; i++) {
+        if (datos.logrosCompletados[i]) {
+          logros[i].completado = true;
+        }
+      }
+    }
+
+    if (datos.colecciones) {
+      aplicarColeccionGuardada(datos.colecciones.col_1, coleccionConociendoWolfyGo);
+      aplicarColeccionGuardada(datos.colecciones.col_2, coleccionRecetasMananeras);
+    }
+
+    if (datos.buffs) {
+      multiplicadorGalleta = num(datos.buffs.multiplicadorGalleta, 1);
+      duracionBuffGalleta = num(datos.buffs.duracionBuffGalleta, 0);
+      tiempoBuffHueso = num(datos.buffs.tiempoBuffHueso, 0);
+    }
+
+    aplicarClasesTema();
+
+    if (inventario[19] > 0) {
+      mejoraGalleta.comprado = true;
+      iniciarLoopGalletas();
+    }
+
+    if ((inventario[20] || 0) > 0) {
+      iniciarChatStreamer();
+    }
+
+    if (duracionBuffGalleta > 0) {
+      aplicarBuffGalleta(duracionBuffGalleta, multiplicadorGalleta);
+    }
+
   } catch (e) {
     console.error("Error al cargar la partida:", e);
-  }
-
-  if (inventario[19] > 0) {
-    mejoraGalleta.comprado = true;
-    iniciarLoopGalletas();
-  }
-  if ((inventario[20] || 0) > 0) {
-    iniciarChatStreamer();
   }
 }
 
@@ -1814,63 +2288,10 @@ function ejecutarAutoreparacion() {
   location.reload();
 }
 
-// --- HUESO DE ORO ---
-function aparecerHuesoOro(esNatural = false) {
-  let hueso = document.getElementById("hueso-oro");
-  if (!hueso) return;
-
-  esHuesoNatural = esNatural;
-
-  let top = Math.floor(Math.random() * (window.innerHeight - 100));
-  let left = Math.floor(Math.random() * (window.innerWidth - 100));
-
-  hueso.style.top = top + "px";
-  hueso.style.left = left + "px";
-  hueso.style.display = "block";
-
-  setTimeout(() => { hueso.style.display = "none"; }, 10000);
-}
-
-function clickHuesoOro() {
-  let hueso = document.getElementById("hueso-oro");
-  if (hueso) hueso.style.display = "none";
-
-  if (esHuesoNatural) {
-    let logroMito = logros.find(l => l.id === "badge-18");
-    if (logroMito && !logroMito.completado) {
-      logroMito.completado = true;
-    }
-  }
-
-  let tipoBono = Math.random() < 0.5;
-
-  if (tipoBono) {
-    let minWC = (wolfichas < 100) ? 20 : Math.floor(wolfichas * 0.5);
-    let maxWC = (wolfichas < 100) ? 50 : Math.floor(wolfichas * 1.2);
-    let premio = Math.floor(Math.random() * (maxWC - minWC + 1)) + minWC;
-    
-    wolfichas += premio;
-    alert(`¡Huesito de Oro! Has recibido +${premio.toLocaleString()} Wolfichas.`);
-  } else {
-    multiplicadorHueso = 7;
-    tiempoBuffHueso = 15;
-  }
-
-  guardarJuego();
-  render();
-}
-
-// --- EASTER EGGS DE CONSOLA ---
-var helloworldUsado = false;
-var thekitchenisopenUsado = false;
-var funnyfurrainUsado = false;
-var intothemoonUsado = false;
-var archivesrevealedUsado = false;
-var freewolfycoinsplsUsado = false;
-var streamtimeUsado = false;
-
-Object.defineProperty(window, 'helloworld', {
-  get: function() {
+// ===== EASTER EGGS =====
+Object.defineProperty(window, "helloworld", {
+  configurable: true,
+  get: function () {
     if (helloworldUsado) return "⚠️ Este código ya fue reclamado.";
     helloworldUsado = true;
     wolfichas += 100;
@@ -1880,15 +2301,17 @@ Object.defineProperty(window, 'helloworld', {
   }
 });
 
-Object.defineProperty(window, 'goldensurprise', {
-  get: function() {
+Object.defineProperty(window, "goldensurprise", {
+  configurable: true,
+  get: function () {
     aparecerHuesoOro(false);
     return "✨ ¡Un Huesito de Oro ha aparecido en la pantalla! 🦴💛";
   }
 });
 
-Object.defineProperty(window, 'funnyfurrain', {
-  get: function() {
+Object.defineProperty(window, "funnyfurrain", {
+  configurable: true,
+  get: function () {
     if (funnyfurrainUsado) return "⚠️ ¡La lluvia de pelaje ya ocurrió!";
     funnyfurrainUsado = true;
     inventario[3] = (inventario[3] || 0) + 10;
@@ -1899,8 +2322,9 @@ Object.defineProperty(window, 'funnyfurrain', {
   }
 });
 
-Object.defineProperty(window, 'thekitchenisopen', {
-  get: function() {
+Object.defineProperty(window, "thekitchenisopen", {
+  configurable: true,
+  get: function () {
     if (thekitchenisopenUsado) return "⚠️ Este código ya fue reclamado.";
     thekitchenisopenUsado = true;
     wolfichas += 2000;
@@ -1910,8 +2334,9 @@ Object.defineProperty(window, 'thekitchenisopen', {
   }
 });
 
-Object.defineProperty(window, 'archivesrevealed', {
-  get: function() {
+Object.defineProperty(window, "archivesrevealed", {
+  configurable: true,
+  get: function () {
     if (archivesrevealedUsado) return "⚠️ Este código ya fue reclamado.";
     archivesrevealedUsado = true;
     wolfichas += 30000;
@@ -1921,8 +2346,9 @@ Object.defineProperty(window, 'archivesrevealed', {
   }
 });
 
-Object.defineProperty(window, 'intothemoon', {
-  get: function() {
+Object.defineProperty(window, "intothemoon", {
+  configurable: true,
+  get: function () {
     if (intothemoonUsado) return "⚠️ ¡La torre de lobitos ya llegó a la luna!";
     intothemoonUsado = true;
     inventario[3] = (inventario[3] || 0) + 1000;
@@ -1933,8 +2359,9 @@ Object.defineProperty(window, 'intothemoon', {
   }
 });
 
-Object.defineProperty(window, 'freewolfycoins', {
-  get: function() {
+Object.defineProperty(window, "freewolfycoins", {
+  configurable: true,
+  get: function () {
     wolfichas += 1;
     guardarJuego();
     render();
@@ -1942,57 +2369,76 @@ Object.defineProperty(window, 'freewolfycoins', {
   }
 });
 
-Object.defineProperty(window, 'freewolfycoinspls', {
-  get: function() {
+Object.defineProperty(window, "freewolfycoinspls", {
+  configurable: true,
+  get: function () {
     if (freewolfycoinsplsUsado) return "⚠️ Las buenas costumbres se aprecian, pero este regalo es de un solo uso.";
-    
+
     freewolfycoinsplsUsado = true;
     wolfichas += 10000;
     inventario[6] = (inventario[6] || 0) + 2;
     inventario[8] = (inventario[8] || 0) + 1;
-    
+
     precioProducto[6] = precioBase[6] * (1 + 0.15 * inventario[6]);
     precioProducto[8] = precioBase[8] * (1 + 0.15 * inventario[8]);
-    
+
     guardarJuego();
     render();
-    
+
     return "✨ ¡Pedir 'por favor' siempre funciona! Recompensa VIP reclamada: +10,000 Wolfichas, +2 Farmers y +1 Miner. 🐺🎁";
   }
 });
 
-Object.defineProperty(window, 'streamtime', {
-  get: function() {
+Object.defineProperty(window, "streamtime", {
+  configurable: true,
+  get: function () {
     if (streamtimeUsado) return "⚠️ El stream ya empezó, haz un archivo nuevo para reiniciarlo";
-    
+
     streamtimeUsado = true;
     inventario[20] = (inventario[20] || 0) + 1;
     precioProducto[20] = precioBase[20] * (1 + 0.15 * inventario[20]);
-    
+
     if (typeof iniciarChatStreamer === "function") {
       iniciarChatStreamer();
     }
-    
+
     guardarJuego();
     render();
-    
+
     return "✨ ¡Preparen sus palomitas, que el stream 24/7 empezó! +1 Streamer Wolfy. 🐺🎁";
   }
 });
 
-// --- BUCLES Y EVENTOS DE INICIALIZACIÓN ---
-setInterval(() => {
-  if (Math.random() < 0.01) aparecerHuesoOro(true);
-}, 1000);
-
-var produceFPS = 1;
-var gameFPS = 60;
-
-setInterval(function() { producir(); }, 1000 / produceFPS);
-setInterval(function() { render(); }, 1000 / gameFPS);
-
+// ===== INICIALIZACIÓN =====
 window.addEventListener("DOMContentLoaded", () => {
   cargarJuego();
-  seleccionarCancion("swim");
-  setInterval(guardarJuego, 5000);
+  seleccionarCancion(cancionSeleccionada);
+  inicializarEntradasRitmo();
+  actualizarSelectorCanciones();
+  render();
+  actualizarBadges();
+
+  setInterval(() => {
+    if (Math.random() < 0.01) {
+      aparecerHuesoOro(true);
+    }
+  }, 1000);
+
+  setInterval(() => {
+    producir();
+  }, 1000);
+
+  setInterval(() => {
+    render();
+  }, 100);
+
+  setInterval(() => {
+    actualizarBadges();
+  }, 1000);
+
+  setInterval(() => {
+    guardarJuego();
+  }, 5000);
+
+  window.addEventListener("beforeunload", guardarJuego);
 });
