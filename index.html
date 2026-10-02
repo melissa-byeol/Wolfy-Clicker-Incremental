@@ -1,16 +1,11 @@
-<!-- A -->
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>Wolfy Clicker Incremental v3.0</title>
-
-  <!-- Fuentes -->
+  <title>Wolfy Clicker Incremental v3.1</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
-
   <link rel="stylesheet" href="style.css">
   <script src="game.js" defer></script>
   <link rel="icon" type="image/x-icon" href="favicon.ico">
@@ -21,11 +16,9 @@
     <!-- HEADER -->
     <header class="header-top">
       <button class="btn-info-top" onclick="abrirModalLibros()" title="Ver Libros y Lore">ℹ️ Archivos & Mercado</button>
-
       <div id="contador-box">
         <div id="contador">0.0 Wolfichas</div>
         <div id="sub-contador">0.0 WC/s</div>
-
         <div class="contenedor-wolfilletes">
           <span>💵 Wolfilletes: <strong id="lbl-wolfilletes">0</strong></span>
           <button onclick="comprarWolfilletes()" class="btn-convertir" title="Comprar Wolfilletes">+</button>
@@ -37,7 +30,6 @@
     <aside class="panel-izquierdo">
       <div class="mitad-superior-mejoras">
         <div class="titulo-seccion">Mejoras & Sinergias</div>
-        <!-- Los botones se generan aquí desde JS -->
         <div id="lista-mejoras-unica" class="tienda-grupo"></div>
       </div>
 
@@ -49,7 +41,6 @@
 
       <div class="mitad-inferior-infinitas">
         <div class="titulo-seccion">Edificios / Producción</div>
-        <!-- Los edificios se generan aquí desde JS -->
         <div id="lista-edificios" class="tienda-grupo"></div>
         
         <div style="margin-top: 15px; padding-top: 10px; border-top: 2px dashed #ddd;">
@@ -68,9 +59,9 @@
     <!-- DERECHA: MINIJUEGOS Y LOGROS -->
     <aside class="panel-derecho">
       <div class="controles-navegacion">
-        <button class="flecha-btn" onclick="cambiarVistaDerecha(-1)" aria-label="Anterior">◀</button>
+        <button class="flecha-btn" onclick="cambiarVistaDerecha(-1)">◀</button>
         <span id="titulo-vista-derecha" style="font-weight:bold; font-size: 0.9rem;">Chat Streamer</span>
-        <button class="flecha-btn" onclick="cambiarVistaDerecha(1)" aria-label="Siguiente">▶</button>
+        <button class="flecha-btn" onclick="cambiarVistaDerecha(1)">▶</button>
       </div>
 
       <div class="vista-dinamica">
@@ -83,16 +74,11 @@
         <div id="vista-idol-ritmo" style="display: none;">
           <div class="ritmo-container">
             <h3>🎤 Idol Wolfy: Stage</h3>
-            
             <div class="selector-cancion">
               <label for="cancion-select">Canción:</label>
-              <select id="cancion-select" onchange="seleccionarCancion(this.value)">
-                <!-- Opciones generadas dinámicamente -->
-              </select>
+              <select id="cancion-select" onchange="seleccionarCancion(this.value)"></select>
             </div>
-
             <audio id="audio-player" style="width: 100%; margin: 8px 0;"></audio>
-
             <div id="pista-ritmo" class="pista-ritmo">
               <div class="linea-target"></div>
               <div class="carril" id="carril-0"><span class="tecla-label">A</span></div>
@@ -100,14 +86,12 @@
               <div class="carril" id="carril-2"><span class="tecla-label">D</span></div>
               <div class="carril" id="carril-3"><span class="tecla-label">F</span></div>
             </div>
-
             <div class="controles-ritmo" style="margin-top: 10px; display: flex; gap: 8px; justify-content: center;">
               <button onclick="iniciarCancionRitmo();">▶ Iniciar</button>
               <button onclick="pausarCancionRitmo();">⏸️ Pausa</button>
               <button onclick="continuarCancionRitmo();">▶️ Continuar</button>
               <button onclick="reiniciarCancionRitmo();">🔄 Reset</button>
             </div>
-
             <div id="feedback-ritmo" style="text-align: center; margin-top: 5px; font-weight: bold;">Puntaje: 0</div>
             <div style="text-align:center; font-size:0.7rem; color:#888; margin-top:5px;">
               💡 Tap: Tecla | Hold: Mantén | Flick: Tecla + ↑
