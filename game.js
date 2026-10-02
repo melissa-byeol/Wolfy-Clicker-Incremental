@@ -1,7 +1,7 @@
 /* ==========================================================================
-   WOLFY CLICKER INCREMENTAL v3.0 - CORE ENGINE
-   Arquitectura: Catálogo + Estado Central + Recálculo Dinámico
-   Incluye: Ritmo (Holds/Flicks), Colecciones 3&4, Temas Secretos
+   WOLFY CLICKER INCREMENTAL v3.2 - FULL ENGINE + GAMER WOLFY BALANCED
+   Incluye: Catálogo, Colecciones 3&4, Ritmo (Hold/Flick), Temas Secretos,
+            Gam3 Bo1 Unlock System
    ========================================================================== */
 
 // ===== UTILIDADES =====
@@ -17,54 +17,50 @@ function normalizarRareza(r) {
 
 // ===== ESTADO GLOBAL DEL JUEGO =====
 const STATE = {
-  currency: 0,          // Wolfichas (WC)
-  wolfilletes: 0,       // Billetes ($)
-  wolfbytes: 0,         // Bytes (WB)
-  
-  inventory: {},        // { itemId: cantidad }
-  
-  stats: {              // Valores derivados, recalculados constantemente
+  currency: 0,          
+  wolfilletes: 0,       
+  wolfbytes: 0,         
+  inventory: {},        
+  stats: {              
     clickMult: 1,
     clickBonus: 0,
     prodMult: 1,
     critChance: 0,
     critMult: 2,
-    wcs: 0              // Wolfichas por segundo (calculado)
+    wcs: 0              
   },
-
   buffs: {
     cookieMult: 1,
     cookieTime: 0,
     boneMult: 1,
     boneTime: 0,
-    bgMult: 1           // Multiplicador de fondo/tema
+    bgMult: 1           
   },
-
-  meta: {               // Desbloqueos permanentes y flags
+  meta: {               
     themeRetroUnlocked: false,
     themeRetroActive: false,
     themeWafflesUnlocked: false,
     themeWafflesActive: false,
-    songGam3Bo1Unlocked: false,
+    songGam3Bo1Unlocked: false, // <-- NUEVO FLAG
     songHalloweenUnlocked: false,
-    codesUsed: {},      // { codeName: true/false }
-    achievementsDone: [] // Array de IDs completados
+    codesUsed: {},      
+    achievementsDone: [],
+    librosProgreso: {} 
   },
-
-  ui: {                 // Estado visual efímero
-    viewRight: 0,       // 0: Chat, 1: Ritmo
-    modalTab: 'col_1',
+  ui: {                 
+    viewRight: 0,       
+    modalTab: 'col_1',  
     lastClickTime: 0,
     speedrunFlag: true
   }
 };
 
-// ===== CATÁLOGO MAESTRO (LA FUENTE DE VERDAD) =====
+// ===== CATÁLOGO MAESTRO =====
 const CATALOG = [
-  // --- MEJORAS ÚNICAS (CLICK POWER) ---
-  { id: 0, name: "Heavy Click", type: "unique", cost: 50, cat: "clicks", desc: "Duplica el poder base.", effect: (s) => { s.clickMult *= 2; } },
+  // Mejoras Únicas
+  { id: 0, name: "Heavy Click", type: "unique", cost: 50, cat: "clicks", desc: "Duplica poder base.", effect: (s) => { s.clickMult *= 2; } },
   { id: 1, name: "Stronger Click", type: "unique", cost: 750, cat: "clicks", desc: "Duplica nuevamente.", effect: (s) => { s.clickMult *= 2; } },
-  { id: 2, name: "Super Click", type: "unique", cost: 5500, cat: "clicks", desc: "Triplica el poder restante.", effect: (s) => { s.clickMult *= 3; } },
+  { id: 2, name: "Super Click", type: "unique", cost: 5500, cat: "clicks", desc: "Triplica poder restante.", effect: (s) => { s.clickMult *= 3; } },
   { id: 4, name: "Precise Hits", type: "unique", cost: 500, cat: "synergies", desc: "+15% Crítico.", effect: (s) => { s.critChance += 0.15; } },
   { id: 5, name: "Sharp Paws", type: "unique", cost: 200, cat: "synergies", desc: "Boost Clickers.", effect: (s, inv) => { if(inv[3] > 0) s.prodMult *= 1.1; } },
   { id: 7, name: "Mejor Calidad de Hoz", type: "unique", cost: 500, cat: "synergies", desc: "Boost Farmers.", effect: (s, inv) => { if(inv[6] > 0) s.prodMult *= 1.2; } },
@@ -81,7 +77,7 @@ const CATALOG = [
   { id: 23, name: "Motor Potenciado", type: "unique", cost: 350000, cat: "vehicles", desc: "Boost Taxists.", effect: (s, inv) => { if(inv[22]>0) s.prodMult *= 1.5; } },
   { id: 24, name: "Galletitas de Vainilla", type: "unique", cost: 500000, cat: "vehicles", desc: "Double boost Taxists.", effect: (s, inv) => { if(inv[22]>0) s.prodMult *= 2; } },
 
-  // --- EDIFICIOS REPETIBLES (PRODUCCIÓN PASIVA) ---
+  // Edificios
   { id: 3, name: "Clicker Wolfy", type: "building", costBase: 10, growth: 1.15, cat: "production", baseProd: 0.1, desc: "Clica por ti." },
   { id: 6, name: "Farmer Wolfy", type: "building", costBase: 150, growth: 1.15, cat: "production", baseProd: 1, desc: "Cultiva recursos." },
   { id: 8, name: "Miner Wolfy", type: "building", costBase: 800, growth: 1.15, cat: "production", baseProd: 5, desc: "Extrae minerales." },
@@ -92,7 +88,7 @@ const CATALOG = [
   { id: 25, name: "Idol Wolfy", type: "building", costBase: 750000, growth: 1.15, cat: "production", baseProd: 1500, desc: "Estrella pop. Habilita ritmo." }
 ];
 
-// Helpers de Catálogo
+// Helpers
 const getItem = id => CATALOG.find(i => i.id === id);
 const getCount = id => STATE.inventory[id] || 0;
 const setCount = (id, val) => STATE.inventory[id] = val;
@@ -103,7 +99,7 @@ function getCost(item) {
   return Math.floor(item.costBase * Math.pow(item.growth, count));
 }
 
-// ===== MOTOR DE RECALCULO (THE BRAIN) =====
+// ===== MOTOR DE RECALCULO =====
 function recalculateStats() {
   STATE.stats.clickMult = 1;
   STATE.stats.clickBonus = 0;
@@ -115,54 +111,40 @@ function recalculateStats() {
     const id = parseInt(idStr);
     const count = STATE.inventory[idStr];
     if (count <= 0) continue;
-
     const item = getItem(id);
     if (!item) continue;
-
-    if (item.effect) {
-      item.effect(STATE.stats, STATE.inventory);
-    }
+    if (item.effect) item.effect(STATE.stats, STATE.inventory);
   }
 
   let rawProduction = 0;
-  
   CATALOG.filter(i => i.type === 'building').forEach(building => {
     const count = getCount(building.id);
     if (count === 0) return;
-
     let prodPerUnit = building.baseProd;
-
     if (building.id === 12) { // BAKERS
       const patasRapidas = getCount(13);
       const galletasRemate = getCount(14);
       const mineralComestible = getCount(15);
-      
       const tiempoCiclo = Math.max(2, 10 - (patasRapidas * 0.5));
       const galletasPorCiclo = 5 + galletasRemate;
       const bonoMineros = mineralComestible > 0 ? (1 + (getCount(8) * 0.1)) : 1;
       const valorGalleta = 10 * bonoMineros;
-      
       prodPerUnit = (galletasPorCiclo * valorGalleta) / tiempoCiclo;
     }
-
     rawProduction += count * prodPerUnit;
   });
 
   STATE.stats.wcs = rawProduction * STATE.stats.prodMult * STATE.buffs.bgMult * STATE.buffs.cookieMult * STATE.buffs.boneMult;
-  
-  if (STATE.ui.haterPenalty) {
-     STATE.stats.wcs -= STATE.ui.haterPenalty;
-  }
+  if (STATE.ui.haterPenalty) STATE.stats.wcs -= STATE.ui.haterPenalty;
   STATE.stats.wcs = Math.max(0, STATE.stats.wcs);
 }
 
-// ===== LÓGICA DE JUEGO PRINCIPAL =====
-
+// ===== LÓGICA PRINCIPAL =====
 function getPoderClic() {
   return (1 * STATE.stats.clickMult) + STATE.stats.clickBonus;
 }
 
-function onPlayerClick() {
+function clic() {
   const basePower = getPoderClic();
   let finalGain = basePower * STATE.buffs.bgMult * STATE.buffs.cookieMult * STATE.buffs.boneMult;
   
@@ -172,36 +154,31 @@ function onPlayerClick() {
     isCrit = true;
   }
 
-  // Efectos Secretos (Drunk/Nausea)
+  // Efectos Secretos
   if (window.modoBorrachoActivo) {
     const r = Math.random();
-    if (r < 0.20) finalGain *= 0.5; // Golpe flojo
-    else if (r < 0.30) finalGain *= 5; // Suerte ebria
+    if (r < 0.20) finalGain *= 0.5; 
+    else if (r < 0.30) finalGain *= 5; 
   }
   if (window.modoNauseaActivo) {
-    finalGain *= 0.8; // Mareado
+    finalGain *= 0.8; 
   }
 
   STATE.currency += finalGain;
-  
   showFloatingText(finalGain, isCrit);
 }
 
 function buyItem(id) {
   const item = getItem(id);
   if (!item) return;
-
   const currentCount = getCount(id);
-  
   if (item.type === 'unique' && currentCount > 0) return;
   if (item.max && currentCount >= item.max) return;
-  
   const cost = getCost(item);
   if (STATE.currency < cost) return;
 
   STATE.currency -= cost;
   setCount(id, currentCount + 1);
-  
   recalculateStats();
   
   if (item.unlockEvent === 'cookie') initCookieLoop();
@@ -211,9 +188,8 @@ function buyItem(id) {
   renderShop();
 }
 
-// ===== SISTEMA DE BUFFS TEMPORALES =====
+// ===== BUFFS =====
 let buffTimers = {};
-
 function applyBuff(type, duration, multiplier) {
   if (type === 'cookie') {
     STATE.buffs.cookieMult = multiplier;
@@ -244,8 +220,6 @@ function applyBuff(type, duration, multiplier) {
 }
 
 // ===== EVENTOS FLOTANTES =====
-
-// --- GALLETAS ---
 let cookieTimer = null;
 function initCookieLoop() {
   if (cookieTimer) clearInterval(cookieTimer);
@@ -257,10 +231,8 @@ function initCookieLoop() {
 function spawnCookie() {
   const el = $('galleta-crocante');
   if (!el) return;
-  
   const top = Math.floor(Math.random() * 60 + 15);
   const left = Math.floor(Math.random() * 60 + 15);
-  
   el.style.top = top + '%';
   el.style.left = left + '%';
   el.style.display = 'block';
@@ -281,14 +253,12 @@ function spawnCookie() {
     const now = Date.now();
     const elapsed = (now - startTime) / 1000;
     const remaining = timeLimit - elapsed;
-    
     if (remaining <= 0) {
       clearInterval(interval);
       hideCookie();
       alert("❌ ¡Se enfrió!");
       return;
     }
-    
     if(info) info.innerHTML = `🍪 Faltan: ${clicksNeeded}<br>⏱️ ${remaining.toFixed(1)}s`;
   }, 100);
 
@@ -297,17 +267,13 @@ function spawnCookie() {
     if ((now - lastClick) > 700) success = false;
     lastClick = now;
     clicksNeeded--;
-    
     if(clicksNeeded <= 0) {
       clearInterval(interval);
       hideCookie();
-      
       const mult = getCount(21) > 0 ? 2.0 : 1.5;
       applyBuff('cookie', 10 + Math.floor(timeLimit - (Date.now()-startTime)/1000), mult);
-      
       if(success) unlockAchievement('badge-20');
       if((Date.now()-startTime)/1000 < timeLimit - 2) unlockAchievement('badge-21');
-      
       alert(`🍪 ¡Delicioso! Buff activo.`);
     }
   };
@@ -320,21 +286,17 @@ function hideCookie() {
   if(info) info.style.display = 'none';
 }
 
-// --- HUESO DE ORO ---
 function spawnBone(isNatural = false) {
   const el = $('hueso-oro');
   if (!el) return;
-  
   el.style.top = Math.floor(Math.random() * (window.innerHeight - 100)) + 'px';
   el.style.left = Math.floor(Math.random() * (window.innerWidth - 100)) + 'px';
   el.style.display = 'block';
-  
   setTimeout(() => { if(el) el.style.display = 'none'; }, 10000);
   
   el.onclick = () => {
     el.style.display = 'none';
     if (isNatural) unlockAchievement('badge-18');
-    
     if (Math.random() < 0.5) {
       const gain = Math.floor(STATE.currency * 0.5) + 20;
       STATE.currency += gain;
@@ -347,7 +309,10 @@ function spawnBone(isNatural = false) {
   };
 }
 
-// ===== CHAT STREAMER SIMPLIFICADO =====
+function clickHuesoOro() { /* Ya manejado en spawnBone */ }
+function clickGalletita() { /* Ya manejado en spawnCookie */ }
+
+// ===== CHAT STREAMER =====
 let chatInterval = null;
 function initChatStream() {
   if(chatInterval) clearInterval(chatInterval);
@@ -359,14 +324,10 @@ function initChatStream() {
 function generateChatMessage() {
   const container = $('comentarios-chat');
   if(!container) return;
-  
   const isNegative = Math.random() < 0.3;
   const textsPos = ["¡Genial!", "Donación incoming", "Best game ever"];
   const textsNeg = ["Aburrido", "Lag", "Hater detected"];
-  
-  const text = isNegative 
-    ? textsNeg[Math.floor(Math.random()*textsNeg.length)]
-    : textsPos[Math.floor(Math.random()*textsPos.length)];
+  const text = isNegative ? textsNeg[Math.floor(Math.random()*textsNeg.length)] : textsPos[Math.floor(Math.random()*textsPos.length)];
     
   const div = document.createElement('div');
   div.className = `chat-stream ${isNegative ? 'hater' : 'vip'}`;
@@ -378,36 +339,28 @@ function generateChatMessage() {
   if(!isNegative) {
     const likeBtn = document.createElement('button');
     likeBtn.textContent = '❤️ Like';
-    likeBtn.onclick = () => {
-      STATE.currency += 500;
-      div.classList.add('desactivado');
-      saveGame();
-    };
+    likeBtn.onclick = () => { STATE.currency += 500; div.classList.add('desactivado'); saveGame(); };
     btnArea.appendChild(likeBtn);
   } else {
     const deleteBtn = document.createElement('button');
     deleteBtn.textContent = '🗑️ Borrar';
-    deleteBtn.onclick = () => {
-      container.removeChild(div);
-      saveGame();
-    };
+    deleteBtn.onclick = () => { container.removeChild(div); saveGame(); };
     btnArea.appendChild(deleteBtn);
   }
   
   div.appendChild(btnArea);
   container.prepend(div);
-  
   while(container.children.length > 20) container.lastChild.remove();
 }
 
-// ===== RITMO IDOL WOLFY (INTEGRADO COMPACTO) =====
+// ===== RITMO IDOL WOLFY =====
 const SONGS = {
-  swim: { file: "musica/swim.mp3", notes: [{t:1,c:0},{t:2.5,c:3}] },
+  swim: { file: "musica/swim.mp3", notes: [{t:1,c:0},{t:2.5,c:3}], locked: false },
   scream: { file: "musica/scream_enhypen.mp3", notes: [
     { t: 0.8, c: 0 }, { t: 1.4, c: 2 }, { t: 2.0, c: 1, d: 1.2 },
     { t: 3.5, c: 3, f: true }, { t: 4.0, c: 0, d: 1.0 }
-  ]},
-  gam3bo1: { file: "musica/gam3_bo1.mp3", notes: [{t:0.5,c:0},{t:1,c:1}] }
+  ], locked: false },
+  gam3bo1: { file: "musica/gam3_bo1.mp3", notes: [{t:0.5,c:0},{t:1,c:1},{t:1.5,c:2},{t:2,c:3}], locked: true } // Bloqueada inicialmente
 };
 
 let rhythmState = {
@@ -415,19 +368,49 @@ let rhythmState = {
   keysDown: [false,false,false,false], arrowUp: false
 };
 
-function startSong(key) {
-  if(getCount(25) <= 0) return alert("Necesitas Idol Wolfy");
+let cancionSel = "swim"; 
+
+function seleccionarCancion(clave) {
+  cancionSel = clave;
+  const audio = $("audio-player");
+  if(audio) audio.src = SONGS[clave].file;
+}
+
+function actualizarSelectorCanciones() {
+  const select = $("cancion-select");
+  if (!select) return;
+  select.innerHTML = '';
   
-  const song = SONGS[key];
+  Object.keys(SONGS).forEach(key => {
+    const data = SONGS[key];
+    // Mostrar si no está bloqueada O si ya fue desbloqueada en el estado
+    if (data.locked && !STATE.meta.songGam3Bo1Unlocked) return; 
+    
+    const opt = document.createElement('option');
+    opt.value = key;
+    opt.textContent = `"${key.toUpperCase()}"`;
+    select.appendChild(opt);
+  });
+  
+  // Si la selección actual ya no es válida (ej. se bloqueó), resetear a swim
+  if (!select.querySelector(`option[value="${cancionSel}"]`)) {
+     cancionSel = "swim";
+     select.value = "swim";
+  } else {
+     select.value = cancionSel;
+  }
+}
+
+function iniciarCancionRitmo() {
+  if(getCount(25) <= 0) return alert("Necesitas Idol Wolfy");
+  const song = SONGS[cancionSel];
   if(!song) return;
   
   const audio = $('audio-player');
   audio.src = song.file;
   audio.load();
   
-  rhythmState.notes = song.notes.map(n => ({
-    ...n, hit: false, elem: null, state: 'pending'
-  }));
+  rhythmState.notes = song.notes.map(n => ({ ...n, hit: false, elem: null, state: 'pending' }));
   rhythmState.score = 0;
   rhythmState.time = 0;
   rhythmState.active = true;
@@ -452,7 +435,6 @@ function updateRhythmLoop(ts) {
   
   rhythmState.notes.forEach(note => {
     if(note.state === 'done') return;
-    
     const diff = note.t - rhythmState.time;
     
     if(diff < -0.3) {
@@ -615,16 +597,8 @@ function loadGame() {
   }
 }
 
-// ===== UI RENDERING DINÁMICA =====
+// ===== UI RENDERING =====
 function renderShop() {
-  const groups = {};
-  
-  CATALOG.forEach(item => {
-    if(!groups[item.cat]) groups[item.cat] = [];
-    groups[item.cat].push(item);
-  });
-  
-  // Mejoras Únicas
   const uniqueContainer = $('lista-mejoras-unica');
   if(uniqueContainer) {
     uniqueContainer.innerHTML = '';
@@ -640,7 +614,6 @@ function renderShop() {
     });
   }
   
-  // Edificios
   const buildContainer = $('lista-edificios');
   if(buildContainer) {
     buildContainer.innerHTML = '';
@@ -673,55 +646,25 @@ function updateUI() {
 function showFloatingText(monto, isCrit, customColor = null) {
   const header = document.querySelector(".header-top");
   if (!header) return;
-
   const flotante = document.createElement("div");
   flotante.className = `dinero-flotante ganancia`;
   flotante.innerText = (isCrit ? "CRÍTICO! +" : "+") + monto.toFixed(1);
   if(customColor) flotante.style.color = customColor;
-
   header.appendChild(flotante);
-
   setTimeout(() => {
     flotante.style.transform = "translateY(-15px)";
     flotante.style.opacity = "0";
   }, 50);
-
   setTimeout(() => {
     if (header.contains(flotante)) header.removeChild(flotante);
   }, 650);
 }
 
-// ===== LOOP PRINCIPAL =====
-setInterval(() => {
-  STATE.currency += STATE.stats.wcs;
-  
-  // Eventos aleatorios
-  if(Math.random() < 0.01) spawnBone(true);
-  
-  updateUI();
-}, 1000);
-
-setInterval(saveGame, 5000);
-
-// Inicio
-window.onload = () => {
-  loadGame();
-  renderShop();
-  updateUI();
-  initCookieLoop();
-  initChatStream();
-  
-  // Aplicar tema inicial
-  if(STATE.meta.themeRetroActive) document.body.classList.add('tema-retro');
-  else if(STATE.meta.themeWafflesActive) document.body.classList.add('tema-waffles');
-};
-
-// ===== COLECCIONES Y LORE (EXTENSIÓN) =====
+// ===== COLECCIONES Y LORE =====
 const COLECCIONES_DEF = [
   {
     id: "col_innovaciones",
     nombre: "Colección 3: Innovaciones Extraordinarias",
-    descripcion: "Artefactos creados por la R&D de Wolfy Inc.",
     libros: [
       { id: "inn_com_1", nombre: "Impresora De Objetos", rareza: "Común", paginasTotales: 5, rewardWolfbytes: 80, lore: "Capaz de imprimir huesos... o gatos?" },
       { id: "inn_com_2", nombre: "Computador Portátil", rareza: "Común", paginasTotales: 5, rewardWolfbytes: 80, lore: "Modelo Laptop-Lobo. Resistente a mordidas." },
@@ -740,7 +683,6 @@ const COLECCIONES_DEF = [
   {
     id: "col_paletas",
     nombre: "Colección 4: Paletas De Colores",
-    descripcion: "El departamento de Diseño Gráfico presenta sus creaciones cuestionables.",
     libros: [
       { id: "pal_com_1", nombre: "RGB Básico", rareza: "Común", paginasTotales: 5, rewardWolfbytes: 60, lore: "La trinidad sagrada. Los senior lloran." },
       { id: "pal_com_2", nombre: "Monocromático Lobo Gris", rareza: "Común", paginasTotales: 5, rewardWolfbytes: 70, lore: "Blanco, negro y 50 sombras de gris peludo." },
@@ -752,17 +694,41 @@ const COLECCIONES_DEF = [
   }
 ];
 
-// Funciones auxiliares para Colecciones/Gacha
 function abrirPaqueteBasico() {
   const costo = 500;
   if (STATE.wolfbytes < costo) return alert(`Necesitas ${costo} WB.`);
   
   STATE.wolfbytes -= costo;
   
-  // Lógica simplificada de gacha: randomly pick books from all collections
-  // En una implementación completa, iterarías sobre COLECCIONES_DEF.libros
-  alert("📦 ¡Has abierto un paquete! (Lógica de gacha pendiente de integración completa con UI de libros)");
+  const todosLibros = [];
+  COLECCIONES_DEF.forEach(col => {
+    col.libros.forEach(libro => {
+      todosLibros.push({ ...libro, coleccionId: col.id });
+    });
+  });
+
+  for(let i=0; i<5; i++) {
+    const randomIdx = Math.floor(Math.random() * todosLibros.length);
+    const libroElegido = todosLibros[randomIdx];
+    
+    if (!STATE.meta.librosProgreso[libroElegido.id]) {
+      STATE.meta.librosProgreso[libroElegido.id] = 0;
+    }
+    
+    if (STATE.meta.librosProgreso[libroElegido.id] < libroElegido.paginasTotales) {
+      STATE.meta.librosProgreso[libroElegido.id]++;
+      
+      if (STATE.meta.librosProgreso[libroElegido.id] >= libroElegido.paginasTotales) {
+        STATE.wolfbytes += libroElegido.rewardWolfbytes;
+        alert(`📖 ¡COMPLETADO: ${libroElegido.nombre}!\nRecompensa: +${libroElegido.rewardWolfbytes} WB`);
+      }
+    } else {
+      alert(`🔄 Página repetida: ${libroElegido.nombre}`);
+    }
+  }
+  
   saveGame();
+  renderizarListaLibrosModal();
 }
 
 function convertirWCAWolfbytes(cantidadWB) {
@@ -794,41 +760,301 @@ function comprarWolfilletes() {
   }
 }
 
-function cambiarVistaDerecha(dir) {
-  STATE.ui.viewRight += dir;
-  if (STATE.ui.viewRight < 0) STATE.ui.viewRight = 1;
-  if (STATE.ui.viewRight > 1) STATE.ui.viewRight = 0;
+// ===== MODAL LIBROS UI =====
+function abrirModalLibros() {
+  const modal = $("modal-libros");
+  if (!modal) return;
+  modal.style.display = "flex";
+  cambiarModalTab(STATE.ui.modalTab || 'col_1');
+}
+
+function cerrarModalLibros() {
+  const modal = $("modal-libros");
+  if (modal) modal.style.display = "none";
+}
+
+function cambiarModalTab(tab) {
+  STATE.ui.modalTab = tab;
   
-  const chatView = $("vista-chat-streamer");
-  const idolView = $("vista-idol-ritmo");
-  const titulo = $("titulo-vista-derecha");
+  const tabsContainer = $("tabs-colecciones");
+  if(tabsContainer) {
+    tabsContainer.innerHTML = '';
+    COLECCIONES_DEF.forEach(col => {
+      const btn = document.createElement('button');
+      btn.className = `btn-pestana ${tab === col.id ? 'active' : ''}`;
+      btn.textContent = col.nombre.split(':')[0]; 
+      btn.onclick = () => cambiarModalTab(col.id);
+      tabsContainer.appendChild(btn);
+    });
+    
+    const btnTienda = document.createElement('button');
+    btnTienda.className = `btn-pestana ${tab === 'tienda' ? 'active' : ''}`;
+    btnTienda.textContent = "📦 Mercado";
+    btnTienda.onclick = () => cambiarModalTab('tienda');
+    tabsContainer.appendChild(btnTienda);
+  }
+
+  const vistaLibros = $("vista-libros-modal");
+  const vistaTienda = $("vista-tienda-modal");
   
-  if (STATE.ui.viewRight === 0) {
-    chatView.style.display = "block";
-    idolView.style.display = "none";
-    titulo.innerText = "Chat Streamer";
+  if (tab === 'tienda') {
+    if(vistaLibros) vistaLibros.style.display = "none";
+    if(vistaTienda) vistaTienda.style.display = "flex";
+    const visorWB = $("visor-wb-modal");
+    if(visorWB) visorWB.innerText = fmt(STATE.wolfbytes);
   } else {
-    chatView.style.display = "none";
-    idolView.style.display = "block";
-    titulo.innerText = "Idol Wolfy: Ritmo";
+    if(vistaLibros) vistaLibros.style.display = "flex";
+    if(vistaTienda) vistaTienda.style.display = "none";
+    renderizarListaLibrosModal();
   }
 }
 
-function seleccionarCancion(clave) {
-  cancionSel = clave; // Variable global implícita para el loop de ritmo
-  const audio = $("audio-player");
-  if(audio) audio.src = SONGS[clave].file;
+function renderizarListaLibrosModal() {
+  const listaUI = $("lista-libros-ui");
+  const detalleUI = $("detalle-libro-ui");
+  if (!listaUI || !detalleUI) return;
+
+  const coleccion = COLECCIONES_DEF.find(c => c.id === STATE.ui.modalTab);
+  if (!coleccion) return;
+
+  listaUI.innerHTML = '';
+  detalleUI.innerHTML = '<p class="placeholder-text">Selecciona un libro...</p>';
+
+  coleccion.libros.forEach(libro => {
+    const progreso = STATE.meta.librosProgreso[libro.id] || 0;
+    const completado = progreso >= libro.paginasTotales;
+    
+    const item = document.createElement('div');
+    item.className = `item-libro-btn ${completado ? 'completado' : ''}`;
+    item.innerHTML = `
+      <span>${completado ? '📖' : '🔒'} ${libro.nombre}</span>
+      <span class="badge-rareza rareza-${normalizarRareza(libro.rareza)}">${libro.rareza}</span>
+      <small>${progreso}/${libro.paginasTotales}</small>
+    `;
+    
+    item.onclick = () => {
+      if (completado) {
+        detalleUI.innerHTML = `
+          <div class="libro-contenido">
+            <h3>📖 ${libro.nombre}</h3>
+            <hr>
+            <p class="lore-texto">${libro.lore}</p>
+            <hr>
+            <div class="reward-info">💾 Recompensa: +${libro.rewardWolfbytes} WB</div>
+          </div>
+        `;
+      } else {
+        detalleUI.innerHTML = `
+          <div class="bloqueado-info">
+            <h3>🔒 ${libro.nombre}</h3>
+            <p>Necesitas ${libro.paginasTotales - progreso} páginas más.</p>
+            <small>Abre paquetes en el Mercado para conseguirlas.</small>
+          </div>
+        `;
+      }
+    };
+    
+    listaUI.appendChild(item);
+  });
 }
 
-// Variables globales necesarias para el scope del ritmo/chat
-let cancionSel = "swim";
-let modoNauseaActivo = false;
-let modoBorrachoActivo = false;
+// ===== LOGROS =====
+const LOGROS_DEFS = [
+  { id: "badge-1", titulo: "Primer Ahorro", cond: () => STATE.currency >= 100 },
+  { id: "badge-2", titulo: "Alcancía Llena", cond: () => STATE.currency >= 500 },
+  { id: "badge-3", titulo: "Woof!!", cond: () => getCount(3) >= 1 },
+  { id: "badge-4", titulo: "Familia Creciente", cond: () => getCount(3) >= 10 },
+  { id: "badge-5", titulo: "Anillo Peludo", cond: () => getCount(3) >= 50 },
+  { id: "badge-6", titulo: "Colonia Lupina", cond: () => getCount(3) >= 250 },
+  { id: "badge-7", titulo: "Pelurno", cond: () => getCount(3) >= 1000 },
+  { id: "badge-8", titulo: "Organización Creciente", cond: () => STATE.stats.wcs >= 10 },
+  { id: "badge-9", titulo: "Fuerza Lupina", cond: () => STATE.stats.wcs >= 100 },
+  { id: "badge-10", titulo: "Empresario Domador", cond: () => STATE.stats.wcs >= 1000 },
+  { id: "badge-11", titulo: "Recolector Casual", cond: () => getCount(6) >= 1 },
+  { id: "badge-12", titulo: "Jardín", cond: () => getCount(6) >= 10 },
+  { id: "badge-13", titulo: "Farmeando", cond: () => getCount(6) >= 100 },
+  { id: "badge-14", titulo: "Trabajo Duro", cond: () => getCount(8) >= 1 },
+  { id: "badge-15", titulo: "Mine Sin Craft", cond: () => getCount(8) >= 5 },
+  { id: "badge-16", titulo: "Diamantes?", cond: () => getCount(8) >= 25 },
+  { id: "badge-17", titulo: "Pastelería Lupina", cond: () => getCount(12) >= 1 },
+  { id: "badge-18", titulo: "Mito Confirmado", cond: () => false }, 
+  { id: "badge-19", titulo: "Olor Papel", cond: () => getCount(16) >= 1 },
+  { id: "badge-20", titulo: "Speedrunner", cond: () => false }, 
+  { id: "badge-21", titulo: "Comegalletas", cond: () => false } 
+];
+
+function unlockAchievement(id) {
+  if (!STATE.meta.achievementsDone.includes(id)) {
+    STATE.meta.achievementsDone.push(id);
+    const logro = LOGROS_DEFS.find(l => l.id === id);
+    if(logro) alert(`🏆 ¡LOGRO DESBLOQUEADO!: ${logro.titulo}`);
+    saveGame();
+    actualizarBadges();
+  }
+}
+
+function actualizarBadges() {
+  const badgeUI = $("contenedor-badges");
+  if (!badgeUI) return;
+  
+  let html = "";
+  LOGROS_DEFS.forEach(logro => {
+    const completado = STATE.meta.achievementsDone.includes(logro.id);
+    if (completado) {
+      html += `<div class="logro completado"><strong>${logro.titulo}</strong></div>`;
+    } else {
+      html += `<div class="logro bloqueado"><strong>???</strong></div>`;
+    }
+  });
+  badgeUI.innerHTML = html;
+}
+
+setInterval(() => {
+  LOGROS_DEFS.forEach(logro => {
+    if (!STATE.meta.achievementsDone.includes(logro.id) && logro.cond()) {
+      unlockAchievement(logro.id);
+    }
+  });
+}, 1000);
+
+// ===== TEMAS VISUALES =====
+function aplicarClasesTema() {
+  document.body.classList.remove("tema-default","tema-verde","tema-amarillo","tema-azul","tema-retro","tema-waffles");
+  
+  if (STATE.meta.themeRetroActive) {
+    document.body.classList.add("tema-retro");
+    STATE.buffs.bgMult = 2.5;
+  } else if (STATE.meta.themeWafflesActive) {
+    document.body.classList.add("tema-waffles");
+    STATE.buffs.bgMult = 3.0;
+  } else {
+    document.body.classList.add("tema-default");
+    STATE.buffs.bgMult = 1.0;
+  }
+  recalculateStats();
+}
+
+function alternarTemaRetro() {
+  if (!STATE.meta.themeRetroUnlocked) return alert("🔒 Completa la colección para desbloquear.");
+  STATE.meta.themeRetroActive = !STATE.meta.themeRetroActive;
+  if (STATE.meta.themeRetroActive) STATE.meta.themeWafflesActive = false;
+  aplicarClasesTema();
+  saveGame();
+}
+
+function alternarTemaWaffles() {
+  if (!STATE.meta.themeWafflesUnlocked) return alert("🔒 Completa la colección para desbloquear.");
+  STATE.meta.themeWafflesActive = !STATE.meta.themeWafflesActive;
+  if (STATE.meta.themeWafflesActive) STATE.meta.themeRetroActive = false;
+  aplicarClasesTema();
+  saveGame();
+}
+
+function applyThemeFromMeta() {
+  aplicarClasesTema();
+}
+
+// ===== GAMER WOLFY (ACTUALIZADO CON TUS PROBABILIDADES) =====
+function activarGamerWolfy() {
+  const COSTO = 100000;
+  if (STATE.currency < COSTO) return alert(`Necesitas ${fmt(COSTO)} WC`);
+  
+  STATE.currency -= COSTO;
+  
+  // Generar número aleatorio entre 0 y 100 para determinar el premio
+  const roll = Math.random() * 100;
+  let mensaje = "";
+  let premioTexto = "";
+
+  // Distribución sugerida:
+  // 0-40: Wolfichas (Común)
+  // 40-70: Wolfilletes (Raro)
+  // 70-95: Wolfbytes (Épico)
+  // 95-100: Canción GAM3 BO1 (Legendario)
+
+  if (roll < 40) {
+    // Premios de Wolfichas: 101,000 a 999,999
+    const minWC = 101000;
+    const maxWC = 999999;
+    const ganancia = Math.floor(Math.random() * (maxWC - minWC + 1)) + minWC;
+    STATE.currency += ganancia;
+    mensaje = `💰 ¡Premio en efectivo! Ganaste ${fmt(ganancia)} Wolfichas.`;
+    premioTexto = `${fmt(ganancia)} WC`;
+  } 
+  else if (roll < 70) {
+    // Premios de Wolfilletes: 10 a 100
+    const minWL = 10;
+    const maxWL = 100;
+    const ganancia = Math.floor(Math.random() * (maxWL - minWL + 1)) + minWL;
+    STATE.wolfilletes += ganancia;
+    mensaje = `💵 ¡Billetes frescos! Ganaste ${ganancia} Wolfilletes.`;
+    premioTexto = `${ganancia} WL`;
+  }
+  else if (roll < 95) {
+    // Premios de Wolfbytes: 100 a 5000
+    const minWB = 100;
+    const maxWB = 5000;
+    const ganancia = Math.floor(Math.random() * (maxWB - minWB + 1)) + minWB;
+    STATE.wolfbytes += ganancia;
+    mensaje = `💾 ¡Datos valiosos! Ganaste ${fmt(ganancia)} Wolfbytes.`;
+    premioTexto = `${fmt(ganancia)} WB`;
+  }
+  else {
+    // JACKPOT: Canción GAM3 BO1
+    if (!STATE.meta.songGam3Bo1Unlocked) {
+      STATE.meta.songGam3Bo1Unlocked = true;
+      mensaje = `🎵 ¡JACKPOT LEGENDARIO! Has desbloqueado la canción secreta: "GAM3 BO1" de SEVENTEEN para el modo Idol Wolfy.`;
+      premioTexto = "🎶 GAM3 BO1 Unlocked";
+      
+      // Refrescar el selector de canciones inmediatamente
+      actualizarSelectorCanciones();
+    } else {
+      // Si ya la tiene, dar un consolación grande de WC
+      const consolation = 500000;
+      STATE.currency += consolation;
+      mensaje = `🎁 Ya tenías la canción, pero Gamer Wolfy te dio una compensación: +${fmt(consolation)} WC.`;
+      premioTexto = `${fmt(consolation)} WC`;
+    }
+  }
+
+  alert(mensaje);
+  saveGame();
+  updateUI();
+}
+
+// ===== LOOP PRINCIPAL =====
+setInterval(() => {
+  STATE.currency += STATE.stats.wcs;
+  if(Math.random() < 0.01) spawnBone(true);
+  updateUI();
+}, 1000);
+
+setInterval(saveGame, 5000);
+
+// ===== INICIO =====
+window.onload = () => {
+  loadGame();
+  renderShop();
+  updateUI();
+  actualizarBadges();
+  actualizarSelectorCanciones(); // Importante para mostrar Gam3Bo1 si ya estaba desbloqueada
+  initCookieLoop();
+  initChatStream();
+  aplicarClasesTema();
+  
+  // Aplicar temas secretos guardados
+  const savedSecret = localStorage.getItem("wolfy_secret_theme");
+  if(savedSecret === "nausea") window.modoNauseaActivo = true;
+  if(savedSecret === "drunk") window.modoBorrachoActivo = true;
+  
+  if(window.modoNauseaActivo) document.body.classList.add("tema-nauseabundo");
+  if(window.modoBorrachoActivo) document.body.classList.add("tema-drunk");
+};
 
 // ===== EASTER EGGS SECRETOS (NÁUSEA Y BORRACHO) =====
 (function () {
   const SECRET_THEME_KEY = "wolfy_secret_theme";
-
+  
   function guardarModoSecreto(modo) {
     try {
       if (!modo) localStorage.removeItem(SECRET_THEME_KEY);
@@ -836,49 +1062,31 @@ let modoBorrachoActivo = false;
     } catch (e) {}
   }
 
-  function desactivarTemaNauseabundo(silent = false) {
-    modoNauseaActivo = false;
-    document.body.classList.remove("tema-nauseabundo");
-  }
-
-  function desactivarDrunkMode(silent = false) {
-    modoBorrachoActivo = false;
-    document.body.classList.remove("tema-drunk");
-  }
-
-  function activarTemaNauseabundo(silent = false) {
-    if (modoNauseaActivo) return;
-    desactivarDrunkMode(true);
-    modoNauseaActivo = true;
-    document.body.classList.add("tema-nauseabundo");
-    guardarModoSecreto("nausea");
-    if (!silent) alert("🤮 Modo Náusea Activado. Escribe 'medicina' para parar.");
-  }
-
-  function activarDrunkMode(silent = false) {
-    if (modoBorrachoActivo) return;
-    desactivarTemaNauseabundo(true);
-    modoBorrachoActivo = true;
-    document.body.classList.add("tema-drunk");
-    guardarModoSecreto("drunk");
-    if (!silent) alert("🍻 Modo Borracho Activado. Escribe 'sobrio' para parar.");
-  }
-
   Object.defineProperty(window, "vomitar", {
     configurable: true,
-    get: function () { activarTemaNauseabundo(); return "🤮 Modo Náusea."; }
+    get: function () { 
+      window.modoNauseaActivo = true;
+      window.modoBorrachoActivo = false;
+      document.body.classList.remove("tema-drunk");
+      document.body.classList.add("tema-nauseabundo");
+      guardarModoSecreto("nausea");
+      alert("🤮 Modo Náusea Activado. Escribe 'medicina' para parar.");
+      return "🤮 Modo Náusea."; 
+    }
   });
 
   Object.defineProperty(window, "green_screen_of_death", {
     configurable: true,
-    get: function () { activarTemaNauseabundo(); return "💀 Pantalla Verde."; }
+    get: function () { return window.vomitar; }
   });
 
   Object.defineProperty(window, "medicina", {
     configurable: true,
     get: function () {
-      desactivarTemaNauseabundo(true);
-      desactivarDrunkMode(true);
+      window.modoNauseaActivo = false;
+      window.modoBorrachoActivo = false;
+      document.body.classList.remove("tema-nauseabundo");
+      document.body.classList.remove("tema-drunk");
       guardarModoSecreto(null);
       return "💊 Curado.";
     }
@@ -891,19 +1099,29 @@ let modoBorrachoActivo = false;
 
   Object.defineProperty(window, "borracho", {
     configurable: true,
-    get: function () { activarDrunkMode(); return "🍺 Modo Borracho."; }
+    get: function () { 
+      window.modoBorrachoActivo = true;
+      window.modoNauseaActivo = false;
+      document.body.classList.remove("tema-nauseabundo");
+      document.body.classList.add("tema-drunk");
+      guardarModoSecreto("drunk");
+      alert("🍻 Modo Borracho Activado. Escribe 'sobrio' para parar.");
+      return "🍺 Modo Borracho."; 
+    }
   });
 
   Object.defineProperty(window, "drunk", {
     configurable: true,
-    get: function () { activarDrunkMode(); return "🍷 Cheers."; }
+    get: function () { return window.borracho; }
   });
 
   Object.defineProperty(window, "sobrio", {
     configurable: true,
     get: function () {
-      desactivarTemaNauseabundo(true);
-      desactivarDrunkMode(true);
+      window.modoNauseaActivo = false;
+      window.modoBorrachoActivo = false;
+      document.body.classList.remove("tema-nauseabundo");
+      document.body.classList.remove("tema-drunk");
       guardarModoSecreto(null);
       return "☕ Sobrio.";
     }
@@ -913,22 +1131,4 @@ let modoBorrachoActivo = false;
     configurable: true,
     get: function () { return window.sobrio; }
   });
-
-  // Restaurar al cargar
-  const savedMode = localStorage.getItem(SECRET_THEME_KEY);
-  if (savedMode === "nausea") activarTemaNauseabundo(true);
-  else if (savedMode === "drunk") activarDrunkMode(true);
 })();
-
-// Placeholder functions para no dar error si se llaman antes de definir
-function unlockAchievement(id) { /* TODO */ }
-function applyThemeFromMeta() { /* TODO */ }
-function abrirModalLibros() { /* TODO */ }
-function cerrarModalLibros() { /* TODO */ }
-function alternarTemaRetro() { /* TODO */ }
-function alternarTemaWaffles() { /* TODO */ }
-function activarGamerWolfy() { /* TODO */ }
-function iniciarCancionRitmo() { startSong(cancionSel); }
-function pausarCancionRitmo() { rhythmState.paused = true; }
-function continuarCancionRitmo() { rhythmState.paused = false; }
-function reiniciarCancionRitmo() { rhythmState.active = false; }
