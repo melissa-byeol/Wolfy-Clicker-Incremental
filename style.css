@@ -44,8 +44,6 @@ body {
 }
 .panel-izquierdo { border-right: 2px solid #eee; }
 .panel-derecho { border-left: 2px solid #eee; }
-.mitad-superior-mejoras, .mitad-inferior-infinitas { flex: 1; padding: 12px; overflow-y: auto; }
-.mitad-superior-mejoras { border-bottom: 2px dashed #e0e0e0; }
 .titulo-seccion { font-size: 0.85rem; font-weight: 700; text-transform: uppercase; color: #888; letter-spacing: 0.8px; margin-bottom: 10px; }
 .tienda-grupo { display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px; }
 button { background: #fff; border: 1px solid #ccc; border-radius: 6px; padding: 8px 12px; font-weight: 600; cursor: pointer; text-align: left; transition: all 0.15s; }
@@ -56,6 +54,113 @@ button:disabled { opacity: 0.5; cursor: not-allowed; background: #e5e5e5; }
 .panel-centro { display: flex; justify-content: center; align-items: center; background: #fff; transition: background 0.4s; }
 .wolficha-btn { width: 220px; cursor: pointer; filter: drop-shadow(0 8px 12px rgba(0,0,0,0.15)); transition: transform 0.08s; }
 .wolficha-btn:active { transform: scale(0.92); }
+
+/* =========================================================
+   SISTEMA DE NAVEGACIÓN INTERNA (TABS)
+   ========================================================= */
+
+/* Barra superior de botones dentro de cada panel */
+.tabs-nav {
+  display: flex;
+  background: #e0e0e0;
+  border-bottom: 2px solid #ccc;
+  overflow-x: auto; /* Scroll horizontal si caben pocas pantallas */
+  white-space: nowrap;
+  scrollbar-width: thin; /* Firefox */
+  z-index: 5;
+}
+
+/* Estilizar scrollbar para Webkit (Chrome/Safari/Edge) */
+.tabs-nav::-webkit-scrollbar {
+  height: 6px;
+}
+.tabs-nav::-webkit-scrollbar-thumb {
+  background: #bbb;
+  border-radius: 3px;
+}
+
+/* Botones individuales de Tab */
+.tab-btn {
+  flex: 1;              /* Que ocupen espacio equitativo */
+  min-width: fit-content;
+  padding: 10px 8px;
+  background: transparent;
+  border: none;
+  border-right: 1px solid #bbb;
+  font-size: 0.8rem;
+  font-weight: bold;
+  color: #555;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-transform: uppercase;
+}
+
+.tab-btn:last-child {
+  border-right: none;
+}
+
+.tab-btn:hover {
+  background: #d0d0d0;
+  color: #000;
+}
+
+/* Estado Activo (La tab seleccionada) */
+.tab-btn.active {
+  background: #fff;     /* Mismo fondo que el contenido para "unirse" */
+  color: #2a9d8f;       /* Tu color primario Wolfy */
+  border-bottom: 3px solid #2a9d8f;
+  box-shadow: inset 0 -2px 5px rgba(0,0,0,0.05);
+}
+
+/* Área donde vive el contenido de cada tab */
+.tabs-content-area {
+  flex: 1;              /* Ocupa todo el alto restante */
+  overflow-y: auto;     /* Scroll vertical SOLO aquí */
+  padding: 10px;
+  background: #fafafa;  /* Fondo consistente con el panel */
+}
+
+/* Cada sección individual (Edificios, Mejoras, etc.) */
+.tab-pane {
+  display: none;        /* Ocultas por defecto */
+  animation: fadeInTab 0.3s ease;
+}
+
+.tab-pane.active {
+  display: block;       /* Visible solo cuando está activa */
+}
+
+@keyframes fadeInTab {
+  from { opacity: 0; transform: translateY(5px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Sub-tabs para Minijuegos (Chat vs Ritmo) */
+.btn-mini-tab {
+  padding: 5px 10px;
+  font-size: 0.8rem;
+  border-radius: 4px;
+  background: #ddd;
+  border: 1px solid #ccc;
+  cursor: pointer;
+  margin-right: 5px;
+}
+.btn-mini-tab.active {
+  background: #2a9d8f;
+  color: white;
+  border-color: #2a9d8f;
+}
+
+/* Responsive: En móviles hacemos las tabs más compactas */
+@media (max-width: 768px) {
+  .tab-btn {
+    font-size: 0.7rem;
+    padding: 8px 5px;
+  }
+  .tabs-nav {
+    border-bottom: 1px solid #ccc;
+  }
+}
 
 /* --- RIGHT NAVIGATION --- */
 .controles-navegacion { display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: #f0f0f0; border-bottom: 1px solid #e0e0e0; }
