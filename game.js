@@ -598,22 +598,72 @@ function loadGame() {
 }
 
 // ===== UI RENDERING =====
-function renderShop() {
-  const uniqueContainer = $('lista-mejoras-unica');
-  if(uniqueContainer) {
-    uniqueContainer.innerHTML = '';
-    CATALOG.filter(i => i.type === 'unique' || i.type === 'repeatable').forEach(b => {
-      const count = getCount(b.id);
-      const cost = getCost(b);
-      const btn = document.createElement('button');
-      btn.id = `btn-shop-${b.id}`;
-      btn.textContent = `${b.name} ${b.type==='repeatable'?`x${count}`:''} - ${fmt(cost)} WC`;
-      btn.disabled = STATE.currency < cost || (b.type==='unique' && count>0);
-      btn.onclick = () => buyItem(b.id);
-      uniqueContainer.appendChild(btn);
-    });
-  }
+// ===== LÓGICA DE NAVEGACIÓN DE TABS =====
+
+function cambiarTabIzquierda(tabId) {
+  // Ocultar todos los panes
+  $$('.panel-izquierdo .tab-pane').forEach(p => p.classList.remove('active'));
+  // Mostrar el seleccionado
+  const target = $(tabId);
+  if(target) target.classList.add('active');
+
+  // Actualizar botones
+  $$('.izquierda-tabs .tab-btn').forEach(b => b.classList.remove('active'));
+  const btn = document.querySelector(`.izquierda-tabs .tab-btn[data-tab="${tabId}"]`);
+  if(btn) btn.classList.add('active');
+}
+
+function cambiarTabDerecha(tabId) {
+  // Ocultar todos los panes derechos
+  $$('.panel-derecho .tab-pane').forEach(p => p.classList.remove('active'));
+  // Mostrar el seleccionado
+  const target = $(tabId);
+  if(target) target.classList.add('active');
+
+  // Actualizar botones
+  $$('.derecha-tabs .tab-btn').forEach(b => b.classList.remove('active'));
+  const btn = document.querySelector(`.derecha-tabs .tab-btn[data-tab="${tabId}"]`);
+  if(btn) btn.classList.add('active');
+}
+
+function toggleMiniView(view) {
+  const chat = $("mini-chat-view");
+  const ritmo = $("mini-ritmo-view");
   
+  if(view === 'chat') {
+    chat.style.display = 'block';
+    ritmo.style.display = 'none';
+    // Actualizar botones sub-tabs
+    $$('.btn-mini-tab')[0].classList.add('active');
+    $$('.btn-mini-tab')[1].classList.remove('active');
+  } else {
+    chat.style.display = 'none';
+    ritmo.style.display = 'block';
+    $$('.btn-mini-tab')[0].classList.remove('active');
+    $$('.btn-mini-tab')[1].classList.add('active');
+  }
+}
+
+// Event listeners para las tabs principales (al cargar)
+window.addEventListener("DOMContentLoaded", () => {
+  // ... (tu loadGame() existente) ...
+  
+  // Asignar eventos a los botones de tab izquierdo
+  $$('.izquierda-tabs .tab-btn').forEach(btn => {
+    btn.onclick = () => cambiarTabIzquierda(btn.dataset.tab);
+  });
+
+  // Asignar eventos a los botones de tab derecho
+  $$('.derecha-tabs .tab-btn').forEach(btn => {
+    btn.onclick = () => cambiarTabDerecha(btn.dataset.tab);
+  });
+});
+
+
+// ===== RENDER SHOP ACTUALIZADO (DIVIDE POR CATEGORÍAS) =====
+
+function renderShop() {
+  // 1. EDIFICIOS (Producción)
   const buildContainer = $('lista-edificios');
   if(buildContainer) {
     buildContainer.innerHTML = '';
@@ -628,8 +678,70 @@ function renderShop() {
       buildContainer.appendChild(btn);
     });
   }
+
+  // 2. MEJORAS ÚNICAS (Click/Sinergia)
+  const uniqueContainer = $('lista-mejoras-unica');
+  if(uniqueContainer) {
+    uniqueContainer.innerHTML = '';
+    // Filtramos solo las que NO son edificios y NO son eventos especiales para esta lista
+    CATALOG.filter(i => (i.type === 'unique' || i.type === 'repeatable') && !['events'].includes(i.cat)).forEach(b => {
+      const count = getCount(b.id);
+      const cost = getCost(b);
+      const btn = document.createElement('button');
+      btn.id = `btn-shop-${b.id}`;
+      let label = b.name;
+      if(b.type === 'repeatable') label += ` x${count}`;
+      if(count > 0 && b.type === 'unique') label += " ✔";
+      
+      btn.textContent = `${label} - ${fmt(cost)} WC`;
+      btn.disabled = STATE.currency < cost || (b.type==='unique' && count>0);
+      btn.onclick = () => buyItem(b.id);
+      uniqueContainer.appendChild(btn);
+    });
+  }
+
+  // 3. EVENTOS / ACTIVADORES
+  const eventContainer = $('lista-eventos');
+  if(eventContainer) {
+    eventContainer.innerHTML = '';
+    CATALOG.filter(i => i.cat === 'events').forEach(b => {
+      const count = getCount(b.id);
+      const cost = getCost(b);
+      const btn = document.createElement('button');
+      btn.textContent = `${b.name} - ${fmt(cost)} WC`;
+      btn.disabled = STATE.currency < cost || count > 0;
+      btn.onclick = () => buyItem(b.id);
+      eventContainer.appendChild(btn);
+    });
+    
+    if(CATALOG.filter(i => i.cat === 'events').length === 0) {
+       eventContainer.innerHTML = '<p style="color:#888; text-align:center;">No hay eventos activos.</p>';
+    }
+  }
+
+  // 4. FONDOS (Simulación rápida para UI)
+  const fondoContainer = $('lista-fondos');
+  if(fondoContainer) {
+    fondoContainer.innerHTML = '';
+    // Aquí podrías iterar sobre tus fondos definidos en STATE.meta o constantes
+    // Por ahora, dejaremos un placeholder o usaremos la lógica antigua si la conservaste
+    const btnDefault = document.createElement('button');
+    btnDefault.textContent = "✔ Default (x1.0)";
+    btnDefault.disabled = true;
+    fondoContainer.appendChild(btnDefault);
+    
+    const btnRetro = document.createElement('button');
+    btnRetro.textContent = STATE.meta.themeRetroUnlocked ? "👾 Retro (x2.5)" : "🔒 Retro (Bloqueado)";
+    btnRetro.onclick = alternarTemaRetro;
+    fondoContainer.appendChild(btnRetro);
+  }
+  
+  // 5 & 6. SKINS/CURSOR (Placeholders)
+  // Ya están en HTML estático, no requieren JS extra por ahora.
 }
 
+// Asegúrate de llamar a renderShop() cuando cambie el estado o se compre algo
+// (Ya lo tienes en buyItem, pero verifica que updateUI también refresque si hace falta)
 function updateUI() {
   $('contador').innerText = `${num(STATE.currency).toFixed(1)} Wolfichas`;
   $('sub-contador').innerText = `${STATE.stats.wcs.toFixed(1)} WC/s`;
