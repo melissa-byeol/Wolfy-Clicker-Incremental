@@ -1,21 +1,11 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-  <meta charset="UTF-8">
-  <title>Wolfy Clicker Incremental v3.1</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css">
-  <script src="game.js" defer></script>
-  <link rel="icon" type="image/x-icon" href="favicon.ico">
-</head>
 <body>
 
   <div class="game-container">
     <!-- HEADER -->
     <header class="header-top">
       <button class="btn-info-top" onclick="abrirModalLibros()" title="Ver Libros y Lore">ℹ️ Archivos & Mercado</button>
+      <button class="btn-info-top" onclick="abrirTerminalWolfy()" style="background-color: #0f3460; margin-left: 5px;" title="Códigos Secretos">💻 Terminal</button>
+      
       <div id="contador-box">
         <div id="contador">0.0 Wolfichas</div>
         <div id="sub-contador">0.0 WC/s</div>
@@ -26,28 +16,58 @@
       </div>
     </header>
 
-    <!-- IZQUIERDA: TIENDA DINÁMICA -->
+    <!-- IZQUIERDA: TIENDA ORGANIZADA POR TABS -->
     <aside class="panel-izquierdo">
-      <div class="mitad-superior-mejoras">
-        <div class="titulo-seccion">Mejoras & Sinergias</div>
-        <div id="lista-mejoras-unica" class="tienda-grupo"></div>
-      </div>
+      <!-- NAVEGACIÓN DE TABS IZQUIERDA -->
+      <nav class="tabs-nav izquierda-tabs">
+        <button class="tab-btn active" data-tab="tab-edificios">🏗️ Edificios</button>
+        <button class="tab-btn" data-tab="tab-mejoras">⚡ Mejoras</button>
+        <button class="tab-btn" data-tab="tab-eventos">🍪 Eventos</button>
+        <button class="tab-btn" data-tab="tab-fondos">🎨 Fondos</button>
+        <button class="tab-btn" data-tab="tab-skins">🐺 Skins</button>
+        <button class="tab-btn" data-tab="tab-cursor">🖱️ Cursor</button>
+      </nav>
 
-      <div class="tienda-grupo" style="padding: 12px; border-bottom: 1px solid #eee;">
-        <div class="titulo-seccion">Personalización</div>
-        <button id="btn-toggle-retro" onclick="alternarTemaRetro()">👾 Tema Retro (Bloqueado)</button>
-        <button id="btn-toggle-waffles" onclick="alternarTemaWaffles()" style="display:none;">🥞 Tema Waffles (Bloqueado)</button>
-      </div>
-
-      <div class="mitad-inferior-infinitas">
-        <div class="titulo-seccion">Edificios / Producción</div>
-        <div id="lista-edificios" class="tienda-grupo"></div>
+      <!-- CONTENIDO DINÁMICO IZQUIERDA -->
+      <div class="tabs-content-area">
         
-        <div style="margin-top: 15px; padding-top: 10px; border-top: 2px dashed #ddd;">
-           <button class="btn-gamer-wolfy" onclick="activarGamerWolfy()">
-             🎮 Desafío Gamer Wolfy (100k WC)
-           </button>
+        <!-- 1. EDIFICIOS -->
+        <div id="tab-edificios" class="tab-pane active">
+          <div class="titulo-seccion">Producción Pasiva</div>
+          <div id="lista-edificios" class="tienda-grupo"></div>
         </div>
+
+        <!-- 2. MEJORAS PERMANENTES -->
+        <div id="tab-mejoras" class="tab-pane">
+          <div class="titulo-seccion">Potenciadores Únicos</div>
+          <div id="lista-mejoras-unica" class="tienda-grupo"></div>
+        </div>
+
+        <!-- 3. EVENTOS / BUFFS TEMPORALES -->
+        <div id="tab-eventos" class="tab-pane">
+          <div class="titulo-seccion">Activadores Especiales</div>
+          <p style="font-size: 0.8rem; color: #666;">Cosas como Galletitas Crocantes o Sinergias activables.</p>
+          <div id="lista-eventos" class="tienda-grupo"></div>
+        </div>
+
+        <!-- 4. FONDOS VISUALES -->
+        <div id="tab-fondos" class="tab-pane">
+          <div class="titulo-seccion">Personalización Visual</div>
+          <div id="lista-fondos" class="tienda-grupo"></div>
+        </div>
+
+        <!-- 5. SKINS DE LOBITOS (Placeholder futuro) -->
+        <div id="tab-skins" class="tab-pane">
+          <div class="titulo-seccion">Trajes Lupinos</div>
+          <p style="text-align:center; padding: 20px; color:#888;">🔒 Próximamente:<br>Cambia el aspecto de tus Clicker/Farmer Wolfies.</p>
+        </div>
+
+        <!-- 6. CURSOR Y WOLFICHA (Placeholder futuro) -->
+        <div id="tab-cursor" class="tab-pane">
+          <div class="titulo-seccion">Iconografía</div>
+          <p style="text-align:center; padding: 20px; color:#888;">🔒 Próximamente:<br>Diseños exclusivos para tu clic principal.</p>
+        </div>
+
       </div>
     </aside>
 
@@ -56,75 +76,98 @@
       <img src="imagenes-wolfy/coin.png" class="wolficha-btn" onclick="clic();" alt="Wolficha">
     </main>
 
-    <!-- DERECHA: MINIJUEGOS Y LOGROS -->
+    <!-- DERECHA: JUEGOS Y LOGROS ORGANIZADOS -->
     <aside class="panel-derecho">
-      <div class="controles-navegacion">
-        <button class="flecha-btn" onclick="cambiarVistaDerecha(-1)">◀</button>
-        <span id="titulo-vista-derecha" style="font-weight:bold; font-size: 0.9rem;">Chat Streamer</span>
-        <button class="flecha-btn" onclick="cambiarVistaDerecha(1)">▶</button>
-      </div>
+      <!-- NAVEGACIÓN DE TABS DERECHA -->
+      <nav class="tabs-nav derecha-tabs">
+        <button class="tab-btn active" data-tab="vista-logros">🏆 Logros</button>
+        <button class="tab-btn" data-tab="vista-desafios">🎮 Desafíos</button>
+        <button class="tab-btn" data-tab="vista-minijuegos">🎤 Minijuegos</button>
+      </nav>
 
-      <div class="vista-dinamica">
-        <!-- VISTA CHAT -->
-        <div id="vista-chat-streamer">
-          <div id="comentarios-chat"></div>
+      <!-- CONTENIDO DINÁMICO DERECHA -->
+      <div class="tabs-content-area derecha-content">
+        
+        <!-- VISTA 1: LOGROS -->
+        <div id="vista-logros" class="tab-pane active">
+          <div class="titulo-seccion">Progreso y Badges</div>
+          <div id="contenedor-badges"></div>
         </div>
 
-        <!-- VISTA RITMO -->
-        <div id="vista-idol-ritmo" style="display: none;">
-          <div class="ritmo-container">
-            <h3>🎤 Idol Wolfy: Stage</h3>
-            <div class="selector-cancion">
-              <label for="cancion-select">Canción:</label>
-              <select id="cancion-select" onchange="seleccionarCancion(this.value)"></select>
-            </div>
-            <audio id="audio-player" style="width: 100%; margin: 8px 0;"></audio>
-            <div id="pista-ritmo" class="pista-ritmo">
-              <div class="linea-target"></div>
-              <div class="carril" id="carril-0"><span class="tecla-label">A</span></div>
-              <div class="carril" id="carril-1"><span class="tecla-label">S</span></div>
-              <div class="carril" id="carril-2"><span class="tecla-label">D</span></div>
-              <div class="carril" id="carril-3"><span class="tecla-label">F</span></div>
-            </div>
-            <div class="controles-ritmo" style="margin-top: 10px; display: flex; gap: 8px; justify-content: center;">
-              <button onclick="iniciarCancionRitmo();">▶ Iniciar</button>
-              <button onclick="pausarCancionRitmo();">⏸️ Pausa</button>
-              <button onclick="continuarCancionRitmo();">▶️ Continuar</button>
-              <button onclick="reiniciarCancionRitmo();">🔄 Reset</button>
-            </div>
-            <div id="feedback-ritmo" style="text-align: center; margin-top: 5px; font-weight: bold;">Puntaje: 0</div>
-            <div style="text-align:center; font-size:0.7rem; color:#888; margin-top:5px;">
-              💡 Tap: Tecla | Hold: Mantén | Flick: Tecla + ↑
+        <!-- VISTA 2: DESAFÍOS GAMER WOLFY -->
+        <div id="vista-desafios" class="tab-pane">
+          <div class="titulo-seccion">Retos de Habilidad</div>
+          <div style="padding: 10px; text-align: center;">
+            <p>Pon a prueba tus reflejos contra Gamer Wolfy.</p>
+            <button class="btn-gamer-wolfy" onclick="activarGamerWolfy()">
+              🎮 Iniciar Duelo (100k WC)
+            </button>
+            <hr style="border: 0; border-top: 1px dashed #ccc; margin: 15px 0;">
+            <small>Recuerda: Puedes ganar desde Wolfichas hasta canciones secretas.</small>
+          </div>
+        </div>
+
+        <!-- VISTA 3: MINI-JUEGOS (CHAT + RITMO) -->
+        <div id="vista-minijuegos" class="tab-pane">
+          <div class="titulo-seccion">Entretenimiento Wolfy</div>
+          
+          <!-- Sub-navegación dentro de minijuegos si quieres, o ambos visibles -->
+          <div style="display:flex; gap:5px; margin-bottom:10px;">
+             <button class="btn-mini-tab active" onclick="toggleMiniView('chat')">💬 Chat</button>
+             <button class="btn-mini-tab" onclick="toggleMiniView('ritmo')">🎤 Ritmo</button>
+          </div>
+
+          <div id="mini-chat-view">
+            <div id="comentarios-chat" style="height: 300px; overflow-y:auto; background:#fff; border:1px solid #eee; padding:5px;"></div>
+          </div>
+
+          <div id="mini-ritmo-view" style="display:none;">
+            <div class="ritmo-container">
+              <h3>🎤 Idol Wolfy: Stage</h3>
+              <div class="selector-cancion">
+                <label for="cancion-select">Canción:</label>
+                <select id="cancion-select" onchange="seleccionarCancion(this.value)"></select>
+              </div>
+              <audio id="audio-player" style="width: 100%; margin: 8px 0;"></audio>
+              
+              <div id="pista-ritmo" class="pista-ritmo">
+                <div class="linea-target"></div>
+                <div class="carril" id="carril-0"><span class="tecla-label">A</span></div>
+                <div class="carril" id="carril-1"><span class="tecla-label">S</span></div>
+                <div class="carril" id="carril-2"><span class="tecla-label">D</span></div>
+                <div class="carril" id="carril-3"><span class="tecla-label">F</span></div>
+              </div>
+
+              <div class="controles-ritmo" style="margin-top: 10px; display: flex; gap: 8px; justify-content: center;">
+                <button onclick="iniciarCancionRitmo();">▶ Iniciar</button>
+                <button onclick="pausarCancionRitmo();">⏸️ Pausa</button>
+                <button onclick="reiniciarCancionRitmo();">🔄 Reset</button>
+              </div>
+              <div id="feedback-ritmo" style="text-align: center; margin-top: 5px; font-weight: bold;">Puntaje: 0</div>
+              <div style="text-align:center; font-size:0.7rem; color:#888; margin-top:5px;">
+                💡 Tap: Tecla | Hold: Mantén | Flick: Tecla + ↑
+              </div>
             </div>
           </div>
         </div>
-      </div>
 
-      <!-- LOGROS -->
-      <div class="seccion-bonos-juegos">
-        <div class="titulo-seccion">Logros</div>
-        <div id="contenedor-badges"></div>
       </div>
     </aside>
   </div>
 
-  <!-- ELEMENTOS FLOTANTES -->
+  <!-- ELEMENTOS FLOTANTES Y MODALES (Se mantienen igual que antes) -->
   <img id="hueso-oro" src="imagenes-wolfy/hueso_oro.png" onclick="clickHuesoOro();" style="display:none; position:absolute; cursor:pointer; width:50px; z-index: 9999;" alt="Hueso de Oro">
   <img id="galleta-crocante" src="imagenes-wolfy/plain_cookie.png" onclick="clickGalletita();" style="display:none; position:absolute; cursor:pointer; width:75px; z-index: 9999;" alt="Galleta Crocante">
   <div id="qte-info" style="display:none; position:absolute; z-index: 10000; font-weight: bold; color: #fff; text-shadow: 2px 2px 4px #000; pointer-events: none; text-align: center;"></div>
 
-  <!-- MODAL LIBROS & MERCADO -->
+  <!-- MODAL LIBROS -->
   <div id="modal-libros" class="modal-overlay" role="dialog" aria-modal="true" style="display: none;">
     <div class="modal-contenido">
       <div class="modal-header">
         <h2>📚 Archivos, Colecciones & Mercado</h2>
         <button class="btn-cerrar" onclick="cerrarModalLibros()">✖</button>
       </div>
-      
-      <div class="pestanas-colecciones" id="tabs-colecciones">
-        <!-- Tabs generadas dinámicamente -->
-      </div>
-
+      <div class="pestanas-colecciones" id="tabs-colecciones"></div>
       <div class="modal-body">
         <div id="vista-libros-modal" class="contenedor-vista-modal" style="display: flex; width: 100%;">
           <div id="lista-libros-ui" class="panel-lista-libros"></div>
@@ -132,22 +175,18 @@
             <p class="placeholder-text">Selecciona un archivo...</p>
           </div>
         </div>
-
         <div id="vista-tienda-modal" class="contenedor-vista-modal" style="display: none; width: 100%;">
           <div class="panel-tienda-interior">
             <div class="tarjeta-mercado">
               <h3>💱 Conversión</h3>
               <p>Tus Wolfbytes: <strong id="visor-wb-modal">0</strong> 💾</p>
-              <p><small>1 WB = 10,000 WC</small></p>
               <div class="grupo-botones-mercado">
                 <button class="btn-mercado" onclick="convertirWCAWolfbytes(1)">+1 WB</button>
                 <button class="btn-mercado" onclick="convertirWCAWolfbytes(10)">+10 WB</button>
-                <button class="btn-mercado" onclick="convertirWCAWolfbytes(50)">+50 WB</button>
               </div>
             </div>
             <div class="tarjeta-mercado">
               <h3>📦 Gachapon</h3>
-              <p>Obtén 5 páginas (1 nueva garantizada).</p>
               <button class="btn-gacha" onclick="abrirPaqueteBasico()">Abrir Paquete (500 WB)</button>
             </div>
           </div>
@@ -156,5 +195,29 @@
     </div>
   </div>
 
+  <!-- MODAL TERMINAL -->
+  <div id="modal-terminal" class="modal-overlay" style="display: none;">
+    <div class="modal-contenido" style="max-width: 500px; background: #000; border-color: #0f0;">
+      <div class="modal-header" style="background: #001100; color: #0f0; border-bottom: 1px solid #0f0;">
+        <h2>🖥️ WOLFY OS v3.1 - TERMINAL</h2>
+        <button class="btn-cerrar" onclick="cerrarTerminalWolfy()" style="color: #f00;">✖</button>
+      </div>
+      <div style="padding: 20px; font-family: 'Courier New', monospace; color: #0f0;">
+        <p>> Bienvenido, Operador Wolfy.</p>
+        <p>> Escribe <span style="color:#ff0">'help'</span> para ver comandos.</p>
+        <div id="terminal-log" style="height: 150px; overflow-y: auto; background: #000; border: 1px solid #0f0; padding: 10px; margin-bottom: 10px; font-size: 14px;">
+          <div>[SISTEMA] Inicializado...</div>
+        </div>
+        <div style="display: flex; gap: 10px;">
+          <span style="font-weight: bold;">$</span>
+          <input type="text" id="cmd-input" placeholder="Código..." 
+                 onkeydown="if(event.key === 'Enter') ejecutarComandoTerminal()"
+                 autocomplete="off" spellcheck="false"
+                 style="flex: 1; background: #111; border: 1px solid #0f0; color: #fff; padding: 8px; font-family: inherit; outline: none;">
+          <button onclick="ejecutarComandoTerminal()" style="background: #0f0; color: #000; border: none; padding: 8px 15px; font-weight: bold; cursor: pointer;">ENTER</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
 </body>
-</html>
