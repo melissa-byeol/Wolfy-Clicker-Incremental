@@ -1,4 +1,7 @@
-// bruh
+/* ==========================================================================
+   WOLFY CLICKER v4.2 - ANGLER EDITION (FULL CODE)
+   Incluye: Economía, Badges, Speedrun y Minijuego de Pesca Customizado
+   ========================================================================== */
 
 // ===== ESTADO DEL JUEGO =====
 const GAME = {
@@ -7,7 +10,11 @@ const GAME = {
     clickPower: 1,
     inventory: {}, // { itemId: count }
     buffs: { cookieMult: 1 },
-    meta: { unlockedThemes: [], achievements: [] },
+    meta: { 
+        unlockedThemes: [], 
+        achievements: [],
+        badgesEarned: [] 
+    },
     
     // Speedrun Data
     totalClicks: 0,
@@ -21,12 +28,11 @@ const GAME = {
         indicatorPos: 0, // 0 a 100 (%)
         direction: 1, // 1 baja, -1 sube
         speed: 1.5, // Velocidad base
-        zones: [], // Configuración de zonas actuales
-        fishType: null // Objeto del pez capturado
+        zones: [] // Configuración de zonas actuales
     }
 };
 
-// ===== CATÁLOGO MÍNIMO =====
+// ===== CATÁLOGO DE TIENDA =====
 const ITEMS = [
     // Mejoras de Clic (Únicas)
     { id: 'u_heavy', name: 'Heavy Click', type: 'upgrade', cost: 50, effect: () => GAME.clickPower *= 2 },
@@ -38,13 +44,40 @@ const ITEMS = [
     { id: 'b_streamer', name: 'Streamer Wolfy', type: 'building', baseCost: 120000, growth: 1.15, prod: 200 }
 ];
 
-// ===== LISTA DE PECES / ITEMS DE PESCA =====
+// ===== LISTA DE PECES / ITEMS DE PESCA (TU HUMOR INTEGRADO) =====
 const FISH_TABLE = [
-    { id: 'common_fish', name: 'Pez Común', rarity: 'Común', weight: 50, rewardWC: 50, icon: '🐟' },
-    { id: 'golden_fish', name: 'Pez Dorado', rarity: 'Raro', weight: 20, rewardWC: 500, icon: '✨' },
-    { id: 'boot', name: 'Bota Vieja', rarity: 'Basura', weight: 15, rewardWC: 10, icon: '👢' },
-    { id: 'mystic_bone', name: 'Hueso Místico', rarity: 'Épico', weight: 10, rewardWC: 2000, buff: 'bone_x2_30s', icon: '🦴' },
-    { id: 'legendary_koi', name: 'Koi Legendario', rarity: 'Legendario', weight: 5, rewardWC: 10000, icon: '🎏' }
+    { 
+        id: 'lost_boot', 
+        name: 'Bota Perdida', 
+        rarity: 'Basura', 
+        rewardWC: 5, 
+        icon: '👢',
+        desc: "No vale mucho... y está empapada."
+    },
+    { 
+        id: 'chicken_nugget', 
+        name: 'Nugget de Pollo', 
+        rarity: 'Común', 
+        rewardWC: 25, 
+        icon: '🍗',
+        desc: "Es delicioso si tu cuerpo soporta montones invisibles de sal de mar."
+    },
+    { 
+        id: 'pufferfish', 
+        name: 'Pez Globo', 
+        rarity: 'Raro', 
+        rewardWC: 150, 
+        icon: '🐡',
+        desc: "EWWWWWW, NO LO COMAS ASÍ. (Pero da mucha XP)"
+    },
+    { 
+        id: 'sardine', 
+        name: 'Sardina', 
+        rarity: 'Épico', // Premio mayor por precisión
+        rewardWC: 500, 
+        icon: '🐟',
+        desc: "Es común y pequeño... pero al menos es comestible."
+    }
 ];
 
 // ===== UTILIDADES =====
@@ -111,8 +144,8 @@ function renderShop() {
     const upgList = $('list-click-upgrades');
     const bldList = $('list-buildings');
     
-    upgList.innerHTML = '';
-    bldList.innerHTML = '';
+    if(upgList) upgList.innerHTML = '';
+    if(bldList) bldList.innerHTML = '';
 
     ITEMS.forEach(item => {
         const btn = document.createElement('button');
@@ -129,14 +162,17 @@ function renderShop() {
         btn.disabled = isOwned || GAME.wc < cost;
         btn.onclick = () => buyItem(item.id);
         
-        if (item.type === 'upgrade') upgList.appendChild(btn);
-        else bldList.appendChild(btn);
+        if (item.type === 'upgrade' && upgList) upgList.appendChild(btn);
+        else if (bldList) bldList.appendChild(btn);
     });
 }
 
 function updateUI() {
-    $('wc-display').innerText = `${fmt(GAME.wc)} WC`;
-    $('wcs-display').innerText = `+${GAME.wcs.toFixed(1)}/s | 💵 ${GAME.meta.wolfilletes || 0} | 💾 ${GAME.meta.wolfbytes || 0}`;
+    const wcDisp = $('wc-display');
+    const wcsDisp = $('wcs-display');
+    
+    if(wcDisp) wcDisp.innerText = `${fmt(GAME.wc)} WC`;
+    if(wcsDisp) wcsDisp.innerText = `+${GAME.wcs.toFixed(1)}/s | 💵 0 | 💾 0`;
     
     // Timer Display
     const timerDisplay = $('speedrun-timer');
@@ -154,6 +190,7 @@ function updateUI() {
 
 function createFloatText(text) {
     const layer = $('float-layer');
+    if(!layer) return;
     const el = document.createElement('div');
     el.className = 'float-num';
     el.innerText = text;
@@ -170,8 +207,6 @@ const INITIAL_BADGES = [
     { id: "badge_first_employee", title: "Contratación", desc: "Compra un Clicker Wolfy.", cond: () => (GAME.inventory['b_clicker'] || 0) >= 1, icon: "🐺" },
     { id: "badge_jitter_expert", title: "Experto En Jitterclick", desc: "Alcanza 1,000 WC en <10min.", type: "record", icon: "⚡" }
 ];
-
-if (!GAME.meta.badgesEarned) GAME.meta.badgesEarned = [];
 
 function checkBadges() {
     INITIAL_BADGES.forEach(badge => {
@@ -277,13 +312,15 @@ function renderBadges() {
 // ===== MINIJUEGO DE PESCA (TIMING/CLICK) =====
 
 function openFishingModal() {
-    $('modal-fishing').classList.remove('hidden');
+    const modal = $('modal-fishing');
+    if(modal) modal.classList.remove('hidden');
     resetFishingState();
     startFishingWait();
 }
 
 function closeFishingModal() {
-    $('modal-fishing').classList.add('hidden');
+    const modal = $('modal-fishing');
+    if(modal) modal.classList.add('hidden');
     GAME.fishing.isActive = false;
 }
 
@@ -295,29 +332,33 @@ function resetFishingState() {
     GAME.fishing.zones = generateRandomZones();
     
     // Resetear UI
-    $('fish-status-text').innerText = "Esperando picada...";
-    $('fish-result-msg').innerText = "";
-    $('fish-result-msg').className = "result-msg";
+    const statusEl = $('fish-status-text');
+    if(statusEl) statusEl.innerText = "Esperando picada...";
+    
+    const msgEl = $('fish-result-msg');
+    if(msgEl) {
+        msgEl.innerText = "";
+        msgEl.className = "result-msg";
+    }
     
     // Ocultar todas las zonas inicialmente hasta que empiece
     document.querySelectorAll('.zone').forEach(z => z.style.opacity = '0');
-    $('fish-indicator').style.top = '0%';
+    const ind = $('fish-indicator');
+    if(ind) ind.style.top = '0%';
 }
 
 function generateRandomZones() {
-    // Generamos posiciones aleatorias para las zonas de dificultad
-    // Formato: { id, start (%), end (%) }
     const zones = [];
     let currentPos = 0;
     
     // Definimos tamaños relativos (ej: Perfecto es pequeño, Peligro es grande)
     const configs = [
-        { id: 'blackout', size: 5, colorClass: 'black' },   // Negro (Perder instantáneo si toca al inicio?) -> Lo ponemos como riesgo alto
-        { id: 'danger', size: 15, colorClass: 'red' },      // Rojo (Mal)
-        { id: 'bad', size: 20, colorClass: 'orange' },      // Naranja (Meh)
-        { id: 'ok', size: 25, colorClass: 'yellow' },       // Amarillo (Bien)
-        { id: 'good', size: 20, colorClass: 'green' },      // Verde (Excelente)
-        { id: 'perfect', size: 10, colorClass: 'rainbow' }  // Arcoiris (Perfecto)
+        { id: 'blackout', size: 5, colorClass: 'black' },   
+        { id: 'danger', size: 15, colorClass: 'red' },      
+        { id: 'bad', size: 20, colorClass: 'orange' },      
+        { id: 'ok', size: 25, colorClass: 'yellow' },       
+        { id: 'good', size: 20, colorClass: 'green' },      
+        { id: 'perfect', size: 10, colorClass: 'rainbow' }  
     ];
 
     // Mezclamos orden para que no sea siempre igual
@@ -325,7 +366,7 @@ function generateRandomZones() {
 
     let accumulatedHeight = 0;
     configs.forEach(cfg => {
-        const heightPercent = cfg.size; // Porcentaje de altura total
+        const heightPercent = cfg.size; 
         zones.push({
             ...cfg,
             start: accumulatedHeight,
@@ -345,23 +386,20 @@ function generateRandomZones() {
 }
 
 function drawZones() {
-    const container = $('.bar-container');
-    // Limpiar zonas anteriores visuales (opcional, pero bueno para debug)
-    // Aquí simplemente aplicamos estilos CSS basados en los datos
-    
     GAME.fishing.zones.forEach(zoneData => {
         const el = $(`zone-${zoneData.id}`);
         if(el) {
             el.style.top = zoneData.start + '%';
             el.style.height = (zoneData.end - zoneData.start) + '%';
-            el.style.opacity = '0.9'; // Hacer visibles
+            el.style.opacity = '0.9'; 
         }
     });
 }
 
 function startFishingWait() {
     GAME.fishing.phase = 'waiting';
-    $('fish-status-text').innerText = "Esperando picada...";
+    const statusEl = $('fish-status-text');
+    if(statusEl) statusEl.innerText = "Esperando picada...";
     
     // Tiempo aleatorio entre 2 y 5 segundos
     const waitTime = 2000 + Math.random() * 3000;
@@ -375,7 +413,8 @@ function startFishingWait() {
 
 function startFightingPhase() {
     GAME.fishing.phase = 'moving';
-    $('fish-status-text').innerText = "¡PELEANDO! ¡CLIC EN LA ZONA CORRECTA!";
+    const statusEl = $('fish-status-text');
+    if(statusEl) statusEl.innerText = "¡PELEANDO! ¡CLIC EN LA ZONA CORRECTA!";
     drawZones(); // Mostrar las barras de color
     
     // Iniciar animación del indicador
@@ -399,7 +438,8 @@ function animateIndicator() {
     }
 
     // Actualizar posición visual
-    $('fish-indicator').style.top = GAME.fishing.indicatorPos + '%';
+    const ind = $('fish-indicator');
+    if(ind) ind.style.top = GAME.fishing.indicatorPos + '%';
 
     // Acelerar ligeramente con el tiempo para aumentar dificultad
     GAME.fishing.speed += 0.005;
@@ -433,88 +473,83 @@ function processCatchResult(zone) {
     let message = "";
     let className = "";
     let reward = 0;
-    let fishIcon = "❓";
+    let caughtItem = null;
 
     if (!zone) {
-        // Cayó fuera de rango (debería ser imposible dada la lógica, pero por seguridad)
         message = "Fallaste el golpe.";
         className = "msg-fail";
     } else {
         switch(zone.id) {
-            case 'perfect':
-                message = "¡PERFECTO! Captura Legendaria.";
+            case 'perfect': // Arcoiris -> Sardina (La joya oculta)
+                caughtItem = FISH_TABLE.find(f => f.id === 'sardine');
+                message = `¡PERFECTO! Capturaste una ${caughtItem.name}!`;
                 className = "msg-success";
-                // Selección ponderada de peces legendarios/épicos
-                fishIcon = pickFishByRarity(['Legendario', 'Épico']);
-                reward = calculateReward(fishIcon);
                 break;
-            case 'good':
-                message = "¡EXCELENTE! Buen pez.";
+                
+            case 'good': // Verde -> Pez Globo
+                caughtItem = FISH_TABLE.find(f => f.id === 'pufferfish');
+                message = `¡EXCELENTE! Un ${caughtItem.name}.`;
                 className = "msg-success";
-                fishIcon = pickFishByRarity(['Raro', 'Épico']);
-                reward = calculateReward(fishIcon);
                 break;
-            case 'ok':
-                message = "Bien. Pez común.";
-                className = "msg-success"; // Consideramos éxito menor
-                fishIcon = pickFishByRarity(['Común']);
-                reward = calculateReward(fishIcon);
+                
+            case 'ok': // Amarillo -> Nugget de Pollo
+                caughtItem = FISH_TABLE.find(f => f.id === 'chicken_nugget');
+                message = `Bien. Encontraste un ${caughtItem.name}.`;
+                className = "msg-success";
                 break;
-            case 'bad':
-                message = "Meh... Solo basura.";
+                
+            case 'bad': // Naranja -> Bota Perdida
+                caughtItem = FISH_TABLE.find(f => f.id === 'lost_boot');
+                message = `Meh... Sacaste una ${caughtItem.name}.`;
                 className = "msg-lost";
-                fishIcon = "👢";
-                reward = 10; // Poco dinero
                 break;
-            case 'danger':
-                message = "MAL. La caña crujió.";
+                
+            case 'danger': // Rojo -> Nada/Basura extra
+                message = "MAL. La caña crujió y perdiste el anzuelo.";
                 className = "msg-fail";
-                fishIcon = "💔";
                 reward = 0;
                 break;
-            case 'blackout':
-                message = "NEGRO. Item perdido en el fondo.";
+                
+            case 'blackout': // Negro -> Item perdido en el fondo
+                message = "NEGRO. Algo se hundió en la oscuridad...";
                 className = "msg-lost";
-                fishIcon = "🕳️";
                 reward = 0;
                 break;
         }
     }
 
-    msgEl.innerText = `${message} ${fishIcon} (+${fmt(reward)} WC)`;
-    msgEl.className = `result-msg ${className}`;
+    // Si capturamos algo válido, calculamos recompensa
+    if (caughtItem) {
+        reward = caughtItem.rewardWC;
+        // Mostrar descripción graciosa en consola
+        console.log(`[PESCA] ${caughtItem.icon} ${caughtItem.name}: ${caughtItem.desc}`);
+        
+        // Actualizar mensaje visual incluyendo el ícono y la WC
+        if(msgEl) {
+            msgEl.innerHTML = `${message}<br><span style="font-size:1.5rem;">${caughtItem.icon}</span> +${fmt(reward)} WC`;
+            msgEl.className = `result-msg ${className}`;
+        }
+    } else {
+        if(msgEl) {
+            msgEl.innerText = message;
+            msgEl.className = `result-msg ${className}`;
+        }
+    }
     
     GAME.wc += reward;
     updateUI();
     saveGame();
 
-    // Opción de reintentar después de 2 segundos
+    // Reintentar después de 2 segundos
     setTimeout(() => {
-        if($('modal-fishing').classList.contains('hidden')) return; // Si cerró, no hacer nada
+        const modal = $('modal-fishing');
+        if(modal && modal.classList.contains('hidden')) return; // Si cerró, no hacer nada
         resetFishingState();
         startFishingWait();
     }, 2000);
 }
 
-function pickFishByRarity(rarities) {
-    // Filtrar tabla por rarezas permitidas
-    const candidates = FISH_TABLE.filter(f => rarities.includes(f.rarity));
-    if(candidates.length === 0) return "🐟"; // Fallback
-    
-    // Elegir uno aleatorio
-    const chosen = candidates[Math.floor(Math.random() * candidates.length)];
-    return chosen.icon;
-}
-
-function calculateReward(icon) {
-    const fish = FISH_TABLE.find(f => f.icon === icon);
-    if(!fish) return 50;
-    
-    // Aplicar multiplicador simple basado en rareza si quieres, o usar el definido
-    return fish.rewardWC;
-}
-
-// ===== EVENT LISTENERS =====
+// ===== EVENT LISTENERS Y INICIO =====
 window.onload = () => {
     loadGame();
     renderShop();
@@ -528,40 +563,56 @@ window.onload = () => {
             btn.classList.add('tab-active');
             
             document.querySelectorAll('.side-content').forEach(c => c.classList.add('hidden'));
-            $(btn.dataset.view).classList.remove('hidden');
+            const view = $(btn.dataset.view);
+            if(view) view.classList.remove('hidden');
         };
     });
 
     // Botón Principal Click
-    $('main-coin').onclick = doClick;
+    const coin = $('main-coin');
+    if(coin) coin.onclick = doClick;
     
     // Botón Pesca
-    $('btn-start-fishing').onclick = openFishingModal;
-    $('btn-cancel-fish').onclick = closeFishingModal;
-    $('btn-reel-in').onclick = handleFishClick; // EL CLAVE DE LA MECÁNICA
+    const fishBtn = $('btn-start-fishing');
+    if(fishBtn) fishBtn.onclick = openFishingModal;
+    
+    const cancelFish = $('btn-cancel-fish');
+    if(cancelFish) cancelFish.onclick = closeFishingModal;
+    
+    const reelIn = $('btn-reel-in');
+    if(reelIn) reelIn.onclick = handleFishClick; // EL CLAVE DE LA MECÁNICA
 
     // Terminal
-    $('btn-terminal').onclick = () => $('modal-term').classList.remove('hidden');
-    $('btn-close-term').onclick = () => $('modal-term').classList.add('hidden');
-    $('term-input').addEventListener('keydown', e => {
-        if (e.key === 'Enter') {
-            const cmd = e.target.value.toLowerCase();
-            logTerm(`> ${cmd}`);
-            if(cmd === 'help') logTerm("Comandos: vomitar, medicina, reset, add_wc");
-            if(cmd === 'add_wc') { GAME.wc += 10000; updateUI(); logTerm("+10k WC añadido"); }
-            if(cmd === 'vomitar') { document.body.style.filter = 'invert(1) hue-rotate(180deg)'; logTerm("MOD CAOS"); }
-            if(cmd === 'medicina') { document.body.style.filter = 'none'; logTerm("Curado."); }
-            if(cmd === 'reset') { localStorage.clear(); location.reload(); }
-            e.target.value = "";
-        }
-    });
+    const termOpen = $('btn-terminal');
+    if(termOpen) termOpen.onclick = () => $('modal-term').classList.remove('hidden');
+    
+    const termClose = $('btn-close-term');
+    if(termClose) termClose.onclick = () => $('modal-term').classList.add('hidden');
+    
+    const termInput = $('term-input');
+    if(termInput) {
+        termInput.addEventListener('keydown', e => {
+            if (e.key === 'Enter') {
+                const cmd = e.target.value.toLowerCase();
+                logTerm(`> ${cmd}`);
+                if(cmd === 'help') logTerm("Comandos: vomitar, medicina, reset, add_wc");
+                if(cmd === 'add_wc') { GAME.wc += 10000; updateUI(); logTerm("+10k WC añadido"); }
+                if(cmd === 'vomitar') { document.body.style.filter = 'invert(1) hue-rotate(180deg)'; logTerm("MOD CAOS"); }
+                if(cmd === 'medicina') { document.body.style.filter = 'none'; logTerm("Curado."); }
+                if(cmd === 'reset') { localStorage.clear(); location.reload(); }
+                e.target.value = "";
+            }
+        });
+    }
 
     function logTerm(txt) {
         const log = $('term-log');
-        const div = document.createElement('div');
-        div.innerText = txt;
-        log.appendChild(div);
-        log.scrollTop = log.scrollHeight;
+        if(log) {
+            const div = document.createElement('div');
+            div.innerText = txt;
+            log.appendChild(div);
+            log.scrollTop = log.scrollHeight;
+        }
     }
 
     // Loop Pasivo
