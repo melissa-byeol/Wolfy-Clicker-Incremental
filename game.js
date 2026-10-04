@@ -1,3 +1,5 @@
+// bruh
+
 // ===== ESTADO DEL JUEGO =====
 const GAME = {
     wc: 0,
