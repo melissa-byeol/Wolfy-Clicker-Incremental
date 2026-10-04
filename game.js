@@ -45,40 +45,74 @@ const ITEMS = [
 ];
 
 // ===== LISTA DE PECES / ITEMS DE PESCA (TU HUMOR INTEGRADO) =====
+// ===== TABLA DE ITEMS DE PESCA =====
 const FISH_TABLE = [
-    { 
-        id: 'lost_boot', 
-        name: 'Bota Perdida', 
-        rarity: 'Basura', 
-        rewardWC: 5, 
-        icon: '👢',
-        desc: "No vale mucho... y está empapada."
-    },
-    { 
-        id: 'chicken_nugget', 
-        name: 'Nugget de Pollo', 
-        rarity: 'Común', 
-        rewardWC: 25, 
-        icon: '🍗',
-        desc: "Es delicioso si tu cuerpo soporta montones invisibles de sal de mar."
-    },
-    { 
-        id: 'pufferfish', 
-        name: 'Pez Globo', 
-        rarity: 'Raro', 
-        rewardWC: 150, 
-        icon: '🐡',
-        desc: "EWWWWWW, NO LO COMAS ASÍ. (Pero da mucha XP)"
-    },
-    { 
-        id: 'sardine', 
-        name: 'Sardina', 
-        rarity: 'Épico', // Premio mayor por precisión
-        rewardWC: 500, 
-        icon: '🐟',
-        desc: "Es común y pequeño... pero al menos es comestible."
-    }
+    // --- BASURA / COMÚN (Salen fácil en zonas malas) ---
+    { id: 'lost_boot', name: 'Bota Perdida', rarity: 'Basura', rewardWC: 5, icon: '👢', desc: "No vale mucho... y está empapada." },
+    { id: 'old_can', name: 'Lata Oxidada', rarity: 'Basura', rewardWC: 8, icon: '🥫', desc: "¿Alguien tiró basura aquí? Wolfy Inc. demanda limpieza." },
+    
+    // --- COMÚN (Salen en zonas regulares) ---
+    { id: 'chicken_nugget', name: 'Nugget de Pollo', rarity: 'Común', rewardWC: 25, icon: '🍗', desc: "Es delicioso si tu cuerpo soporta montones invisibles de sal de mar." },
+    { id: 'sardine_small', name: 'Sardina Pequeña', rarity: 'Común', rewardWC: 30, icon: '🐟', desc: "Pequeña pero comestible. No preguntes cómo llegó al lago." },
+
+    // --- RARO (Salen en zonas buenas) ---
+    { id: 'pufferfish', name: 'Pez Globo', rarity: 'Raro', rewardWC: 150, icon: '🐡', desc: "EWWWWWW, NO LO COMAS ASÍ. (Pero da mucha XP)" },
+    { id: 'shiny_coin', name: 'Moneda Brillante', rarity: 'Raro', rewardWC: 200, icon: '🪙', desc: "Una moneda antigua del fondo del lago digital." },
+
+    // --- ÉPICO (Salen casi exclusivamente en zonas Perfectas) ---
+    { id: 'legendary_koi', name: 'Koi Legendario', rarity: 'Épico', rewardWC: 800, icon: '🎏', desc: "Se dice que trae buena fortuna a quien lo captura." },
+    { id: 'golden_bone', name: 'Hueso Dorado', rarity: 'Épico', rewardWC: 1000, icon: '🦴', desc: "El sueño húmedo de cualquier Clicker Wolfy." },
+
+    // --- SECRETO / MÍTICO (Probabilidad bajísima, incluso en Perfecto) ---
+    { id: 'drowned_clicker', name: 'Clicker Wolfy?', rarity: 'SECRETO', rewardWC: 2500, icon: '🐺', desc: "¿Qué hacía ahí? ¿Se cayó mientras clica?" }
 ];
+
+// ===== PESOS DE PROBABILIDAD POR ZONA =====
+// Define qué tan probable es caer en cada rareza según la precisión
+const RARITY_CHANCES = {
+    'perfect': { // Zona Arcoíris
+        'Basura': 0,      // Imposible
+        'Común': 10,      // Baja chance
+        'Raro': 40,       // Media-Alta
+        'Épico': 45,      // Alta
+        'SECRETO': 5      // ¡Jackpot posible!
+    },
+    'good': { // Zona Verde
+        'Basura': 5,
+        'Común': 30,
+        'Raro': 50,
+        'Épico': 15,
+        'SECRETO': 0
+    },
+    'ok': { // Zona Amarilla
+        'Basura': 20,
+        'Común': 60,
+        'Raro': 20,
+        'Épico': 0,
+        'SECRETO': 0
+    },
+    'bad': { // Zona Naranja
+        'Basura': 70,
+        'Común': 30,
+        'Raro': 0,
+        'Épico': 0,
+        'SECRETO': 0
+    },
+    'danger': { // Zona Roja
+        'Basura': 90,
+        'Común': 10,
+        'Raro': 0,
+        'Épico': 0,
+        'SECRETO': 0
+    },
+    'blackout': { // Zona Negra
+        'Basura': 100, // Siempre basura o nada
+        'Común': 0,
+        'Raro': 0,
+        'Épico': 0,
+        'SECRETO': 0
+    }
+};
 
 // ===== UTILIDADES =====
 const $ = id => document.getElementById(id);
@@ -468,87 +502,126 @@ function handleFishClick() {
     processCatchResult(resultZone);
 }
 
+/**
+ * Elige un item aleatorio basado en la rareza permitida por la zona.
+ * @param {string} zoneId - El ID de la zona ('perfect', 'good', etc.)
+ * @returns {object|null} - El objeto del item elegido, o null si falla todo.
+ */
+function rollFish(zoneId) {
+    const chances = RARITY_CHANCES[zoneId] || {};
+    
+    // 1. Determinar la rareza ganadora
+    let rolledRarity = null;
+    const rand = Math.random() * 100;
+    let cumulativeWeight = 0;
+
+    for (const [rarity, weight] of Object.entries(chances)) {
+        cumulativeWeight += weight;
+        if (rand <= cumulativeWeight) {
+            rolledRarity = rarity;
+            break;
+        }
+    }
+
+    // Si no hay rareza asignada (ej. error lógico), fallback a Basura
+    if (!rolledRarity) rolledRarity = 'Basura';
+
+    // 2. Filtrar items de esa rareza
+    const candidates = FISH_TABLE.filter(item => item.rarity === rolledRarity);
+    
+    if (candidates.length === 0) return null; // No hay items de esa rareza
+
+    // 3. Elegir uno al azar entre los candidatos
+    const chosenIndex = Math.floor(Math.random() * candidates.length);
+    return candidates[chosenIndex];
+}
+
 function processCatchResult(zone) {
     const msgEl = $('fish-result-msg');
     let message = "";
     let className = "";
-    let reward = 0;
     let caughtItem = null;
 
     if (!zone) {
         message = "Fallaste el golpe.";
         className = "msg-fail";
     } else {
-        switch(zone.id) {
-            case 'perfect': // Arcoiris -> Sardina (La joya oculta)
-                caughtItem = FISH_TABLE.find(f => f.id === 'sardine');
-                message = `¡PERFECTO! Capturaste una ${caughtItem.name}!`;
-                className = "msg-success";
-                break;
-                
-            case 'good': // Verde -> Pez Globo
-                caughtItem = FISH_TABLE.find(f => f.id === 'pufferfish');
-                message = `¡EXCELENTE! Un ${caughtItem.name}.`;
-                className = "msg-success";
-                break;
-                
-            case 'ok': // Amarillo -> Nugget de Pollo
-                caughtItem = FISH_TABLE.find(f => f.id === 'chicken_nugget');
-                message = `Bien. Encontraste un ${caughtItem.name}.`;
-                className = "msg-success";
-                break;
-                
-            case 'bad': // Naranja -> Bota Perdida
-                caughtItem = FISH_TABLE.find(f => f.id === 'lost_boot');
-                message = `Meh... Sacaste una ${caughtItem.name}.`;
-                className = "msg-lost";
-                break;
-                
-            case 'danger': // Rojo -> Nada/Basura extra
-                message = "MAL. La caña crujió y perdiste el anzuelo.";
-                className = "msg-fail";
-                reward = 0;
-                break;
-                
-            case 'blackout': // Negro -> Item perdido en el fondo
-                message = "NEGRO. Algo se hundió en la oscuridad...";
-                className = "msg-lost";
-                reward = 0;
-                break;
+        // USAMOS LA NUEVA FUNCIÓN DE SORTEO
+        caughtItem = rollFish(zone.id);
+
+        if (!caughtItem) {
+            // Caso extremo: La zona existe pero no hay items configurados
+            message = "El anzuelo volvió vacío...";
+            className = "msg-lost";
+        } else {
+            // Construir mensaje dinámico basado en la rareza obtenida
+            
+            // Estilos visuales según rareza
+            let rarityColor = "#fff";
+            if(caughtItem.rarity === 'Basura') rarityColor = "#94a3b8"; // Gris
+            if(caughtItem.rarity === 'Común') rarityColor = "#4ade80";  // Verde claro
+            if(caughtItem.rarity === 'Raro') rarityColor = "#60a5fa";   // Azul
+            if(caughtItem.rarity === 'Épico') rarityColor = "#c084fc";  // Morado
+            if(caughtItem.rarity === 'SECRETO') rarityColor = "#fbbf24"; // Oro/Neón
+
+            // Texto de encabezado según zona (para mantener el feedback de precisión)
+            let headerText = "";
+            switch(zone.id) {
+                case 'perfect': headerText = "¡PERFECTO!"; break;
+                case 'good': headerText = "¡EXCELENTE!"; break;
+                case 'ok': headerText = "BIEN."; break;
+                case 'bad': headerText = "MEH..."; break;
+                case 'danger': headerText = "MAL."; break;
+                case 'blackout': headerText = "NEGRO."; break;
+                default: headerText = "RESULTADO:";
+            }
+
+            message = `${headerText} Atrapaste un... <strong style="color:${rarityColor}">${caughtItem.name}</strong>?`;
+            
+            // Clase CSS para el contenedor principal
+            className = caughtItem.rarity === 'Basura' ? "msg-lost" : 
+                        (caughtItem.rarity === 'SECRETO' ? "msg-success special-glow" : "msg-success");
+            
+            console.log(`[PESCA] ${caughtItem.icon} ${caughtItem.name} (${caughtItem.rarity}): ${caughtItem.desc}`);
         }
     }
 
-    // Si capturamos algo válido, calculamos recompensa
-    if (caughtItem) {
-        reward = caughtItem.rewardWC;
-        // Mostrar descripción graciosa en consola
-        console.log(`[PESCA] ${caughtItem.icon} ${caughtItem.name}: ${caughtItem.desc}`);
-        
-        // Actualizar mensaje visual incluyendo el ícono y la WC
-        if(msgEl) {
-            msgEl.innerHTML = `${message}<br><span style="font-size:1.5rem;">${caughtItem.icon}</span> +${fmt(reward)} WC`;
-            msgEl.className = `result-msg ${className}`;
-        }
-    } else {
-        if(msgEl) {
+    // Aplicar recompensa si hay item
+    let reward = caughtItem ? caughtItem.rewardWC : 0;
+    
+    if(msgEl) {
+        if (caughtItem) {
+            msgEl.innerHTML = `
+                ${message}<br>
+                <span style="font-size:2rem; display:block; margin:5px 0;">${caughtItem.icon}</span>
+                <small style="color:#cbd5e1; font-style:italic;">"${caughtItem.desc}"</small><br>
+                <strong>+${fmt(reward)} WC</strong>
+            `;
+        } else {
             msgEl.innerText = message;
-            msgEl.className = `result-msg ${className}`;
         }
+        msgEl.className = `result-msg ${className}`;
     }
     
     GAME.wc += reward;
     updateUI();
     saveGame();
 
+    // Efecto especial para el secreto
+    if (caughtItem && caughtItem.rarity === 'SECRETO') {
+        document.body.style.animation = "shakeScreen 0.3s";
+        setTimeout(() => document.body.style.animation = "", 300);
+        alert("🤯 ¡HAS ENCONTRADO UN CLICKER WOLFY AHOGADO!\n¿Qué hacía ahí?");
+    }
+
     // Reintentar después de 2 segundos
     setTimeout(() => {
         const modal = $('modal-fishing');
-        if(modal && modal.classList.contains('hidden')) return; // Si cerró, no hacer nada
+        if(modal && modal.classList.contains('hidden')) return;
         resetFishingState();
         startFishingWait();
     }, 2000);
 }
-
 // ===== EVENT LISTENERS Y INICIO =====
 window.onload = () => {
     loadGame();
