@@ -1,12 +1,13 @@
 :root {
-    --bg-app: #eef7fa; /* Azul cielo muy claro */
+    --bg-app: #eef7fa;
     --bg-card: #ffffff;
-    --primary: #00b4d8; /* Cyan Wolfy */
+    --primary: #00b4d8;
     --secondary: #90e0ef;
     --text-dark: #1d3557;
     --text-light: #457b9d;
     --danger: #e63946;
     --success: #2a9d8f;
+    --gold: #ffb703;
     --radius-lg: 16px;
     --radius-md: 8px;
     --shadow-soft: 0 4px 12px rgba(0, 180, 216, 0.1);
@@ -18,51 +19,22 @@ body { background: var(--bg-app); color: var(--text-dark); height: 100vh; overfl
 
 /* LAYOUT GRID */
 .app-shell { display: flex; flex-direction: column; height: 100%; }
-
-.top-bar {
-    background: var(--bg-card);
-    padding: 10px 20px;
-    display: flex; justify-content: space-between; align-items: center;
-    box-shadow: var(--shadow-soft);
-    z-index: 10;
-}
+.top-bar { background: var(--bg-card); padding: 10px 20px; display: flex; justify-content: space-between; align-items: center; box-shadow: var(--shadow-soft); z-index: 10; }
 .brand { font-weight: bold; font-size: 1.2rem; color: var(--primary); }
 .stats-center { text-align: center; }
-#wc-display { font-size: 1.5rem; font-weight: 800; color: var(--text-dark); }
+#wc-display { font-size: 1.5rem; font-weight: 800; }
 #wcs-display { font-size: 0.9rem; color: var(--text-light); }
+#speedrun-timer { font-size: 0.8rem; font-weight: bold; color: var(--danger); animation: pulseRed 1s infinite; }
+@keyframes pulseRed { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
 .icon-btn { background: none; border: none; font-size: 1.5rem; cursor: pointer; }
 
-.content-grid {
-    display: grid;
-    grid-template-columns: 280px 1fr 320px;
-    gap: 15px;
-    padding: 15px;
-    flex: 1;
-    overflow: hidden;
-}
+.content-grid { display: grid; grid-template-columns: 280px 1fr 320px; gap: 15px; padding: 15px; flex: 1; overflow: hidden; }
+.panel { background: var(--bg-card); border-radius: var(--radius-lg); padding: 15px; box-shadow: var(--shadow-soft); display: flex; flex-direction: column; overflow-y: auto; }
 
-.panel {
-    background: var(--bg-card);
-    border-radius: var(--radius-lg);
-    padding: 15px;
-    box-shadow: var(--shadow-soft);
-    display: flex; flex-direction: column;
-    overflow-y: auto;
-}
-
-/* TIENDA IZQUIERDA */
+/* TIENDA */
 .shop-section h3 { font-size: 0.9rem; text-transform: uppercase; color: var(--text-light); margin: 10px 0 5px; border-bottom: 1px solid #eee; padding-bottom: 2px;}
-.shop-item {
-    background: #f8fcfd;
-    border: 1px solid #e0f2fe;
-    border-radius: var(--radius-md);
-    padding: 10px;
-    margin-bottom: 8px;
-    cursor: pointer;
-    transition: all 0.2s;
-    display: flex; justify-content: space-between; align-items: center;
-}
-.shop-item:hover:not(:disabled) { transform: translateY(-2px); border-color: var(--primary); box-shadow: 0 2px 8px rgba(0,180,216,0.2); }
+.shop-item { background: #f8fcfd; border: 1px solid #e0f2fe; border-radius: var(--radius-md); padding: 10px; margin-bottom: 8px; cursor: pointer; transition: all 0.2s; display: flex; justify-content: space-between; align-items: center; }
+.shop-item:hover:not(:disabled) { transform: translateY(-2px); border-color: var(--primary); }
 .shop-item:disabled { opacity: 0.6; cursor: not-allowed; background: #f1f5f9; }
 .item-name { font-weight: 600; font-size: 0.95rem; }
 .item-cost { font-size: 0.85rem; color: var(--primary); font-weight: bold; }
@@ -70,26 +42,22 @@ body { background: var(--bg-app); color: var(--text-dark); height: 100vh; overfl
 /* CENTRO CLICKER */
 .center-stage { justify-content: center; align-items: center; position: relative; }
 .clicker-wrapper { position: relative; width: 250px; height: 250px; display: flex; justify-content: center; align-items: center; }
-.big-coin {
-    width: 100%; height: 100%; object-fit: contain;
-    cursor: pointer;
-    filter: drop-shadow(0 10px 15px rgba(0,0,0,0.2));
-    transition: transform 0.1s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-}
+.big-coin { width: 100%; height: 100%; object-fit: contain; cursor: pointer; filter: drop-shadow(0 10px 15px rgba(0,0,0,0.2)); transition: transform 0.1s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
 .big-coin:active { transform: scale(0.9); }
-.hint-text { margin-top: 20px; color: var(--text-light); font-size: 0.9rem; }
+.hint-text { margin-top: 20px; color: var(--text-light); font-size: 0.9rem; text-align: center; }
 
-/* NÚMEROS FLOTANTES */
-#float-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; }
-.float-num {
-    position: absolute;
-    font-weight: bold; font-size: 1.2rem; color: var(--success);
-    animation: floatUp 1s ease-out forwards;
-    text-shadow: 1px 1px 2px white;
+.action-buttons { margin-top: 15px; }
+.fishing-btn {
+    background: linear-gradient(45deg, #00b4d8, #0077b6);
+    color: white; border: none; padding: 12px 24px; border-radius: 50px;
+    font-weight: bold; font-size: 1rem; cursor: pointer;
+    box-shadow: 0 4px 10px rgba(0, 119, 182, 0.3);
+    transition: transform 0.2s, box-shadow 0.2s;
 }
-@keyframes floatUp { to { transform: translateY(-50px); opacity: 0; } }
+.fishing-btn:hover { transform: translateY(-3px); box-shadow: 0 6px 15px rgba(0, 119, 182, 0.4); }
+.fishing-btn:active { transform: translateY(0); }
 
-/* DERECHA JUEGOS */
+/* DERECHA TABS */
 .side-tabs { display: flex; gap: 5px; margin-bottom: 10px; }
 .side-tabs button { flex: 1; padding: 8px; border: none; background: #e0f2fe; border-radius: var(--radius-md); cursor: pointer; font-weight: bold; color: var(--text-light); }
 .side-tabs .tab-active { background: var(--primary); color: white; }
@@ -102,31 +70,99 @@ body { background: var(--bg-app); color: var(--text-dark); height: 100vh; overfl
 
 /* RITMO */
 .rhythm-area { position: relative; height: 250px; background: #1d3557; border-radius: var(--radius-md); overflow: hidden; margin: 10px 0; }
-.lanes { display: flex; height: 100%; }
-.lane { flex: 1; border-right: 1px dashed rgba(255,255,255,0.1); display: flex; justify-content: center; align-items: flex-end; padding-bottom: 10px; color: rgba(255,255,255,0.5); font-weight: bold; }
 .hit-zone { position: absolute; bottom: 30px; left: 0; width: 100%; height: 4px; background: var(--primary); box-shadow: 0 0 10px var(--primary); z-index: 2; }
-.note {
-    position: absolute; width: 20%; height: 20px; background: linear-gradient(to right, #ff007f, #7f00ff);
-    border-radius: 4px; z-index: 3; pointer-events: none;
-}
-.note.hold { background: linear-gradient(to bottom, #00ffc8, #00a3ff); height: auto; min-height: 20px; }
-.note.flick { background: gold; border: 2px solid orange; }
 .rhythm-controls { display: flex; gap: 10px; justify-content: center; margin-top: 10px; }
 .rhythm-controls button { padding: 8px 15px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; }
 #btn-play-song { background: var(--success); color: white; }
 #btn-stop-song { background: var(--danger); color: white; }
 
-/* MODAL TERMINAL */
-.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); display: flex; justify-content: center; align-items: center; z-index: 100; }
-.term-window { width: 500px; max-width: 90%; background: #000; border: 2px solid #0f0; border-radius: 8px; font-family: monospace; color: #0f0; }
-.term-header { padding: 10px; border-bottom: 1px solid #0f0; display: flex; justify-content: space-between; }
-.term-header button { background: none; border: none; color: #0f0; cursor: pointer; }
-.term-body { height: 200px; overflow-y: auto; padding: 10px; font-size: 0.9rem; }
-.term-input-group { display: flex; padding: 10px; border-top: 1px solid #0f0; }
-.term-input-group input { flex: 1; background: #111; border: 1px solid #0f0; color: #fff; padding: 5px; margin-left: 5px; outline: none; }
+/* BADGES */
+.badges-container { display: flex; flex-direction: column; gap: 10px; }
+.badge-card { background: #f8fcfd; border: 1px solid #e0f2fe; border-radius: 8px; padding: 10px; display: flex; align-items: center; gap: 10px; transition: all 0.2s; }
+.badge-card.locked { opacity: 0.6; filter: grayscale(1); }
+.badge-card.earned { border-color: var(--primary); box-shadow: 0 2px 8px rgba(0, 180, 216, 0.15); background: white; }
+.badge-icon { font-size: 1.5rem; width: 40px; height: 40px; display: flex; justify-content: center; align-items: center; background: #e0f2fe; border-radius: 50%; }
+.badge-info strong { display: block; color: var(--text-dark); font-size: 0.9rem; }
+.badge-info small { color: var(--text-light); font-size: 0.8rem; }
+
+/* =========================================================
+   INTERFAZ DE PESCA (MECÁNICA DE CLIC/TIMING)
+   ========================================================= */
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(5px); display: flex; justify-content: center; align-items: center; z-index: 100; }
+.fishing-window { 
+    background: #0f172a; 
+    border: 2px solid #38bdf8;
+    border-radius: 12px;
+    width: 350px; max-width: 90%;
+    padding: 20px;
+    text-align: center;
+    color: white;
+    box-shadow: 0 0 30px rgba(56, 189, 248, 0.3);
+}
+.fishing-header h2 { margin-bottom: 5px; color: #38bdf8; }
+#fish-status-text { font-size: 0.9rem; color: #cbd5e1; margin-bottom: 15px; display: block; }
+
+.bar-container {
+    position: relative;
+    width: 60px; /* Ancho estrecho tipo caña */
+    height: 300px; 
+    background: #1e293b;
+    border-radius: 8px;
+    border: 2px solid #475569;
+    overflow: hidden;
+    margin: 0 auto 15px auto;
+}
+
+.progress-track {
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+    background: repeating-linear-gradient(0deg, transparent, transparent 10px, rgba(255,255,255,0.05) 10px, rgba(255,255,255,0.05) 20px);
+}
+
+/* ZONAS DE COLOR */
+.zone {
+    position: absolute;
+    left: 0; width: 100%;
+    transition: top 0.1s linear, height 0.1s linear;
+    opacity: 0.9;
+}
+.zone.rainbow { background: linear-gradient(to bottom, #ff0000, #ff7f00, #ffff00, #00ff00, #0000ff, #4b0082, #9400d3); box-shadow: 0 0 10px white; }
+.zone.green { background: #22c55e; }
+.zone.yellow { background: #eab308; }
+.zone.orange { background: #f97316; }
+.zone.red { background: #ef4444; }
+.zone.black { background: #000000; border-top: 1px dashed #fff; border-bottom: 1px dashed #fff; }
+
+/* INDICADOR DEL JUGADOR (El punto que se mueve) */
+.indicator {
+    position: absolute;
+    left: -5px; /* Sobresale un poco para verse mejor */
+    width: calc(100% + 10px);
+    height: 6px;
+    background: white;
+    box-shadow: 0 0 10px white, 0 0 20px cyan;
+    z-index: 10;
+    border-radius: 3px;
+    /* Se moverá via JS usando top % */
+}
+
+.fishing-controls { display: flex; gap: 10px; justify-content: center; }
+.reel-btn {
+    background: #38bdf8; color: #0f172a; border: none; padding: 12px 20px;
+    border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 1rem;
+    min-width: 150px;
+    transition: transform 0.1s;
+}
+.reel-btn:active { transform: scale(0.95); background: #0ea5e9; }
+.cancel-btn { background: #64748b; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; }
+
+.result-msg { margin-top: 10px; font-weight: bold; min-height: 20px; }
+.msg-success { color: #4ade80; }
+.msg-fail { color: #f87171; }
+.msg-lost { color: #94a3b8; font-style: italic; }
 
 /* RESPONSIVE MÓVIL */
 @media (max-width: 900px) {
     .content-grid { grid-template-columns: 1fr; grid-template-rows: auto auto auto; overflow-y: auto; }
     body { overflow-y: auto; }
+    .panel { min-height: 300px; }
 }
