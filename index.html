@@ -1,11 +1,9 @@
-<!-- a --->
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Wolfy Clicker v4.0</title>
+    <title>Wolfy Clicker v4.2 - Angler</title>
     <link rel="stylesheet" href="style.css">
     <script src="game.js" defer></script>
 </head>
@@ -19,86 +17,116 @@
             <div class="brand">🐺 Wolfy Inc.</div>
             <div class="stats-center">
                 <h1 id="wc-display">0 WC</h1>
-                <p id="wcs-display">+0.0/s</p>
+                <p id="wcs-display">+0.0/s | 💵 0 | 💾 0</p>
+                <p id="speedrun-timer" style="display:none;">⏱️ RUN: 00:00.000</p>
             </div>
             <button id="btn-terminal" class="icon-btn">💻</button>
         </header>
 
-        <!-- CUERPO PRINCIPAL (GRID) -->
+        <!-- CUERPO PRINCIPAL -->
         <main class="content-grid">
             
-            <!-- IZQUIERDA: TIENDA SIMPLE -->
+            <!-- IZQUIERDA: TIENDA -->
             <aside class="panel shop-panel">
                 <h2>Tienda Lupina</h2>
-                
-                <!-- Mejoras de Clic -->
                 <div class="shop-section">
                     <h3>Clic Power</h3>
                     <div id="list-click-upgrades"></div>
                 </div>
-
-                <!-- Edificios -->
                 <div class="shop-section">
                     <h3>Producción</h3>
                     <div id="list-buildings"></div>
                 </div>
             </aside>
 
-            <!-- CENTRO: EL CLICKER -->
+            <!-- CENTRO: CLICKER & PESCA -->
             <section class="panel center-stage">
                 <div class="clicker-wrapper">
-                    <img src="imagenes-wolfy/coin.png" alt="Wolficha" id="main-coin" class="big-coin">
-                    <div id="float-layer"></div> <!-- Para números flotantes -->
+                    <img src="assets/coin.png" alt="Wolficha" id="main-coin" class="big-coin">
+                    <div id="float-layer"></div>
                 </div>
-                <p class="hint-text">Haz clic para ganar Wolfichas</p>
+                
+                <div class="action-buttons">
+                    <button id="btn-start-fishing" class="fishing-btn">🎣 IR A PESCAR</button>
+                </div>
+                <p class="hint-text">Haz clic para ganar WC<br><small>¡Pesca items raros!</small></p>
             </section>
 
-            <!-- DERECHA: JUEGOS & CHAT -->
+            <!-- DERECHA: JUEGOS & LOGROS -->
             <aside class="panel side-panel">
                 <nav class="side-tabs">
                     <button class="tab-active" data-view="view-chat">💬 Chat</button>
                     <button data-view="view-rhythm">🎤 Ritmo</button>
+                    <button data-view="view-history">📜 Historia</button>
                 </nav>
 
-                <!-- Vista Chat -->
-                <div id="view-chat" class="side-content active">
-                    <div id="chat-box" class="chat-container"></div>
-                    <small>Streamer Wolfy está en vivo...</small>
-                </div>
+                <div class="tab-content-area">
+                    <div id="view-chat" class="side-content active">
+                        <div id="chat-box" class="chat-container"></div>
+                    </div>
 
-                <!-- Vista Ritmo -->
-                <div id="view-rhythm" class="side-content hidden">
-                    <h3>Idol Stage</h3>
-                    <select id="song-select">
-                        <option value="swim">Swim (Demo)</option>
-                    </select>
-                    
-                    <div class="rhythm-area">
-                        <div class="lanes">
-                            <div class="lane" data-key="a"><span>A</span></div>
-                            <div class="lane" data-key="s"><span>S</span></div>
-                            <div class="lane" data-key="d"><span>D</span></div>
-                            <div class="lane" data-key="f"><span>F</span></div>
+                    <div id="view-rhythm" class="side-content hidden">
+                        <h3>Idol Stage</h3>
+                        <select id="song-select"><option value="swim">Swim (Demo)</option></select>
+                        <div class="rhythm-area">
+                            <canvas id="rhythm-canvas" width="300" height="200"></canvas>
+                            <div class="hit-zone"></div>
                         </div>
-                        <div class="hit-zone"></div>
-                        <canvas id="rhythm-canvas" width="300" height="200"></canvas>
+                        <div class="rhythm-controls">
+                            <button id="btn-play-song">▶ Play</button>
+                            <button id="btn-stop-song">■ Stop</button>
+                        </div>
+                        <p id="score-display">Score: 0</p>
                     </div>
-                    
-                    <div class="rhythm-controls">
-                        <button id="btn-play-song">▶ Play</button>
-                        <button id="btn-stop-song">■ Stop</button>
+
+                    <div id="view-history" class="side-content hidden">
+                        <h3>📜 Progreso Lupino</h3>
+                        <div id="badges-list" class="badges-container"></div>
                     </div>
-                    <p id="score-display">Score: 0</p>
                 </div>
             </aside>
 
         </main>
     </div>
 
-    <!-- MODAL TERMINAL (SECRETO) -->
+    <!-- MODAL DE PESCA (NUEVO MECÁNICA) -->
+    <div id="modal-fishing" class="modal-overlay hidden">
+        <div class="fishing-window">
+            <div class="fishing-header">
+                <h2>🌊 Lago Digital</h2>
+                <span id="fish-status-text">Lanzando anzuelo...</span>
+            </div>
+            
+            <!-- La Barra Vertical -->
+            <div class="bar-container">
+                <div class="progress-track"></div>
+                
+                <!-- Zonas de Color (Generadas por JS) -->
+                <div id="zone-perfect" class="zone rainbow"></div>
+                <div id="zone-good" class="zone green"></div>
+                <div id="zone-ok" class="zone yellow"></div>
+                <div id="zone-bad" class="zone orange"></div>
+                <div id="zone-danger" class="zone red"></div>
+                <div id="zone-blackout" class="zone black"></div>
+
+                <!-- El Indicador Blanco (Se mueve solo) -->
+                <div id="fish-indicator" class="indicator"></div>
+            </div>
+
+            <div class="fishing-controls">
+                <!-- BOTÓN DE ACCIÓN ÚNICO -->
+                <button id="btn-reel-in" class="reel-btn">¡CLIC AQUÍ!</button>
+                <button id="btn-cancel-fish" class="cancel-btn">✖ Cancelar</button>
+            </div>
+            
+            <div id="fish-result-msg" class="result-msg"></div>
+        </div>
+    </div>
+
+    <!-- MODAL TERMINAL -->
     <div id="modal-term" class="modal-overlay hidden">
         <div class="term-window">
-            <div class="term-header">WOLFY OS <button id="btn-close-term">✖</button></div>
+            <div class="term-header">WOLFY OS v4.2 <button id="btn-close-term">✖</button></div>
             <div id="term-log" class="term-body"></div>
             <div class="term-input-group">
                 <span>$</span>
