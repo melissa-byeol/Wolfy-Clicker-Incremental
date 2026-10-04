@@ -1,4 +1,4 @@
-// bruhh
+// bruh
 
 // ===== ESTADO DEL JUEGO =====
 const GAME = {
